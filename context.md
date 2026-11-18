@@ -10,9 +10,10 @@ Read this before making any change to this repo. It explains what the organizati
 
 - **Name:** Mercy Works Outreach (decided Nov 18, 2026). It replaces the earlier working name "Face of Jesus Ministry."
 - **Website:** mercyworksoutreach.org
-- **Location:** Minneapolis, Minnesota and the surrounding area
+- **Location:** The Twin Cities (Minneapolis, Minnesota and the surrounding area)
+- **Public address and EIN (shown in the site footer):** 323 Washington Ave N, Ste 200, Minneapolis, MN 55401 (the registered office in the Articles). EIN 43-3046884.
 - **Founder:** Dylan Brown, CPA. Dylan Brown CPA LLC is the incorporator.
-- **Type:** A street outreach ministry rooted in Catholic faith. Incorporated as a Minnesota nonprofit corporation on Nov 18, 2026 (file number 1691131200023). It will apply for 501(c)(3) status.
+- **Type:** A Catholic ministry serving people experiencing homelessness. Incorporated as a Minnesota nonprofit corporation on Nov 18, 2026 (file number 1691131200023). It will apply for 501(c)(3) status.
 - **Public contact:** info@mercyworksoutreach.org (Cloudflare Email Routing, forwards to Dylan).
 
 ### Purpose (bylaws Section 1.3, summarized)
@@ -37,7 +38,7 @@ The main work is giving out **clothing, blankets, hygiene items and food** to pe
 | 9 | Register with the MN Attorney General; apply for the MN sales tax exemption | ⏳ Not yet |
 | 10 | Get insurance quotes | ⏳ Not yet |
 
-**How the site describes the ministry (Dylan, Nov 18, 2026):** call it "an outreach ministry," not "a Christian outreach ministry." Its Catholic identity is stated in the tenets list and in the phrase "as an expression of Catholic faith." (The Articles of Incorporation say "Christian faith"; that is the legal text and stays as filed.)
+**How the site describes the ministry (Dylan, Nov 18, 2026):** the home page opens "Mercy Works Outreach is a Catholic ministry serving people experiencing homelessness in the Twin Cities." Say "Catholic," not "Christian." In lists of what is given out, food comes first: food, clothing, blankets, hygiene items. (The Articles of Incorporation say "Christian faith"; that is the legal text and stays as filed.)
 
 **Important for website copy:** Until the IRS issues a determination letter, the site must **not** say the organization is a 501(c)(3) or that donations are tax-deductible. The Articles are filed, so "incorporated" and "Minnesota nonprofit corporation" are accurate. Update this table as steps are completed. (The home page no longer shows this list.)
 
@@ -78,7 +79,7 @@ The tenets lead directly to these rules:
   - Logo: the "I Thirst" cup. `/logo.svg` is the stacked full-color version. Full logo at least 150 px wide, with clear space around it. Don't recolor, stretch or add effects.
   - Colors: Mercy Blue `#2A5599` (logo, links), Deep Blue `#1D3F75` (headings, hover), Water Blue `#7FA3D6` (thin rules and accents only, never text), Slate `#5B6472` (secondary text), Mist `#EEF3F9` (light panels), White (most of every page).
   - Type: EB Garamond Medium for headings, Source Sans 3 for body (Regular) and labels (SemiBold).
-  - Don't add blue stripes or bands resembling the Missionaries of Charity sari border, and don't pair the logo with Mother Teresa's name or image. Both are protected.
+  - Don't add blue stripes or bands resembling the Missionaries of Charity sari border, and don't pair the logo with Mother Teresa's name or image. Both are protected. At Dylan's direction (Nov 18, 2026) the home page's Inspiration section names the Missionaries of Charity and St. Mother Teresa and quotes one of her prayers, with the line "We are not affiliated with them." Keep that line, keep her name out of the masthead, footer and logo lockups, and never use her image.
 - **Berkshire-style look:** a single narrow column of text, plain links, lots of white space, almost no imagery beyond the logo. Readable font size, works on phones. The site is light-only (mostly white, one blue, per the brand guide); there is no dark mode.
 - **Accessible and fast:** semantic HTML, good contrast, every page's HTML and CSS well under 100 KB. The three font files add about 130 KB once and are then cached.
 - **Free hosting only:** GitHub Pages. No paid services. (Tenet 3: no admin spending.)
@@ -86,7 +87,7 @@ The tenets lead directly to these rules:
 
 ### What exists now
 ```
-/index.html           Home: what we do, the five tenets, a short note on inspiration
+/index.html           Home: what we do, the five tenets, inspiration (with a prayer of St. Mother Teresa)
 /documents/index.html A plain list of document names. PDFs live in this folder.
 /style.css            The one stylesheet shared by every page
 /logo.svg             Brand logo (stacked, full color)
@@ -95,7 +96,9 @@ The tenets lead directly to these rules:
 /open-graph-share-image-1200x630.png      Icons and link-preview image from the brand kit
 ```
 - "Contact" in the menu is a `mailto:` link to info@mercyworksoutreach.org. There is no contact page or section.
-- The documents page shows names only, no descriptions.
+- The documents page shows names only, no descriptions. Published: Articles of Incorporation. Placeholders: Bylaws, Guiding Principles, Organization Policies, Participant Waiver, Current Board Leadership, Board Meeting Minutes, Quarterly Financial Reports, Annual Financial Reports and Tax Return.
+- The IRS EIN letter is not published (removed at Dylan's request); the EIN appears in the footer instead.
+- The footer on every page carries the organization's name, full address and EIN. The city is not repeated under the logo.
 - Placeholders on the documents page are plain text marked "Coming", not dead links. When a document exists, add the file and turn the placeholder into a link.
 - `Formation_Docs/` is Dylan's local drop folder for originals and is git-ignored. Copy a file into `documents/` with a lowercase-hyphenated name to publish it. Read every document for private data before publishing.
 
