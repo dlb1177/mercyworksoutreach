@@ -84,10 +84,11 @@ The tenets lead directly to these rules:
 - **Follow the brand kit** (v1, November 2026; Dylan keeps the full kit locally in `MercyWorksOutreach_BrandKit/`, which is git-ignored):
   - Logo: the "I Thirst" cup. `/logo.svg` is the stacked full-color version. Full logo at least 150 px wide, with clear space around it. Don't recolor, stretch or add effects.
   - Colors: Mercy Blue `#2A5599` (logo, links), Deep Blue `#1D3F75` (headings, hover), Water Blue `#7FA3D6` (thin rules and accents only, never text), Slate `#5B6472` (secondary text), Mist `#EEF3F9` (light panels), White (most of every page).
-  - Type: EB Garamond Medium for headings, Source Sans 3 for body (Regular) and labels (SemiBold).
+  - Type: EB Garamond Medium for headings, EB Garamond Regular for the tagline, the vision statement and the prayer, Source Sans 3 for body (Regular) and labels (SemiBold).
+  - The page has one plain 6 px band of Mercy Blue across the top. Keep it a single solid band. A co-founder suggested a sari-stripe border (Nov 18, 2026); it was not built because the three-stripe blue border is the Missionaries of Charity's registered trademark and this ministry is not affiliated with them. Revisit only with their written permission.
   - Don't add blue stripes or bands resembling the Missionaries of Charity sari border, and don't pair the logo with Mother Teresa's name or image. Both are protected. At Dylan's direction (Nov 18, 2026) the home page's Inspiration section names the Missionaries of Charity and St. Mother Teresa and quotes one of her prayers, with the line "We are not affiliated with them." Keep that line, keep her name out of the masthead, footer and logo lockups, and never use her image.
 - **Berkshire-style look:** a single narrow column of text, plain links, lots of white space, almost no imagery beyond the logo. Readable font size, works on phones. The site is light-only (mostly white, one blue, per the brand guide); there is no dark mode.
-- **Accessible and fast:** semantic HTML, good contrast, every page's HTML and CSS well under 100 KB. The three font files add about 130 KB once and are then cached.
+- **Accessible and fast:** semantic HTML, good contrast, every page's HTML and CSS well under 100 KB. The four font files add about 185 KB once and are then cached.
 - **Free hosting only:** GitHub Pages. No paid services. (Tenet 3: no admin spending.)
 - **Honest copy:** short, factual, warm. No marketing language and no claims that aren't true yet (see the formation status above).
 
@@ -97,14 +98,14 @@ The tenets lead directly to these rules:
 /documents/index.html A plain list of document names. PDFs live in this folder.
 /style.css            The one stylesheet shared by every page
 /logo.svg             Brand logo (stacked, full color)
-/fonts/               EB Garamond Medium, Source Sans 3 Regular and SemiBold, with their licenses
+/fonts/               EB Garamond Regular and Medium, Source Sans 3 Regular and SemiBold, with their licenses
 /favicon.*, /apple-touch-icon.png, /android-chrome-*.png, /site.webmanifest,
 /open-graph-share-image-1200x630.png      Icons and link-preview image from the brand kit
 ```
 - "Contact" in the menu is a `mailto:` link to info@mercyworksoutreach.org. There is no contact page or section.
 - The documents page shows names only, no descriptions. Published: Articles of Incorporation. Placeholders: Bylaws, Guiding Principles, Organization Policies, Participant Waiver, Current Board Leadership, Board Meeting Minutes, Quarterly Financial Reports, Annual Financial Reports and Tax Return.
 - The IRS EIN letter is not published (removed at Dylan's request); the EIN appears in the footer instead.
-- The footer on every page carries the organization's name, full address and EIN. The city is not repeated under the logo.
+- The footer on every page is a full-width Mist band carrying the organization's name, full address and EIN. The city is not repeated under the logo.
 - Placeholders on the documents page are plain text marked "Coming", not dead links. When a document exists, add the file and turn the placeholder into a link.
 - `Formation_Docs/` is Dylan's local drop folder for originals and is git-ignored. Copy a file into `documents/` with a lowercase-hyphenated name to publish it. Read every document for private data before publishing.
 

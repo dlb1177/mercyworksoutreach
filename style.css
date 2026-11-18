@@ -3,6 +3,13 @@
 
 @font-face {
   font-family: "EB Garamond";
+  src: url("fonts/EBGaramond-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "EB Garamond";
   src: url("fonts/EBGaramond-Medium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
@@ -33,6 +40,7 @@
   --mist:       #EEF3F9;  /* light section backgrounds */
   --white:      #FFFFFF;
   --ink:        #1F2430;  /* body text */
+  --hairline:   rgba(127, 163, 214, 0.5);  /* Water Blue at half strength, for quiet rules */
 
   --font-heading: "EB Garamond", Georgia, serif;
   --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -44,24 +52,34 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   font-family: var(--font-body);
   font-size: 18px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--ink);
   background: var(--white);
+  /* One plain band of Mercy Blue. Keep it a single solid band: no stripes
+     (see the brand guide's note on the Missionaries of Charity sari border). */
+  border-top: 6px solid var(--mercy-blue);
 }
+
+::selection { background: var(--mist); color: var(--deep-blue); }
 
 .page {
-  max-width: 660px;
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: 684px;
   margin: 0 auto;
-  padding: 56px 24px 48px;
+  padding: 52px 24px 72px;
 }
 
-a { color: var(--mercy-blue); text-underline-offset: 0.15em; text-decoration-thickness: 1px; }
+a { color: var(--mercy-blue); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
 a:hover { color: var(--deep-blue); text-decoration-thickness: 2px; }
-a:focus-visible { outline: 2px solid var(--mercy-blue); outline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--mercy-blue); outline-offset: 3px; border-radius: 2px; }
 
-p { margin: 0 0 1em; }
+p { margin: 0 0 1em; text-wrap: pretty; }
 
 strong, b { font-weight: 600; }
 
@@ -71,19 +89,33 @@ strong, b { font-weight: 600; }
 .masthead .logo { margin: 0; line-height: 0; }
 .masthead .logo img { display: block; margin: 0 auto; width: 230px; max-width: 100%; height: auto; }
 .masthead .logo a { display: inline-block; }
+
 .masthead .tagline {
-  margin: 20px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 24px 0 0;
   font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 1.35rem;
+  font-weight: 400;
+  font-size: 1.32rem;
   line-height: 1.3;
+  letter-spacing: 0.015em;
   color: var(--slate);
 }
+.masthead .tagline::before,
+.masthead .tagline::after {
+  content: "";
+  flex: 0 0 34px;
+  height: 1px;
+  background: var(--water-blue);
+}
+
 .masthead nav {
-  margin: 30px 0 46px;
-  padding: 10px 0;
-  border-top: 1px solid var(--water-blue);
-  border-bottom: 1px solid var(--water-blue);
+  margin: 30px 0 52px;
+  padding: 11px 0;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -91,50 +123,63 @@ strong, b { font-weight: 600; }
 }
 .masthead nav a {
   display: inline-block;
-  margin: 0 14px;
+  margin: 0 16px;
   padding: 4px 0;
   color: var(--slate);
   text-decoration: none;
+  border-bottom: 2px solid transparent;
 }
 .masthead nav a:hover { color: var(--deep-blue); }
-.masthead nav a[aria-current="page"] { color: var(--mercy-blue); }
+.masthead nav a[aria-current="page"] { color: var(--mercy-blue); border-bottom-color: var(--water-blue); }
 
 /* Text */
 
 h1.title {
   font-family: var(--font-heading);
-  font-size: 2.3rem;
+  font-size: 2.5rem;
   font-weight: 500;
   line-height: 1.15;
   color: var(--deep-blue);
-  margin: 0 0 22px;
+  margin: 0 0 26px;
 }
 
 h2 {
   font-family: var(--font-heading);
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 500;
   line-height: 1.2;
   color: var(--deep-blue);
-  margin: 52px 0 14px;
+  margin: 68px 0 16px;
+}
+/* A short accent rule above each section heading */
+h2::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 2px;
+  margin-bottom: 18px;
+  background: var(--water-blue);
 }
 
 .lede {
   font-family: var(--font-heading);
   font-weight: 500;
-  font-size: 1.5rem;
-  line-height: 1.4;
+  font-size: 1.62rem;
+  line-height: 1.38;
   color: var(--deep-blue);
+  text-wrap: balance;
 }
+
+/* The "new and still forming" notice */
 
 .notice {
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  margin: 28px 0 0;
+  margin: 30px 0 0;
   padding: 18px 22px;
   background: var(--mist);
-  border: 1px solid var(--water-blue);
+  border: 1px solid var(--hairline);
   border-left: 5px solid var(--mercy-blue);
   border-radius: 10px;
 }
@@ -142,72 +187,105 @@ h2 {
 .notice strong { color: var(--deep-blue); }
 .notice-icon { flex: 0 0 auto; margin-top: 1px; }
 
-/* Prayer */
+/* The vision statement in "What we do" */
 
-.prayer {
-  margin: 28px 0 0;
-  padding: 4px 0 4px 24px;
+.vision {
+  margin: 1.5em 0;
+  padding: 2px 0 2px 24px;
   border-left: 2px solid var(--water-blue);
   font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 1.3rem;
-  line-height: 1.45;
+  font-weight: 400;
+  font-size: 1.42rem;
+  line-height: 1.42;
   color: var(--deep-blue);
-}
-.prayer p { margin: 0; }
-.prayer footer {
-  margin: 14px 0 0;
-  padding: 0;
-  border: 0;
-  text-align: left;
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--slate);
 }
 
 /* The five tenets */
 
-.tenets { list-style: none; margin: 0; padding: 0; counter-reset: tenet; }
+.tenets { list-style: none; margin: 26px 0 0; padding: 0; counter-reset: tenet; }
 .tenets li {
   counter-increment: tenet;
   position: relative;
-  padding-left: 44px;
-  margin: 0 0 22px;
+  padding: 0 0 24px 58px;
+  margin: 0 0 24px;
+  border-bottom: 1px solid var(--hairline);
 }
+.tenets li:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
 .tenets li::before {
   content: counter(tenet);
   position: absolute;
-  left: 0;
-  top: -0.28em;
+  left: 2px;
+  top: -0.14em;
   font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 2rem;
-  line-height: 1.3;
-  color: var(--mercy-blue);
+  font-weight: 400;
+  font-size: 2.7rem;
+  line-height: 1;
+  color: var(--water-blue);
 }
-.tenets strong { display: block; }
+.tenets h3 {
+  font-family: var(--font-heading);
+  font-size: 1.42rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--deep-blue);
+  margin: 0 0 6px;
+}
 .tenets p { margin: 0; }
+
+/* Prayer */
+
+.prayer {
+  margin: 32px 0 0;
+  padding: 38px 24px 34px;
+  background: var(--mist);
+  border-radius: 10px;
+  text-align: center;
+}
+.prayer p {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 1.36rem;
+  line-height: 1.5;
+  color: var(--deep-blue);
+}
+.prayer .by {
+  margin: 22px 0 0;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+.prayer .by::before {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 1px;
+  margin: 0 auto 16px;
+  background: var(--water-blue);
+}
 
 /* Document list */
 
-.rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--water-blue); }
+.rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hairline); }
 .rows li {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: baseline;
   gap: 2px 20px;
-  padding: 13px 0;
-  border-bottom: 1px solid var(--water-blue);
+  padding: 14px 2px;
+  border-bottom: 1px solid var(--hairline);
 }
+.rows a { font-weight: 600; }
 .rows .pending { color: var(--slate); }
 .rows .meta {
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--slate);
   white-space: nowrap;
@@ -215,24 +293,43 @@ h2 {
 
 /* Footer */
 
-footer {
-  margin-top: 64px;
-  padding-top: 16px;
-  border-top: 1px solid var(--water-blue);
-  font-size: 0.85rem;
+.site-footer {
+  flex: 0 0 auto;
+  padding: 30px 24px 34px;
+  background: var(--mist);
+  font-size: 0.88rem;
+  line-height: 1.5;
   color: var(--slate);
   text-align: center;
 }
-footer p { margin: 0 0 4px; }
+.site-footer p { margin: 0 0 3px; }
+.site-footer .org {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.2rem;
+  color: var(--deep-blue);
+  margin-bottom: 6px;
+}
 
 @media (max-width: 480px) {
   body { font-size: 17px; }
-  .page { padding: 40px 20px 40px; }
-  .masthead nav a { margin: 0 9px; }
-  .lede { font-size: 1.35rem; }
-  h1.title { font-size: 2rem; }
+  .page { padding: 38px 20px 56px; }
+  .masthead .logo img { width: 200px; }
+  .masthead .tagline { font-size: 1.2rem; gap: 12px; }
+  .masthead .tagline::before, .masthead .tagline::after { flex-basis: 22px; }
+  .masthead nav { margin-bottom: 40px; }
+  .masthead nav a { margin: 0 10px; }
+  .lede { font-size: 1.42rem; }
+  h1.title { font-size: 2.1rem; }
+  h2 { font-size: 1.75rem; margin-top: 56px; }
+  .vision { font-size: 1.3rem; padding-left: 18px; }
+  .tenets li { padding-left: 46px; }
+  .tenets li::before { font-size: 2.3rem; }
+  .prayer { padding: 30px 14px 28px; }
+  .prayer p { font-size: 1.24rem; }
 }
 
 @media print {
+  body { border-top: 0; }
   .masthead nav { display: none; }
 }
