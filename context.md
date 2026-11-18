@@ -19,6 +19,9 @@ Read this before making any change to this repo. It explains what the organizati
 ### Purpose (bylaws Section 1.3, summarized)
 The main work is giving out **clothing, blankets, hygiene items and food** to people in need. Volunteers also offer **prayer, Bibles and devotional materials** to anyone who wants them. The bylaws word the purpose a little more broadly than today's work, to leave room to grow later.
 
+### Vision (from the co-founder, Nov 2026)
+The ministry does not solve the problem of homelessness. It dignifies each person by name, with a momentary break from hunger, thirst and cold, and from despair, invisibility and hopelessness. This appears in the home page's "What we do" section.
+
 ### Governance (draft bylaws)
 - **Board (Article III):** 3 to 7 directors serving staggered two-year terms. A majority must not be related to each other.
 - **Officers (Article V):** president, treasurer and secretary. One person may be both treasurer and secretary, but the president can't also be the treasurer. Proposed: Dylan as secretary/treasurer and a co-founder as president. This becomes final at the first board meeting.
