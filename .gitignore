@@ -4,5 +4,6 @@
 # One-time launch instructions, not part of the site
 PROMPT.md
 
-# Local drop folder for originals; published copies live in documents/
+# Local source folders; published copies live in documents/, fonts/ and the site root
 Formation_Docs/
+MercyWorksOutreach_BrandKit/

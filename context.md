@@ -12,7 +12,7 @@ Read this before making any change to this repo. It explains what the organizati
 - **Website:** mercyworksoutreach.org
 - **Location:** Minneapolis, Minnesota and the surrounding area
 - **Founder:** Dylan Brown, CPA. Dylan Brown CPA LLC is the incorporator.
-- **Type:** A Christian street outreach ministry. Incorporated as a Minnesota nonprofit corporation on Nov 18, 2026 (file number 1691131200023). It will apply for 501(c)(3) status.
+- **Type:** A street outreach ministry rooted in Catholic faith. Incorporated as a Minnesota nonprofit corporation on Nov 18, 2026 (file number 1691131200023). It will apply for 501(c)(3) status.
 - **Public contact:** info@mercyworksoutreach.org (Cloudflare Email Routing, forwards to Dylan).
 
 ### Purpose (bylaws Section 1.3, summarized)
@@ -37,28 +37,33 @@ The main work is giving out **clothing, blankets, hygiene items and food** to pe
 | 9 | Register with the MN Attorney General; apply for the MN sales tax exemption | ⏳ Not yet |
 | 10 | Get insurance quotes | ⏳ Not yet |
 
-**Important for website copy:** Until the IRS issues a determination letter, the site must **not** say the organization is a 501(c)(3) or that donations are tax-deductible. The Articles are filed, so "incorporated" and "Minnesota nonprofit corporation" are accurate. Update this table as steps are completed, **and update the matching "Where things stand" list on the home page at the same time.**
+**How the site describes the ministry (Dylan, Nov 18, 2026):** call it "an outreach ministry," not "a Christian outreach ministry." Its Catholic identity is stated in the tenets list and in the phrase "as an expression of Catholic faith." (The Articles of Incorporation say "Christian faith"; that is the legal text and stays as filed.)
+
+**Important for website copy:** Until the IRS issues a determination letter, the site must **not** say the organization is a 501(c)(3) or that donations are tax-deductible. The Articles are filed, so "incorporated" and "Minnesota nonprofit corporation" are accurate. Update this table as steps are completed. (The home page no longer shows this list.)
 
 ---
 
 ## 2. The five core tenets (in Dylan's words, lightly condensed)
 
-### 1. Radical transparency
-The website should be extremely simple and to the point. Outsiders, including donors, can see all formation documents, meeting minutes, and **every single transaction line item and all financial data**. That goes far beyond what nonprofits are required to disclose, so anyone who supports the ministry can see down to the penny where the money goes. With today's AI and financial-reporting tools this is finally achievable for an organization of any size, and it could be the first nonprofit to do it.
+Listed in priority order, most important first. The site lists them in this same order.
 
-**Inspiration:** Warren Buffett's Berkshire Hathaway website: no-frills, no-nonsense, with links back to every historical shareholder letter. Take that model with a slightly updated design.
+### 1. Fearless without being careless
+Never let fear get in the way of serving people directly. Approach every person the way Jesus would: get down to their level, don't be afraid to touch them or talk with them closely, and treat them with dignity, one to one, like a member of your own family. Always stay aware of your surroundings and put safety first.
 
-### 2. 100% volunteer-run
-Zero payroll, ever. This is a healthy limit most organizations wouldn't choose. It keeps the ministry from growing out of control and keeps it close to the ethos of the Missionaries of Charity.
+### 2. Focused on the core mission
+Do exactly what Section 1.3 of the bylaws says and nothing more. Expand into other services only if every corner of Minneapolis and the surrounding area has been served as fully as possible, which is unlikely given how much need there is.
 
 ### 3. Highly efficient
 No money goes to non-program costs (fundraising, advertising, administration) beyond the minimum administrative fees the law requires. Choose simple systems over complex ones and traditional technology over complicated technology. Learn from the Missionaries of Charity's careful use of resources.
 
-### 4. Focused on the core mission
-Do exactly what Section 1.3 of the bylaws says and nothing more. Expand into other services only if every corner of Minneapolis and the surrounding area has been served as fully as possible, which is unlikely given how much need there is.
+### 4. 100% volunteer-run
+Zero payroll, ever. This is a healthy limit most organizations wouldn't choose. It keeps the ministry from growing out of control and keeps it close to the ethos of the Missionaries of Charity.
 
-### 5. Fearless without being careless
-Never let fear get in the way of serving people directly. Approach every person the way Jesus would: get down to their level, don't be afraid to touch them or talk with them closely, and treat them with dignity, one to one, like a member of your own family. Always stay aware of your surroundings and put safety first.
+### 5. Radical transparency
+The website should be extremely simple and to the point. Outsiders, including donors, can see all formation documents, meeting minutes, and **every single transaction line item and all financial data**. That goes far beyond what nonprofits are required to disclose, so anyone who supports the ministry can see down to the penny where the money goes. With today's AI and financial-reporting tools this is finally achievable for an organization of any size, and it could be the first nonprofit to do it.
+
+**Inspiration:** Warren Buffett's Berkshire Hathaway website: no-frills, no-nonsense, with links back to every historical shareholder letter. Take that model with a slightly updated design.
+
 
 ---
 
@@ -66,23 +71,32 @@ Never let fear get in the way of serving people directly. Approach every person 
 
 The tenets lead directly to these rules:
 
-- **Plain HTML and CSS only.** No frameworks, no build step, no npm, no static-site generator. Every page is a hand-editable `.html` file. (Tenet 3: simple over complex.)
+- **Plain HTML and CSS only.** No frameworks, no build step, no npm, no static-site generator. Every page is a hand-editable `.html` file. (Tenet 3, highly efficient: simple over complex.)
 - **No JavaScript** unless a feature truly can't work without it, and even then keep it small and inline.
-- **No tracking, analytics, cookies, ads, pop-ups, or third-party scripts and fonts.** Use system fonts (Georgia/serif for the Berkshire feel).
-- **Berkshire-style look:** a single narrow column of text, plain links, lots of white space, almost no imagery. A slightly modern update is fine: readable font size, works on phones, supports dark mode.
-- **Accessible and fast:** semantic HTML, good contrast, every page well under 100 KB.
+- **No tracking, analytics, cookies, ads, pop-ups, or third-party scripts and fonts.** The brand fonts are served from this site's own `/fonts` folder. Never load them from Google Fonts (the `@import` line in the brand kit's `brand-colors.css` is not used).
+- **Follow the brand kit** (v1, November 2026; Dylan keeps the full kit locally in `MercyWorksOutreach_BrandKit/`, which is git-ignored):
+  - Logo: the "I Thirst" cup. `/logo.svg` is the stacked full-color version. Full logo at least 150 px wide, with clear space around it. Don't recolor, stretch or add effects.
+  - Colors: Mercy Blue `#2A5599` (logo, links), Deep Blue `#1D3F75` (headings, hover), Water Blue `#7FA3D6` (thin rules and accents only, never text), Slate `#5B6472` (secondary text), Mist `#EEF3F9` (light panels), White (most of every page).
+  - Type: EB Garamond Medium for headings, Source Sans 3 for body (Regular) and labels (SemiBold).
+  - Don't add blue stripes or bands resembling the Missionaries of Charity sari border, and don't pair the logo with Mother Teresa's name or image. Both are protected.
+- **Berkshire-style look:** a single narrow column of text, plain links, lots of white space, almost no imagery beyond the logo. Readable font size, works on phones. The site is light-only (mostly white, one blue, per the brand guide); there is no dark mode.
+- **Accessible and fast:** semantic HTML, good contrast, every page's HTML and CSS well under 100 KB. The three font files add about 130 KB once and are then cached.
 - **Free hosting only:** GitHub Pages. No paid services. (Tenet 3: no admin spending.)
 - **Honest copy:** short, factual, warm. No marketing language and no claims that aren't true yet (see the formation status above).
 
 ### What exists now
 ```
-/index.html           Home: what we do, the five tenets, links to documents, formation status, contact
-/documents/index.html Links page: formation documents (PDFs live in this folder), plus placeholders
-                      for bylaws, board meeting minutes and quarterly financial reports
+/index.html           Home: what we do, the five tenets, a short note on inspiration
+/documents/index.html A plain list of document names. PDFs live in this folder.
 /style.css            The one stylesheet shared by every page
-/logo.svg             PLACEHOLDER logo (cross in a ring). Replace the file, keep the name.
+/logo.svg             Brand logo (stacked, full color)
+/fonts/               EB Garamond Medium, Source Sans 3 Regular and SemiBold, with their licenses
+/favicon.*, /apple-touch-icon.png, /android-chrome-*.png, /site.webmanifest,
+/open-graph-share-image-1200x630.png      Icons and link-preview image from the brand kit
 ```
-- Placeholders on the documents page are plain text marked "Not yet published", not dead links. When a document exists, add the file and turn the placeholder into a link.
+- "Contact" in the menu is a `mailto:` link to info@mercyworksoutreach.org. There is no contact page or section.
+- The documents page shows names only, no descriptions.
+- Placeholders on the documents page are plain text marked "Coming", not dead links. When a document exists, add the file and turn the placeholder into a link.
 - `Formation_Docs/` is Dylan's local drop folder for originals and is git-ignored. Copy a file into `documents/` with a lowercase-hyphenated name to publish it. Read every document for private data before publishing.
 
 ### Planned site structure (build when asked; don't build ahead)
@@ -106,5 +120,5 @@ The tenets lead directly to these rules:
 - **Host:** GitHub Pages, deploying from the `main` branch, root folder. The `.nojekyll` file tells GitHub to serve files as-is.
 - **Custom domain:** `mercyworksoutreach.org` (registered at Cloudflare Nov 18, 2026), connected through the `CNAME` file in the repo root. DNS records must stay "DNS only" (grey cloud) in Cloudflare, not proxied.
   - DNS at the registrar: four **A** records for `@` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`; one **CNAME** for `www` → `dlb1177.github.io`.
-  - Turn on "Enforce HTTPS" in Settings → Pages once DNS resolves.
+  - "Enforce HTTPS" is on (certificate issued Nov 18, 2026; GitHub renews it automatically).
 - **Workflow:** edit → `git commit` → `git push` → the site is live in about a minute. No build step.

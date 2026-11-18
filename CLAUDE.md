@@ -7,6 +7,7 @@ This repo is the website for Mercy Works Outreach (mercyworksoutreach.org).
 Quick rules:
 - Plain HTML and CSS only. No frameworks, no build step, no tracking or third-party scripts.
 - Keep the Berkshire Hathaway–style look: simple, text-first, no frills.
+- Use the brand kit's logo, colors and fonts as described in `context.md`. Fonts are served from `/fonts`, never from Google Fonts.
 - Never claim 501(c)(3) status or tax-deductibility until `context.md` says the IRS determination letter has arrived.
 - Never publish private data: bank account numbers, donor names without consent, or details of the people served.
 - When a formation step is completed, update the status table in `context.md`.
