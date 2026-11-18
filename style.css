@@ -1,0 +1,185 @@
+/* Mercy Works Outreach — one stylesheet for every page. Plain CSS, no build step. */
+
+:root {
+  color-scheme: light dark;
+  --paper: #fbfaf6;
+  --ink: #1d1c1a;
+  --muted: #6a665e;
+  --rule: #dcd8ce;
+  --wash: #f3f0e7;
+  --accent: #7b2d26;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #161513;
+    --ink: #e9e6df;
+    --muted: #a09b91;
+    --rule: #3a3733;
+    --wash: #1f1d1a;
+    --accent: #e0a196;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.page {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 56px 24px 48px;
+}
+
+a { color: var(--accent); text-underline-offset: 0.15em; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+p { margin: 0 0 1em; }
+
+/* Masthead */
+
+.masthead { text-align: center; }
+.masthead img { display: block; margin: 0 auto 18px; }
+.masthead .name {
+  font-size: 2.1rem;
+  font-weight: normal;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  margin: 0 0 6px;
+}
+.masthead .name a { color: inherit; text-decoration: none; }
+.masthead .place { color: var(--muted); margin: 0; }
+
+.masthead nav {
+  margin: 28px 0 44px;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.masthead nav a {
+  display: inline-block;
+  margin: 0 14px;
+  padding: 4px 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+.masthead nav a:hover { color: var(--accent); }
+.masthead nav a[aria-current="page"] { color: var(--accent); }
+
+/* Text */
+
+h1.title {
+  font-size: 1.6rem;
+  font-weight: normal;
+  line-height: 1.25;
+  margin: 0 0 12px;
+}
+
+h2 {
+  font-size: 0.8rem;
+  font-weight: bold;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 52px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.lede { font-size: 1.2rem; line-height: 1.55; }
+
+.notice {
+  margin: 28px 0 0;
+  padding: 16px 20px;
+  background: var(--wash);
+  border-left: 3px solid var(--accent);
+}
+
+.small { font-size: 0.9rem; color: var(--muted); }
+.after-rows { margin-top: 16px; }
+
+/* The five tenets */
+
+.tenets { list-style: none; margin: 0; padding: 0; counter-reset: tenet; }
+.tenets li {
+  counter-increment: tenet;
+  position: relative;
+  padding-left: 44px;
+  margin: 0 0 22px;
+}
+.tenets li::before {
+  content: counter(tenet);
+  position: absolute;
+  left: 0;
+  top: -0.2em;
+  font-size: 1.7rem;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.tenets strong { display: block; }
+.tenets p { margin: 0; }
+
+/* Lists of links, documents and formation steps */
+
+.rows { list-style: none; margin: 0; padding: 0; }
+.rows li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2px 20px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.rows li:first-child { padding-top: 0; }
+.rows .what { flex: 1 1 320px; }
+.rows .meta {
+  flex: 0 0 auto;
+  font-size: 0.85rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.rows .about {
+  flex: 1 1 100%;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.rows .done { color: var(--ink); }
+.rows .pending { color: var(--muted); }
+
+/* Footer */
+
+footer {
+  margin-top: 64px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+}
+footer p { margin: 0 0 4px; }
+
+@media (max-width: 480px) {
+  body { font-size: 17px; }
+  .page { padding: 40px 20px 40px; }
+  .masthead .name { font-size: 1.75rem; }
+  .masthead nav a { margin: 0 9px; }
+}
+
+@media print {
+  .masthead nav { display: none; }
+  body { background: #fff; color: #000; }
+}

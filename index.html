@@ -4,80 +4,132 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mercy Works Outreach</title>
-  <meta name="description" content="Mercy Works Outreach — a volunteer-run street outreach ministry in Minneapolis. Website under construction.">
-  <style>
-    :root { color-scheme: light dark; }
-    body {
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 18px;
-      line-height: 1.6;
-      color: #1a1a1a;
-      background: #fdfcf8;
-    }
-    main {
-      max-width: 620px;
-      margin: 0 auto;
-      padding: 64px 24px 48px;
-    }
-    h1 {
-      font-size: 2rem;
-      font-weight: normal;
-      letter-spacing: 0.01em;
-      margin: 0 0 4px;
-    }
-    .place { color: #666; margin: 0 0 40px; }
-    .notice {
-      border-top: 1px solid #ccc;
-      border-bottom: 1px solid #ccc;
-      padding: 16px 0;
-      margin: 0 0 32px;
-    }
-    h2 { font-size: 1.1rem; font-weight: bold; margin: 32px 0 8px; }
-    ul { padding-left: 20px; margin: 0; }
-    li { margin: 4px 0; }
-    .soon { color: #888; }
-    footer {
-      margin-top: 48px;
-      padding-top: 16px;
-      border-top: 1px solid #ccc;
-      font-size: 0.85rem;
-      color: #666;
-    }
-    @media (prefers-color-scheme: dark) {
-      body { color: #e8e6e1; background: #161616; }
-      .place, footer { color: #999; }
-      .soon { color: #777; }
-      .notice, footer { border-color: #444; }
-    }
-  </style>
+  <meta name="description" content="Mercy Works Outreach is a volunteer-run Christian street outreach ministry in Minneapolis, giving clothing, blankets, hygiene items and food to people in need.">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main>
-    <h1>Mercy Works Outreach</h1>
-    <p class="place">Minneapolis, Minnesota</p>
+  <div class="page">
 
-    <p class="notice"><strong>This website is under construction.</strong> We are in the process of forming the organization. Check back soon.</p>
+    <header class="masthead">
+      <img src="logo.svg" alt="" width="76" height="76">
+      <h1 class="name">Mercy Works Outreach</h1>
+      <p class="place">Minneapolis, Minnesota</p>
+      <nav aria-label="Site">
+        <a href="./" aria-current="page">Home</a>
+        <a href="documents/">Documents</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </header>
 
-    <p>Mercy Works Outreach brings clothing, blankets, hygiene items and food to people in need on the streets of Minneapolis and the surrounding area, one person at a time. Prayer, Bibles and devotional materials are offered to anyone who wants them.</p>
+    <main>
+      <p class="lede">Mercy Works Outreach is a Christian street outreach ministry. We bring clothing, blankets, hygiene items and food to people in need in Minneapolis and the surrounding area, free of charge and one person at a time.</p>
 
-    <h2>What we hold to</h2>
-    <ul>
-      <li>Radical transparency</li>
-      <li>100% volunteer-run</li>
-      <li>Highly efficient</li>
-      <li>Focused on the core mission</li>
-      <li>Fearless without being careless</li>
-    </ul>
+      <p class="notice"><strong>New and still forming.</strong> Mercy Works Outreach was incorporated as a Minnesota nonprofit corporation on November 18, 2026. The steps still ahead are <a href="#status">listed below</a>, and this site will fill in as each one is finished.</p>
 
-    <h2>Coming to this site</h2>
-    <ul class="soon">
-      <li>Formation documents and bylaws</li>
-      <li>Board meeting minutes</li>
-      <li>Every financial transaction, line by line</li>
-    </ul>
+      <h2 id="work">What we do</h2>
+      <p>We go to people where they are and give them what they need that day: clothing, blankets, hygiene items, food and other necessities. Everything is given freely.</p>
+      <p>As an expression of Christian faith, volunteers also offer prayer, Bibles and devotional materials to anyone who wishes to receive them.</p>
 
-    <footer>&copy; 2026 Mercy Works Outreach</footer>
-  </main>
+      <h2 id="tenets">What we hold to</h2>
+      <ol class="tenets">
+        <li>
+          <strong>Radical transparency</strong>
+          <p>We publish our formation documents, our board minutes and every transaction, down to the penny. That is far more than the law asks of a nonprofit. Anyone who supports this work should be able to see exactly where the money goes.</p>
+        </li>
+        <li>
+          <strong>100% volunteer-run</strong>
+          <p>No one is paid, and no one ever will be. The limit keeps the ministry small and personal, close to the example of the Missionaries of Charity.</p>
+        </li>
+        <li>
+          <strong>Highly efficient</strong>
+          <p>We spend nothing on fundraising, advertising or administration beyond the minimum fees the law requires. We choose simple systems over complicated ones.</p>
+        </li>
+        <li>
+          <strong>Focused on the core mission</strong>
+          <p>We do what our articles of incorporation describe and nothing more. There is more than enough need in Minneapolis to keep us at it.</p>
+        </li>
+        <li>
+          <strong>Fearless without being careless</strong>
+          <p>We try to meet each person the way Jesus would: at their level, close up, with dignity, like a member of our own family. We don't let fear keep us from serving, and we stay aware of our surroundings and put safety first.</p>
+        </li>
+      </ol>
+
+      <h2 id="books">Open books</h2>
+      <ul class="rows">
+        <li>
+          <span class="what"><a href="documents/#formation">Formation documents</a></span>
+          <span class="meta">2 published</span>
+        </li>
+        <li>
+          <span class="what"><a href="documents/#bylaws">Bylaws</a></span>
+          <span class="meta">Not yet published</span>
+        </li>
+        <li>
+          <span class="what"><a href="documents/#minutes">Board meeting minutes</a></span>
+          <span class="meta">Not yet published</span>
+        </li>
+        <li>
+          <span class="what"><a href="documents/#financials">Quarterly financial reports</a></span>
+          <span class="meta">Not yet published</span>
+        </li>
+      </ul>
+
+      <h2 id="status">Where things stand</h2>
+      <p>Forming a nonprofit takes a number of steps. Here is each one and where it stands as of November 18, 2026.</p>
+      <ul class="rows">
+        <li>
+          <span class="what">Choose a name</span>
+          <span class="meta done">&#10003; Done</span>
+        </li>
+        <li>
+          <span class="what">File <a href="documents/articles-of-incorporation.pdf">Articles of Incorporation</a> with the Minnesota Secretary of State</span>
+          <span class="meta done">&#10003; Done, Nov 18, 2026</span>
+        </li>
+        <li>
+          <span class="what">Get an <a href="documents/ein-letter.pdf">employer identification number</a> from the IRS</span>
+          <span class="meta done">&#10003; Done, Nov 18, 2026</span>
+        </li>
+        <li>
+          <span class="what">Choose the first board of directors</span>
+          <span class="meta">In progress</span>
+        </li>
+        <li>
+          <span class="what">Incorporator elects the board in writing</span>
+          <span class="meta">Not yet</span>
+        </li>
+        <li>
+          <span class="what">Hold the first board meeting: adopt bylaws and a conflict-of-interest policy, and elect officers</span>
+          <span class="meta">Not yet</span>
+        </li>
+        <li>
+          <span class="what">Open a bank account in the organization's name</span>
+          <span class="meta">Not yet</span>
+        </li>
+        <li>
+          <span class="what">Apply to the IRS for 501(c)(3) tax-exempt status</span>
+          <span class="meta">Not yet</span>
+        </li>
+        <li>
+          <span class="what">Register with the Minnesota Attorney General and apply for the state sales tax exemption</span>
+          <span class="meta">Not yet</span>
+        </li>
+        <li>
+          <span class="what">Get insurance quotes</span>
+          <span class="meta">Not yet</span>
+        </li>
+      </ul>
+      <p class="small after-rows">Until the IRS approves that application, Mercy Works Outreach is not a 501(c)(3) organization and gifts to it are not tax-deductible.</p>
+
+      <h2 id="contact">Contact</h2>
+      <p>Write to <a href="mailto:info@mercyworksoutreach.org">info@mercyworksoutreach.org</a>.</p>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 Mercy Works Outreach, a Minnesota nonprofit corporation</p>
+      <p>Minneapolis, Minnesota</p>
+    </footer>
+
+  </div>
 </body>
 </html>

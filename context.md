@@ -12,7 +12,8 @@ Read this before making any change to this repo. It explains what the organizati
 - **Website:** mercyworksoutreach.org
 - **Location:** Minneapolis, Minnesota and the surrounding area
 - **Founder:** Dylan Brown, CPA. Dylan Brown CPA LLC is the incorporator.
-- **Type:** A Christian street outreach ministry, being formed as a Minnesota nonprofit corporation that will apply for 501(c)(3) status.
+- **Type:** A Christian street outreach ministry. Incorporated as a Minnesota nonprofit corporation on Nov 18, 2026 (file number 1691131200023). It will apply for 501(c)(3) status.
+- **Public contact:** info@mercyworksoutreach.org (Cloudflare Email Routing, forwards to Dylan).
 
 ### Purpose (bylaws Section 1.3, summarized)
 The main work is giving out **clothing, blankets, hygiene items and food** to people in need. Volunteers also offer **prayer, Bibles and devotional materials** to anyone who wants them. The bylaws word the purpose a little more broadly than today's work, to leave room to grow later.
@@ -26,8 +27,8 @@ The main work is giving out **clothing, blankets, hygiene items and food** to pe
 | # | Step | Status |
 |---|------|--------|
 | 1 | Choose a name | ✅ Done: Mercy Works Outreach |
-| 2 | Confirm the name is available on the MN Secretary of State site; file Articles of Incorporation ($90 online) | ⏳ Not yet |
-| 3 | Get an EIN from the IRS | ⏳ Not yet |
+| 2 | Confirm the name is available on the MN Secretary of State site; file Articles of Incorporation ($90 online) | ✅ Done: filed Nov 18, 2026 |
+| 3 | Get an EIN from the IRS | ✅ Done: assigned Nov 18, 2026 |
 | 4 | Choose prospective board of directors | ⏳ In progress |
 | 5 | Incorporator signs a written action electing the board | ⏳ Not yet |
 | 6 | First board meeting: adopt bylaws and a conflict-of-interest policy, elect officers, approve a bank account and the tax-exemption application | ⏳ Not yet |
@@ -36,7 +37,7 @@ The main work is giving out **clothing, blankets, hygiene items and food** to pe
 | 9 | Register with the MN Attorney General; apply for the MN sales tax exemption | ⏳ Not yet |
 | 10 | Get insurance quotes | ⏳ Not yet |
 
-**Important for website copy:** Until the IRS issues a determination letter, the site must **not** say the organization is a 501(c)(3) or that donations are tax-deductible. Until the Articles are filed, don't call it "incorporated." Update this table as steps are completed.
+**Important for website copy:** Until the IRS issues a determination letter, the site must **not** say the organization is a 501(c)(3) or that donations are tax-deductible. The Articles are filed, so "incorporated" and "Minnesota nonprofit corporation" are accurate. Update this table as steps are completed, **and update the matching "Where things stand" list on the home page at the same time.**
 
 ---
 
@@ -73,12 +74,21 @@ The tenets lead directly to these rules:
 - **Free hosting only:** GitHub Pages. No paid services. (Tenet 3: no admin spending.)
 - **Honest copy:** short, factual, warm. No marketing language and no claims that aren't true yet (see the formation status above).
 
+### What exists now
+```
+/index.html           Home: what we do, the five tenets, links to documents, formation status, contact
+/documents/index.html Links page: formation documents (PDFs live in this folder), plus placeholders
+                      for bylaws, board meeting minutes and quarterly financial reports
+/style.css            The one stylesheet shared by every page
+/logo.svg             PLACEHOLDER logo (cross in a ring). Replace the file, keep the name.
+```
+- Placeholders on the documents page are plain text marked "Not yet published", not dead links. When a document exists, add the file and turn the placeholder into a link.
+- `Formation_Docs/` is Dylan's local drop folder for originals and is git-ignored. Copy a file into `documents/` with a lowercase-hyphenated name to publish it. Read every document for private data before publishing.
+
 ### Planned site structure (build when asked; don't build ahead)
 ```
-/                     Home: who we are, what we do, the five tenets, links
-/documents/           Articles of Incorporation, bylaws, conflict-of-interest policy, IRS letters (PDFs)
 /minutes/             Board meeting minutes, one PDF or HTML page per meeting, newest first
-/financials/          Every transaction, line by line
+/financials/          Every transaction, line by line; quarterly reports
 /about/               (optional) Longer statement of the tenets
 ```
 
@@ -94,7 +104,7 @@ The tenets lead directly to these rules:
 
 - **GitHub repo:** `dlb1177/mercyworksoutreach` (public). It's set up the same way as Dylan's `alphastpeter.com` site.
 - **Host:** GitHub Pages, deploying from the `main` branch, root folder. The `.nojekyll` file tells GitHub to serve files as-is.
-- **Custom domain:** `mercyworksoutreach.org`, with a `CNAME` file in the repo root once the domain is connected.
+- **Custom domain:** `mercyworksoutreach.org` (registered at Cloudflare Nov 18, 2026), connected through the `CNAME` file in the repo root. DNS records must stay "DNS only" (grey cloud) in Cloudflare, not proxied.
   - DNS at the registrar: four **A** records for `@` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`; one **CNAME** for `www` → `dlb1177.github.io`.
   - Turn on "Enforce HTTPS" in Settings → Pages once DNS resolves.
 - **Workflow:** edit → `git commit` → `git push` → the site is live in about a minute. No build step.
