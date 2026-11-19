@@ -110,8 +110,8 @@ The tenets lead directly to these rules:
 /open-graph-share-image-1200x630.png      Icons and link-preview image from the brand kit
 ```
 - **Menu on every page:** Home, Links, Contact, Support. "Contact" is a `mailto:` link to info@mercyworksoutreach.org (there is no contact page). "Support" is styled as a solid blue pill to set it apart.
-- **Links page, Documents:** names only, no descriptions. Published: Articles of Incorporation. Placeholders: Bylaws, Guiding Principles, Organization Policies, Participant Waiver, Current Board Leadership, Board Meeting Minutes, Quarterly Financial Reports, Annual Tax Return.
-- **Links page, Volunteer Resources:** placeholders for the orientation video and "What a Volunteer Day Looks Like." Volunteer Sign-Up and Volunteer Schedule both link to a legacy SignUpGenius page that predates the organization. Keep the note under the list saying so and that its volunteers are not affiliated, until the links are replaced with the organization's own sign-up.
+- **Links page, Documents:** names only, no descriptions. Published: Articles of Incorporation. Placeholders: Bylaws, Guiding Principles, Organization Policies, Current Board Leadership, Board Meeting Minutes, Quarterly Financial Reports, Annual Tax Return.
+- **Links page, Volunteer Resources:** placeholders for the orientation video, "What a Volunteer Day Looks Like" and the Participant Waiver. Volunteer Sign-Up and Volunteer Schedule both link to a legacy SignUpGenius page that predates the organization. Keep the note under the list saying so and that its volunteers are not affiliated, until the links are replaced with the organization's own sign-up.
 - **Links page, Impact:** placeholders for Impact Updates (regular, basic data on goods delivered and people served) and Newsletters.
 - **Support page:** everything is "coming soon." When real ways to give are added, state the tax status accurately on that page (see the formation status rule above): no 501(c)(3) or tax-deductibility claim until the IRS letter arrives.
 - Placeholders are plain text marked "Coming", not dead links. When an item exists, add it and turn the placeholder into a link.
