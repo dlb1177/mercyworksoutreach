@@ -100,7 +100,8 @@ The tenets lead directly to these rules:
 ### What exists now
 ```
 /index.html           Home: what we do, the five tenets, inspiration (with a prayer of St. Teresa of Calcutta)
-/links/index.html     Links page, in three sections, in this order: Impact, Volunteer Resources, Documents
+/links/index.html     Links page: the "New and still forming" notice, then three sections in this order:
+                      Impact, Volunteer Resources, Documents
 /support/index.html   Support page: "coming soon" panel, non-monetary donations, donor video placeholder
 /documents/           The published PDFs. Its index.html only forwards the old /documents/ address to /links/.
 /style.css            The one stylesheet shared by every page
