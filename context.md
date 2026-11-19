@@ -23,7 +23,12 @@ The main work is giving out **clothing, blankets, hygiene items and food** to pe
 "Called to Love. Sent to Serve." Shown under the logo on every page. It is a trial, so it may change.
 
 ### Vision (from the co-founder, Nov 2026)
-The ministry is not seeking to solve homelessness. It simply seeks to dignify each person by name, with a momentary break from hunger, thirst and cold, and from despair, invisibility and hopelessness. This appears in the home page's "What we do" section.
+The ministry is not seeking to solve homelessness. It simply dignifies each person by name, providing a momentary break from hunger, thirst and cold, and from despair, invisibility and hopelessness. This appears in the home page's "What we do" section.
+
+### Site wording (Nov 19, 2026)
+The home page wording was revised with the co-founder's edits; where his wording and Dylan's differ, his takes priority. Two points to remember:
+- The "Highly efficient" tenet on the site says administration is limited to "the essentials, such as the fees the law requires, insurance and the small cost of this website." The co-founder asked how insurance and web fees fit "the minimum fees the law requires," so the site no longer says that only legally required fees are paid.
+- The "Fearless without being careless" tenet on the site no longer includes the sentence about fear and safety; the co-founder removed it.
 
 ### Governance (draft bylaws)
 - **Board (Article III):** 3 to 7 directors serving staggered two-year terms. A majority must not be related to each other.
@@ -86,7 +91,7 @@ The tenets lead directly to these rules:
   - Colors: Mercy Blue `#2A5599` (logo, links), Deep Blue `#1D3F75` (headings, hover), Water Blue `#7FA3D6` (thin rules and accents only, never text), Slate `#5B6472` (secondary text), Mist `#EEF3F9` (light panels), White (most of every page).
   - Type: EB Garamond Medium for headings, EB Garamond Regular for the tagline, the vision statement and the prayer, Source Sans 3 for body (Regular) and labels (SemiBold).
   - The page has one plain 6 px band of Mercy Blue across the top. Keep it a single solid band. A co-founder suggested a sari-stripe border (Nov 18, 2026); it was not built because the three-stripe blue border is the Missionaries of Charity's registered trademark and this ministry is not affiliated with them. Revisit only with their written permission.
-  - Don't add blue stripes or bands resembling the Missionaries of Charity sari border, and don't pair the logo with Mother Teresa's name or image. Both are protected. At Dylan's direction (Nov 18, 2026) the home page's Inspiration section names the Missionaries of Charity and St. Mother Teresa and quotes one of her prayers, with the line "We are not affiliated with them." Keep that line, keep her name out of the masthead, footer and logo lockups, and never use her image.
+  - Don't add blue stripes or bands resembling the Missionaries of Charity sari border, and don't pair the logo with Mother Teresa's name or image. Both are protected. At Dylan's direction (Nov 18, 2026) the home page's Inspiration section names the Missionaries of Charity and St. Teresa of Calcutta (the co-founder's preferred form of her name) and quotes one of her prayers, opening with "Mercy Works Outreach is not affiliated with the Missionaries of Charity." Keep that statement, keep her name out of the masthead, footer and logo lockups, and never use her image.
 - **Berkshire-style look:** a single narrow column of text, plain links, lots of white space, almost no imagery beyond the logo. Readable font size, works on phones. The site is light-only (mostly white, one blue, per the brand guide); there is no dark mode.
 - **Accessible and fast:** semantic HTML, good contrast, every page's HTML and CSS well under 100 KB. The four font files add about 185 KB once and are then cached.
 - **Free hosting only:** GitHub Pages. No paid services. (Tenet 3: no admin spending.)
@@ -94,7 +99,7 @@ The tenets lead directly to these rules:
 
 ### What exists now
 ```
-/index.html           Home: what we do, the five tenets, inspiration (with a prayer of St. Mother Teresa)
+/index.html           Home: what we do, the five tenets, inspiration (with a prayer of St. Teresa of Calcutta)
 /links/index.html     Links page, in three sections: Documents, Volunteer Resources, Impact
 /support/index.html   Support page: "coming soon" panel, non-monetary donations, donor video placeholder
 /documents/           The published PDFs. Its index.html only forwards the old /documents/ address to /links/.
