@@ -308,6 +308,8 @@ h2::before {
 }
 .rows a { font-weight: 600; }
 .rows .pending { color: var(--slate); }
+/* An officer's role under a director's name */
+.rows .role { display: block; font-size: 0.88rem; line-height: 1.4; color: var(--slate); }
 .rows .meta {
   font-size: 0.74rem;
   font-weight: 600;
