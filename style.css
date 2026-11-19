@@ -308,8 +308,25 @@ h2::before {
 }
 .rows a { font-weight: 600; }
 .rows .pending { color: var(--slate); }
-/* An officer's role under a director's name */
-.rows .role { display: block; font-size: 0.88rem; line-height: 1.4; color: var(--slate); }
+/* Board page: a director's name in the heading face, with the title under it in the tagline's face */
+.rows .name {
+  display: block;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.42rem;
+  line-height: 1.25;
+  color: var(--deep-blue);
+}
+.rows .role {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 1.12rem;
+  line-height: 1.3;
+  letter-spacing: 0.015em;
+  color: var(--slate);
+}
 .rows .meta {
   font-size: 0.74rem;
   font-weight: 600;
