@@ -95,18 +95,23 @@ The tenets lead directly to these rules:
 ### What exists now
 ```
 /index.html           Home: what we do, the five tenets, inspiration (with a prayer of St. Mother Teresa)
-/documents/index.html A plain list of document names. PDFs live in this folder.
+/links/index.html     Links page, in three sections: Documents, Volunteer Resources, Impact
+/support/index.html   Support page: "coming soon" panel, non-monetary donations, donor video placeholder
+/documents/           The published PDFs. Its index.html only forwards the old /documents/ address to /links/.
 /style.css            The one stylesheet shared by every page
 /logo.svg             Brand logo (stacked, full color)
 /fonts/               EB Garamond Regular and Medium, Source Sans 3 Regular and SemiBold, with their licenses
 /favicon.*, /apple-touch-icon.png, /android-chrome-*.png, /site.webmanifest,
 /open-graph-share-image-1200x630.png      Icons and link-preview image from the brand kit
 ```
-- "Contact" in the menu is a `mailto:` link to info@mercyworksoutreach.org. There is no contact page or section.
-- The documents page shows names only, no descriptions. Published: Articles of Incorporation. Placeholders: Bylaws, Guiding Principles, Organization Policies, Participant Waiver, Current Board Leadership, Board Meeting Minutes, Quarterly Financial Reports, Annual Financial Reports and Tax Return.
+- **Menu on every page:** Home, Links, Contact, Support. "Contact" is a `mailto:` link to info@mercyworksoutreach.org (there is no contact page). "Support" is styled as a solid blue pill to set it apart.
+- **Links page, Documents:** names only, no descriptions. Published: Articles of Incorporation. Placeholders: Bylaws, Guiding Principles, Organization Policies, Participant Waiver, Current Board Leadership, Board Meeting Minutes, Quarterly Financial Reports, Annual Tax Return.
+- **Links page, Volunteer Resources:** placeholders for the orientation video and "What a Volunteer Day Looks Like." Volunteer Sign-Up and Volunteer Schedule both link to a legacy SignUpGenius page that predates the organization. Keep the note under the list saying so and that its volunteers are not affiliated, until the links are replaced with the organization's own sign-up.
+- **Links page, Impact:** placeholders for Impact Updates (regular, basic data on goods delivered and people served) and Newsletters.
+- **Support page:** everything is "coming soon." When real ways to give are added, state the tax status accurately on that page (see the formation status rule above): no 501(c)(3) or tax-deductibility claim until the IRS letter arrives.
+- Placeholders are plain text marked "Coming", not dead links. When an item exists, add it and turn the placeholder into a link.
 - The IRS EIN letter is not published (removed at Dylan's request); the EIN appears in the footer instead.
 - The footer on every page is a full-width Mist band carrying the organization's name, full address and EIN. The city is not repeated under the logo.
-- Placeholders on the documents page are plain text marked "Coming", not dead links. When a document exists, add the file and turn the placeholder into a link.
 - `Formation_Docs/` is Dylan's local drop folder for originals and is git-ignored. Copy a file into `documents/` with a lowercase-hyphenated name to publish it. Read every document for private data before publishing.
 
 ### Planned site structure (build when asked; don't build ahead)

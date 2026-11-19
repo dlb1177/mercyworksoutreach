@@ -132,6 +132,18 @@ strong, b { font-weight: 600; }
 .masthead nav a:hover { color: var(--deep-blue); }
 .masthead nav a[aria-current="page"] { color: var(--mercy-blue); border-bottom-color: var(--water-blue); }
 
+/* The Support tab is set apart from the others as a solid blue pill */
+.masthead nav a.support {
+  margin-left: 10px;
+  padding: 5px 16px 5px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--mercy-blue);
+  color: var(--white);
+}
+.masthead nav a.support:hover,
+.masthead nav a.support[aria-current="page"] { background: var(--deep-blue); color: var(--white); }
+
 /* Text */
 
 h1.title {
@@ -151,6 +163,7 @@ h2 {
   color: var(--deep-blue);
   margin: 68px 0 16px;
 }
+h1.title + h2 { margin-top: 36px; }
 /* A short accent rule above each section heading */
 h2::before {
   content: "";
@@ -291,6 +304,54 @@ h2::before {
   white-space: nowrap;
 }
 
+/* Small print under a list */
+
+.note {
+  margin: 16px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--slate);
+}
+.note strong { color: var(--ink); }
+
+/* Support page: the "coming soon" panel and the video placeholder */
+
+.soon {
+  padding: 30px 26px 28px;
+  background: var(--mist);
+  border-radius: 10px;
+  text-align: center;
+}
+.soon p { margin: 0; }
+.soon .soon-label {
+  margin-bottom: 8px;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.9rem;
+  line-height: 1.2;
+  color: var(--deep-blue);
+}
+
+.video-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  aspect-ratio: 16 / 9;
+  background: var(--mist);
+  border: 1px dashed var(--water-blue);
+  border-radius: 10px;
+}
+.video-placeholder p {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
 /* Footer */
 
 .site-footer {
@@ -318,7 +379,9 @@ h2::before {
   .masthead .tagline { font-size: 1.2rem; gap: 12px; }
   .masthead .tagline::before, .masthead .tagline::after { flex-basis: 22px; }
   .masthead nav { margin-bottom: 40px; }
-  .masthead nav a { margin: 0 10px; }
+  .masthead nav { letter-spacing: 0.13em; }
+  .masthead nav a { margin: 0 7px; }
+  .masthead nav a.support { margin-left: 6px; padding: 5px 11px 5px 13px; }
   .lede { font-size: 1.42rem; }
   h1.title { font-size: 2.1rem; }
   h2 { font-size: 1.75rem; margin-top: 56px; }
