@@ -187,7 +187,13 @@ h2::before {
   background: var(--water-blue);
 }
 
+/* The home page's opening statement, in a centered Mist panel like the prayer */
 .lede {
+  margin: 0;
+  padding: 34px 30px 32px;
+  background: var(--mist);
+  border-radius: 10px;
+  text-align: center;
   font-family: var(--font-heading);
   font-weight: 500;
   font-size: 1.35rem;
@@ -449,7 +455,7 @@ h2.label::before { display: none; }
   .masthead nav { letter-spacing: 0.13em; }
   .masthead nav a { margin: 0 7px; }
   .masthead nav a.support { margin-left: 6px; padding: 5px 11px 5px 13px; }
-  .lede { font-size: 1.42rem; }
+  .lede { font-size: 1.42rem; padding: 26px 18px 24px; }
   h1.title { font-size: 2.1rem; }
   h2 { font-size: 1.75rem; margin-top: 56px; }
   .vision { font-size: 1.3rem; padding-left: 18px; }

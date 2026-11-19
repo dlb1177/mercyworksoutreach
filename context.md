@@ -51,7 +51,7 @@ The home page wording was revised with the co-founder's edits; where his wording
 | 9 | Register with the MN Attorney General; apply for the MN sales tax exemption | ⏳ Not yet |
 | 10 | Get insurance quotes | ⏳ Not yet |
 
-**How the site describes the ministry (Dylan, Nov 18, 2026):** the home page opens "Mercy Works Outreach is an independent, volunteer-run ministry rooted in the Catholic faith, serving people experiencing homelessness in the Twin Cities." Say "Catholic," not "Christian." In lists of what is given out, food comes first: food, clothing, blankets, hygiene items. (The Articles of Incorporation say "Christian faith"; that is the legal text and stays as filed.)
+**How the site describes the ministry (Dylan, Nov 18, 2026):** the home page opens "Mercy Works Outreach is an independent, volunteer-run ministry rooted in the Catholic faith, serving people experiencing homelessness in the Twin Cities." This opening statement sits centered in a Mist panel, like the prayer, so it stands apart from the rest of the page. Say "Catholic," not "Christian." In lists of what is given out, food comes first: food, clothing, blankets, hygiene items. (The Articles of Incorporation say "Christian faith"; that is the legal text and stays as filed.)
 
 **Important for website copy:** Until the IRS issues a determination letter, the site must **not** say the organization is a 501(c)(3) or that donations are tax-deductible. The Articles are filed, so "incorporated" and "Minnesota nonprofit corporation" are accurate. Update this table as steps are completed. (The home page no longer shows this list.)
 
