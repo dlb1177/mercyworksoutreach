@@ -47,7 +47,7 @@ The home page wording was revised with the co-founder's edits; where his wording
 | 5 | Incorporator signs a written action electing the board | ✅ Done: executed electronically Nov 19, 2026, per the signed minutes of that day. The signed copy itself has not yet been received for the site |
 | 6 | First board meeting: adopt bylaws and a conflict-of-interest policy, elect officers, approve a bank account and the tax-exemption application | ⏳ In progress: an introductory meeting was held Nov 19, 2026 (no votes; bylaws deferred); election of officers is out for signature |
 | 7 | Open a bank account in the organization's name | ⏳ Not yet |
-| 8 | Apply for 501(c)(3) on IRS Form 1023-EZ ($275) | ⏳ Not yet |
+| 8 | Apply for 501(c)(3) on IRS Form 1023-EZ ($275) | ✅ Filed Nov 19, 2026. ⏳ Waiting for the IRS determination letter |
 | 9 | Register with the MN Attorney General; apply for the MN sales tax exemption | ⏳ Not yet |
 | 10 | Get insurance quotes | ⏳ Not yet |
 
@@ -105,21 +105,25 @@ The tenets lead directly to these rules:
 /contact/index.html   Contact page: email, mailing address and a static map of the office
 /board/index.html     Current Board Leadership: the directors, and the officers once elected (opened from Links)
 /board-actions/index.html   Board Actions and Meeting Minutes: a dated list, oldest first (opened from Links)
+/tax-documents/index.html   Tax Documents: a dated list of IRS filings, oldest first (opened from Links)
 /links/index.html     Links page: the "New and still forming" notice (no visible page heading), then three sections in this order:
                       Impact, Volunteer Resources, Documents
 /support/index.html   Support page: "coming soon" panel, non-monetary donations, donor video placeholder
 /documents/           The published PDFs. Its index.html only forwards the old /documents/ address to /links/.
-                      Board actions and minutes go in /documents/board-actions/, named YYYY-MM-DD-short-title.pdf.
+                      Board actions and minutes go in /documents/board-actions/, tax filings in /documents/tax/,
+                      each named YYYY-MM-DD-short-title.pdf.
 /style.css            The one stylesheet shared by every page
 /logo.svg             Brand logo (stacked, full color)
 /fonts/               EB Garamond Regular and Medium, Source Sans 3 Regular and SemiBold, with their licenses
 /favicon.*, /apple-touch-icon.png, /android-chrome-*.png, /site.webmanifest,
 /open-graph-share-image-1200x630.png      Icons and link-preview image from the brand kit
 ```
-- **Menu on every page:** Home, Links, Contact, Support. "Support" is styled as a solid blue pill to set it apart. On the two board pages the Links item is underlined (`aria-current="true"`).
+- **Menu on every page:** Home, Links, Contact, Support. "Support" is styled as a solid blue pill to set it apart. On the pages opened from Links (the two board pages and Tax Documents) the Links item is underlined (`aria-current="true"`).
 - **Which links open in a new tab (Dylan, Nov 19, 2026):** links to documents (the PDFs) and to other websites carry `target="_blank" rel="noopener"`. Links to other pages of this site, the menu, the logo and `mailto:` links stay in the same tab.
 - **Contact page:** email and mailing address only. There is no phone number; the ministry is volunteer-run, and email and mail go to a shared office rather than to one person. The map is a static image (`contact/map.jpg`) made once from OpenStreetMap tiles with a pin at the office, so no map service loads on the site. Keep the "© OpenStreetMap contributors" credit under it, and never embed Google Maps or any other live map (a plain link to Google Maps is fine).
-- **Links page, Documents:** names only, no descriptions. Published: Articles of Incorporation. Live pages: Current Board Leadership, Board Actions and Meeting Minutes. Placeholders: Bylaws, Guiding Principles, Organization Policies, Quarterly Financial Reports, Annual Tax Return.
+- **Links page, Documents:** names only, no descriptions. Published: Articles of Incorporation. Live pages: Current Board Leadership, Board Actions and Meeting Minutes, Tax Documents (renamed from "Annual Tax Return" at Dylan's request, Nov 19, 2026). Placeholders: Bylaws, Guiding Principles, Organization Policies, Quarterly Financial Reports.
+- **Tax Documents page:** one row per IRS filing, oldest first, with the date filed. Published: Form 1023-EZ (filed Nov 19, 2026). Placeholder: Annual Tax Returns. The note under the list says the application has not yet been decided; keep that until the determination letter arrives, then update it and the formation table. Filing the application is not 501(c)(3) status.
+- **Redaction before publishing:** a document that shows anyone's home address or a personal phone or fax number is published only as a redacted copy. The 1023-EZ on the site has the three directors' home street addresses and the contact phone and fax numbers blacked out; page 1 was flattened to an image so the hidden text is gone, not just covered. The unredacted original stays in `Formation_Docs/` and is never committed.
 - **Board Actions and Meeting Minutes page:** one row per written action or set of minutes, in date order with the oldest first, each showing the date it took effect. Only signed documents are published. A document that is out for signature is listed by name, without a link, marked "Pending signatures." Published: Minutes of the Introductory Meeting of the Initial Directors (Nov 19, 2026). Listed but not yet published: Written Action of the Sole Incorporator (executed Nov 19, 2026 after that meeting; waiting on the signed copy), and Unanimous Written Action: Election of Officers (pending signatures).
 - **Current Board Leadership page:** kept very basic. One list of the directors, with no separate officers section. Each name is set in the heading face (EB Garamond Medium, Deep Blue) with a title under it in the tagline's face (EB Garamond Regular, Slate): the officer's role, or "Director" for a director who holds no office. Names and roles only: no addresses, phone numbers or personal email addresses.
 - **Links page, Volunteer Resources:** placeholders for the orientation video, "What a Volunteer Day Looks Like" and the Participant Waiver. Volunteer Sign-Up and Volunteer Schedule both link to a legacy SignUpGenius page that predates the organization. Keep the note under the list saying so and that its volunteers are not affiliated, until the links are replaced with the organization's own sign-up.
