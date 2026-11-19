@@ -7,3 +7,6 @@ PROMPT.md
 # Local source folders; published copies live in documents/, fonts/ and the site root
 Formation_Docs/
 MercyWorksOutreach_BrandKit/
+
+# Drop folder for documents waiting to be added to the site; never published
+Document_Inbox/

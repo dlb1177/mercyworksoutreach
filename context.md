@@ -32,18 +32,20 @@ The home page wording was revised with the co-founder's edits; where his wording
 
 ### Governance (draft bylaws)
 - **Board (Article III):** 3 to 7 directors serving staggered two-year terms. A majority must not be related to each other.
-- **Officers (Article V):** president, treasurer and secretary. One person may be both treasurer and secretary, but the president can't also be the treasurer. Proposed: Dylan as secretary/treasurer and a co-founder as president. This becomes final at the first board meeting.
+- **Officers (Article V):** president, treasurer and secretary. One person may be both treasurer and secretary, but the president can't also be the treasurer.
+- **Initial directors (Nov 19, 2026):** John Mark Reimann, Dylan Brown and Amara Miller, named in the incorporator's written action. They are listed on the site's Current Board Leadership page at Dylan's direction.
+- **Officers:** the board's unanimous written action electing officers is out for signature (Nov 19, 2026). Until the signed copy arrives, the site names no officers and shows the three offices as "Pending signatures."
 - **Money safeguards (Article VII):** any payment over $500 needs two signers. The president reviews and initials the bank statement every month. No one can approve a payment to themselves.
 
-### Formation status (as of Nov 18, 2026)
+### Formation status (as of Nov 19, 2026)
 | # | Step | Status |
 |---|------|--------|
 | 1 | Choose a name | ✅ Done: Mercy Works Outreach |
 | 2 | Confirm the name is available on the MN Secretary of State site; file Articles of Incorporation ($90 online) | ✅ Done: filed Nov 18, 2026 |
 | 3 | Get an EIN from the IRS | ✅ Done: assigned Nov 18, 2026 |
-| 4 | Choose prospective board of directors | ⏳ In progress |
-| 5 | Incorporator signs a written action electing the board | ⏳ Not yet |
-| 6 | First board meeting: adopt bylaws and a conflict-of-interest policy, elect officers, approve a bank account and the tax-exemption application | ⏳ Not yet |
+| 4 | Choose prospective board of directors | ✅ Done: three initial directors |
+| 5 | Incorporator signs a written action electing the board | ⏳ Dylan reports it executed (Nov 19, 2026); the signed copy has not yet been received for the site |
+| 6 | First board meeting: adopt bylaws and a conflict-of-interest policy, elect officers, approve a bank account and the tax-exemption application | ⏳ In progress: election of officers is out for signature |
 | 7 | Open a bank account in the organization's name | ⏳ Not yet |
 | 8 | Apply for 501(c)(3) on IRS Form 1023-EZ ($275) | ⏳ Not yet |
 | 9 | Register with the MN Attorney General; apply for the MN sales tax exemption | ⏳ Not yet |
@@ -101,30 +103,36 @@ The tenets lead directly to these rules:
 ```
 /index.html           Home: what we do, the five tenets, inspiration (with a prayer of St. Teresa of Calcutta)
 /contact/index.html   Contact page: email, mailing address and a static map of the office
+/board/index.html     Current Board Leadership: the directors, and the officers once elected (opened from Links)
+/board-actions/index.html   Board Actions and Meeting Minutes: a dated list, oldest first (opened from Links)
 /links/index.html     Links page: the "New and still forming" notice (no visible page heading), then three sections in this order:
                       Impact, Volunteer Resources, Documents
 /support/index.html   Support page: "coming soon" panel, non-monetary donations, donor video placeholder
 /documents/           The published PDFs. Its index.html only forwards the old /documents/ address to /links/.
+                      Board actions and minutes go in /documents/board-actions/, named YYYY-MM-DD-short-title.pdf.
 /style.css            The one stylesheet shared by every page
 /logo.svg             Brand logo (stacked, full color)
 /fonts/               EB Garamond Regular and Medium, Source Sans 3 Regular and SemiBold, with their licenses
 /favicon.*, /apple-touch-icon.png, /android-chrome-*.png, /site.webmanifest,
 /open-graph-share-image-1200x630.png      Icons and link-preview image from the brand kit
 ```
-- **Menu on every page:** Home, Links, Contact, Support. "Support" is styled as a solid blue pill to set it apart.
+- **Menu on every page:** Home, Links, Contact, Support. "Support" is styled as a solid blue pill to set it apart. On the two board pages the Links item is underlined (`aria-current="true"`).
+- **Links open in a new tab (Dylan, Nov 19, 2026):** every link in a page's content (documents, other sites, and the pages opened from Links) carries `target="_blank" rel="noopener"`. The menu, the logo and `mailto:` links stay in the same tab.
 - **Contact page:** email and mailing address only. There is no phone number; the ministry is volunteer-run, and email and mail go to a shared office rather than to one person. The map is a static image (`contact/map.jpg`) made once from OpenStreetMap tiles with a pin at the office, so no map service loads on the site. Keep the "© OpenStreetMap contributors" credit under it, and never embed Google Maps or any other live map (a plain link to Google Maps is fine).
-- **Links page, Documents:** names only, no descriptions. Published: Articles of Incorporation. Placeholders: Bylaws, Guiding Principles, Organization Policies, Current Board Leadership, Board Meeting Minutes, Quarterly Financial Reports, Annual Tax Return.
+- **Links page, Documents:** names only, no descriptions. Published: Articles of Incorporation. Live pages: Current Board Leadership, Board Actions and Meeting Minutes. Placeholders: Bylaws, Guiding Principles, Organization Policies, Quarterly Financial Reports, Annual Tax Return.
+- **Board Actions and Meeting Minutes page:** one row per written action or set of minutes, in date order with the oldest first, each showing the date it took effect. Only signed documents are published. A document that is out for signature is listed by name, without a link, marked "Pending signatures." Listed now, neither yet published: Written Action of the Sole Incorporator (waiting on the signed copy), and Unanimous Written Action: Election of Officers (pending signatures).
+- **Current Board Leadership page:** kept very basic. Names only: no addresses, phone numbers or personal email addresses. Add the officers only after their election is signed.
 - **Links page, Volunteer Resources:** placeholders for the orientation video, "What a Volunteer Day Looks Like" and the Participant Waiver. Volunteer Sign-Up and Volunteer Schedule both link to a legacy SignUpGenius page that predates the organization. Keep the note under the list saying so and that its volunteers are not affiliated, until the links are replaced with the organization's own sign-up.
 - **Links page, Impact:** placeholders for Impact Updates (regular, basic data on goods delivered and people served) and Newsletters.
 - **Support page:** everything is "coming soon." When real ways to give are added, state the tax status accurately on that page (see the formation status rule above): no 501(c)(3) or tax-deductibility claim until the IRS letter arrives.
 - Placeholders are plain text marked "Coming", not dead links. When an item exists, add it and turn the placeholder into a link.
 - The IRS EIN letter is not published (removed at Dylan's request); the EIN appears in the footer instead.
 - The footer on every page is a full-width Mist band carrying the organization's name, full address and EIN. The city is not repeated under the logo.
-- `Formation_Docs/` is Dylan's local drop folder for originals and is git-ignored. Copy a file into `documents/` with a lowercase-hyphenated name to publish it. Read every document for private data before publishing.
+- `Document_Inbox/` is a local, git-ignored holding folder. Dylan drops documents there to be added to the site. Once a document is handled, move it out to `Formation_Docs/` so the inbox is left empty. Check that a document is actually signed before publishing it as executed.
+- `Formation_Docs/` is Dylan's local folder for originals and is git-ignored. Copy a file into `documents/` with a lowercase-hyphenated name to publish it. Read every document for private data before publishing.
 
 ### Planned site structure (build when asked; don't build ahead)
 ```
-/minutes/             Board meeting minutes, one PDF or HTML page per meeting, newest first
 /financials/          Every transaction, line by line; quarterly reports
 /about/               (optional) Longer statement of the tenets
 ```

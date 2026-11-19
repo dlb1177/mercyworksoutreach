@@ -143,7 +143,7 @@ strong, b { font-weight: 600; }
   border-bottom: 2px solid transparent;
 }
 .masthead nav a:hover { color: var(--deep-blue); }
-.masthead nav a[aria-current="page"] { color: var(--mercy-blue); border-bottom-color: var(--water-blue); }
+.masthead nav a[aria-current] { color: var(--mercy-blue); border-bottom-color: var(--water-blue); }
 
 /* The Support tab is set apart from the others as a solid blue pill */
 .masthead nav a.support {
@@ -155,7 +155,7 @@ strong, b { font-weight: 600; }
   color: var(--white);
 }
 .masthead nav a.support:hover,
-.masthead nav a.support[aria-current="page"] { background: var(--deep-blue); color: var(--white); }
+.masthead nav a.support[aria-current] { background: var(--deep-blue); color: var(--white); }
 
 /* Text */
 
