@@ -164,7 +164,7 @@ h2::before {
 .lede {
   font-family: var(--font-heading);
   font-weight: 500;
-  font-size: 1.62rem;
+  font-size: 1.35rem;
   line-height: 1.38;
   color: var(--deep-blue);
   text-wrap: balance;
