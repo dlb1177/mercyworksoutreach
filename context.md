@@ -100,7 +100,8 @@ The tenets lead directly to these rules:
 ### What exists now
 ```
 /index.html           Home: what we do, the five tenets, inspiration (with a prayer of St. Teresa of Calcutta)
-/links/index.html     Links page: the "New and still forming" notice, then three sections in this order:
+/contact/index.html   Contact page: email, mailing address and a static map of the office
+/links/index.html     Links page: the "New and still forming" notice (no visible page heading), then three sections in this order:
                       Impact, Volunteer Resources, Documents
 /support/index.html   Support page: "coming soon" panel, non-monetary donations, donor video placeholder
 /documents/           The published PDFs. Its index.html only forwards the old /documents/ address to /links/.
@@ -110,7 +111,8 @@ The tenets lead directly to these rules:
 /favicon.*, /apple-touch-icon.png, /android-chrome-*.png, /site.webmanifest,
 /open-graph-share-image-1200x630.png      Icons and link-preview image from the brand kit
 ```
-- **Menu on every page:** Home, Links, Contact, Support. "Contact" is a `mailto:` link to info@mercyworksoutreach.org (there is no contact page). "Support" is styled as a solid blue pill to set it apart.
+- **Menu on every page:** Home, Links, Contact, Support. "Support" is styled as a solid blue pill to set it apart.
+- **Contact page:** email and mailing address only. There is no phone number; the ministry is volunteer-run, and email and mail go to a shared office rather than to one person. The map is a static image (`contact/map.jpg`) made once from OpenStreetMap tiles with a pin at the office, so no map service loads on the site. Keep the "© OpenStreetMap contributors" credit under it, and never embed Google Maps or any other live map (a plain link to Google Maps is fine).
 - **Links page, Documents:** names only, no descriptions. Published: Articles of Incorporation. Placeholders: Bylaws, Guiding Principles, Organization Policies, Current Board Leadership, Board Meeting Minutes, Quarterly Financial Reports, Annual Tax Return.
 - **Links page, Volunteer Resources:** placeholders for the orientation video, "What a Volunteer Day Looks Like" and the Participant Waiver. Volunteer Sign-Up and Volunteer Schedule both link to a legacy SignUpGenius page that predates the organization. Keep the note under the list saying so and that its volunteers are not affiliated, until the links are replaced with the organization's own sign-up.
 - **Links page, Impact:** placeholders for Impact Updates (regular, basic data on goods delivered and people served) and Newsletters.
