@@ -1,0 +1,6 @@
+id,date,item,type,quantity,on_hand,ref,note
+S2030-001,2030-01-15,Blanket,received,10,10,2030-004,
+S2030-002,2030-01-20,Winter coat,received,12,12,G2030-009,
+S2030-003,2030-02-14,Winter coat,distributed,-5,7,2030-02-14,
+S2030-004,2030-02-14,Blanket,distributed,-4,6,2030-02-14,
+S2030-005,2030-03-01,Blanket,adjustment,-1,5,,One blanket found damaged

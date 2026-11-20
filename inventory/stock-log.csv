@@ -1,0 +1,5 @@
+id,date,item,type,quantity,on_hand,ref,note
+S2026-001,2026-11-20,Hand sanitizer (2 oz),received,100,100,G2026-001,2 cases of 50
+S2026-002,2026-11-20,Emergency blanket,received,100,100,G2026-002,1 case of 100
+S2026-003,2026-11-20,Hand warmers (2-pack),received,200,200,G2026-003,2 cases of 100
+S2026-004,2026-11-20,"Winter set (hat, gloves and scarf)",received,100,100,G2026-004,2 cases of 50

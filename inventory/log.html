@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stock Log — Mercy Works Outreach</title>
+  <meta name="description" content="Every movement of Mercy Works Outreach stock: what came in, what went out, and what is on hand.">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#2A5599">
+  <meta property="og:title" content="Stock Log — Mercy Works Outreach">
+  <meta property="og:image" content="https://mercyworksoutreach.org/open-graph-share-image-1200x630.png">
+  <link rel="canonical" href="https://mercyworksoutreach.org/inventory/log.html">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <!-- This page is written by tools/ledger.py from the CSV files in the repo.
+       Do not edit it by hand: change the CSV, then run python3 tools/ledger.py build -->
+  <div class="page page-wide">
+
+    <header class="masthead">
+      <p class="logo"><a href="../"><img src="../logo.svg" alt="Mercy Works Outreach" width="230" height="217"></a></p>
+      <p class="tagline">Called to Love. Sent to Serve.</p>
+      <nav aria-label="Site">
+        <a href="../">Home</a>
+        <a href="../info/" aria-current="true">Info</a>
+        <a href="../contact/">Contact</a>
+        <a href="../support/" class="support">Support</a>
+      </nav>
+    </header>
+
+    <main class="fin">
+      <h1 class="title">Stock Log</h1>
+      <p class="fin-lead">Everything that has come into stock and gone out, newest month first.</p>
+      <p class="fin-status"><a href="./">Back to the inventory</a> &middot; <a href="stock-log.csv">Download as CSV</a></p>
+
+      <table class="fin-table ledger stack">
+        <thead><tr><th scope="col">Date</th><th scope="col">Item</th><th scope="col">Movement</th><th scope="col" class="num">Quantity</th><th scope="col" class="num">On hand</th><th scope="col">Source or destination</th></tr></thead>
+        <tbody>
+          <tr class="group"><th scope="rowgroup" colspan="6">November 2026</th></tr>
+          <tr id="sS2026-001">
+            <td data-label="Date" class="date"><time datetime="2026-11-20">Nov 20</time> <span class="rowid">S2026-001</span></td>
+            <td class="desc">Hand sanitizer (2 oz)</td>
+            <td data-label="Movement">Received</td>
+            <td data-label="Quantity" class="num">+100</td>
+            <td data-label="On hand" class="num">100</td>
+            <td data-label="Source or destination"><a href="../financials/donated-goods.html#gG2026-001">Donated goods</a><span class="paid-note">2 cases of 50</span></td>
+          </tr>
+          <tr id="sS2026-002">
+            <td data-label="Date" class="date"><time datetime="2026-11-20">Nov 20</time> <span class="rowid">S2026-002</span></td>
+            <td class="desc">Emergency blanket</td>
+            <td data-label="Movement">Received</td>
+            <td data-label="Quantity" class="num">+100</td>
+            <td data-label="On hand" class="num">100</td>
+            <td data-label="Source or destination"><a href="../financials/donated-goods.html#gG2026-002">Donated goods</a><span class="paid-note">1 case of 100</span></td>
+          </tr>
+          <tr id="sS2026-003">
+            <td data-label="Date" class="date"><time datetime="2026-11-20">Nov 20</time> <span class="rowid">S2026-003</span></td>
+            <td class="desc">Hand warmers (2-pack)</td>
+            <td data-label="Movement">Received</td>
+            <td data-label="Quantity" class="num">+200</td>
+            <td data-label="On hand" class="num">200</td>
+            <td data-label="Source or destination"><a href="../financials/donated-goods.html#gG2026-003">Donated goods</a><span class="paid-note">2 cases of 100</span></td>
+          </tr>
+          <tr id="sS2026-004">
+            <td data-label="Date" class="date"><time datetime="2026-11-20">Nov 20</time> <span class="rowid">S2026-004</span></td>
+            <td class="desc">Winter set (hat, gloves and scarf)</td>
+            <td data-label="Movement">Received</td>
+            <td data-label="Quantity" class="num">+100</td>
+            <td data-label="On hand" class="num">100</td>
+            <td data-label="Source or destination"><a href="../financials/donated-goods.html#gG2026-004">Donated goods</a><span class="paid-note">2 cases of 50</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </main>
+
+  </div>
+
+  <footer class="site-footer">
+    <p class="org">Mercy Works Outreach</p>
+    <p>A Minnesota nonprofit corporation &middot; EIN 43-3046884</p>
+    <p>323 Washington Ave N, Ste 200, Minneapolis, MN 55401</p>
+    <p>&copy; 2026 Mercy Works Outreach</p>
+  </footer>
+</body>
+</html>

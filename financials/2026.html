@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-  <!-- This page is written by tools/ledger.py from the CSV files in this folder.
+  <!-- This page is written by tools/ledger.py from the CSV files in the repo.
        Do not edit it by hand: change the CSV, then run python3 tools/ledger.py build -->
   <div class="page">
 
@@ -91,13 +91,17 @@
       <p>No month has been closed yet. Each month, the ledger will be compared here with the bank statement, alongside the date the president reviewed it and a copy of the statement.</p>
 
       <h2 id="donated-goods">Donated goods</h2>
-      <p>Goods given to us, such as clothing or food, are not cash, so they are kept out of the ledger and listed in their own log. In 2026 so far: 0 gifts, with an estimated value of $0.00.</p>
+      <p>Goods given to us, such as clothing or blankets, are not cash, so they are kept out of the general ledger and listed on their own. In 2026 so far: 4 gifts of goods, with an estimated value of $585.00.</p>
+      <ul class="rows">
+        <li><a href="donated-goods.html">Donated Goods</a> <span class="meta">4 since we began</span></li>
+        <li><a href="../inventory/">Inventory</a> <span class="meta">On hand</span></li>
+      </ul>
 
       <h2 id="downloads">Downloads</h2>
       <ul class="rows">
         <li><a href="general-ledger.csv">General Ledger</a> <span class="meta">CSV</span></li>
         <li><a href="reconciliations.csv">Monthly Bank Checks</a> <span class="meta">CSV</span></li>
-        <li><a href="inkind-2026.csv">Donated Goods Log, 2026</a> <span class="meta">CSV</span></li>
+        <li><a href="donated-goods.csv">Donated Goods Log</a> <span class="meta">CSV</span></li>
       </ul>
     </main>
 

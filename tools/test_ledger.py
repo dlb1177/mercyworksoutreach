@@ -70,13 +70,16 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual("95.00", str(t["by_fn"]["Program"]))
         self.assertEqual("600.00", str(t["by_fn"]["Management and general"]))
         self.assertEqual("0.00", str(t["by_fn"]["Fundraising"]))
+        self.assertEqual("96.00", str(t["goods_value"]))
+        self.assertEqual({"Blanket": 5, "Winter coat": 7}, books.on_hand)
+        self.assertEqual({"received": 10, "distributed": -4, "adjustment": -1}, books.moved["Blanket"])
 
     # ---- one or more broken fixtures for each rule ----
 
     def test_every_broken_fixture_breaks_only_its_own_rule(self):
         names = sorted(p.name for p in (FIXTURES / "broken").iterdir() if p.is_dir())
-        self.assertEqual(list(range(1, 12)), sorted({int(n[:2]) for n in names} | {11}),
-                         "every rule from 1 to 11 needs a broken fixture")
+        self.assertEqual(list(range(1, 14)), sorted({int(n[:2]) for n in names} | {11}),
+                         "every rule from 1 to 13 needs a broken fixture")
         for name in names:
             with self.subTest(fixture=name):
                 rules, books = self.rules(name)
@@ -121,8 +124,6 @@ class LedgerTests(unittest.TestCase):
                         "2031-002,2031-01-09,Food,Corner Grocery,Sandwich supplies,-20.00,bank,460.05,receipts/2031/2031-002.pdf,,\n")
         (root / "financials" / "receipts" / "2031").mkdir()
         (root / "financials" / "receipts" / "2031" / "2031-002.pdf").write_text("fixture\n")
-        for name, header in (("financials/inkind-2031.csv", ledger.INKIND_COLS), ("impact/2031.csv", ledger.IMPACT_COLS)):
-            (root / name).write_text(",".join(header) + "\n")
         books = ledger.run_check(root, tracked=CLEAN_TRACKED)
         self.assertEqual([], [str(p) for p in books.problems])
         self.assertEqual([2030, 2031], books.years)
@@ -151,10 +152,12 @@ class LedgerTests(unittest.TestCase):
             root = self.repo()
             _, blocking, written = ledger.build(root)
             self.assertEqual([], [str(p) for p in blocking])
-            self.assertEqual(["2030.html", "index.html", "ledger.html"], written)
+            self.assertEqual(["financials/2030.html", "financials/donated-goods.html", "financials/index.html",
+                              "financials/ledger.html", "inventory/index.html", "inventory/log.html"], written)
             page = (root / "financials" / "index.html").read_text()
             for expected in ("$1,125.05", "$695.00", "$430.05", "13.7%", "statements/2030-02.pdf",
-                             'href="ledger.html"', "10 transactions", 'href="general-ledger.csv"'):
+                             'href="ledger.html"', "10 transactions", 'href="general-ledger.csv"',
+                             'href="donated-goods.html"', "$96.00", 'href="../inventory/"'):
                 self.assertIn(expected, page)
             for gone in ("<script", "github", "How to read", "categories.csv", "2030-002"):
                 self.assertNotIn(gone, page)
@@ -163,6 +166,17 @@ class LedgerTests(unittest.TestCase):
                              "\u2212$600.00", "$85.00"):
                 self.assertIn(expected, page)
             self.assertNotIn("<script", page)
+            page = (root / "financials" / "donated-goods.html").read_text()
+            for expected in ("Winter coats, used", "$96.00", "donated-goods/G2030-001.pdf", "Individual donor"):
+                self.assertIn(expected, page)
+            page = (root / "inventory" / "index.html").read_text()
+            self.assertIn("<td>Blanket <span", page)
+            self.assertIn("<strong>5</strong>", page)
+            self.assertIn("<strong>7</strong>", page)
+            page = (root / "inventory" / "log.html").read_text()
+            for expected in ("Outreach: North Loop", "donated-goods.html#gG2030-001", "ledger.html#r2030-004",
+                             "One blanket found damaged", "\u22125", "+12"):
+                self.assertIn(expected, page)
             # the pages it wrote pass the privacy scan too
             again = ledger.run_check(root)
             self.assertEqual([], [str(p) for p in again.problems])

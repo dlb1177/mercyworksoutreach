@@ -85,7 +85,7 @@ The website should be extremely simple and to the point. Outsiders, including do
 
 The tenets lead directly to these rules:
 
-- **Plain HTML and CSS only.** No frameworks, no build step, no npm, no static-site generator. Every page is a hand-editable `.html` file. (Tenet 3, highly efficient: simple over complex.) The one allowed exception is the Financial Ledger: `tools/ledger.py` (Python 3 standard library only) writes `financials/index.html`, `financials/YYYY.html` and `financials/ledger.html`, and that output is committed, so GitHub Pages still serves plain static files. Never edit those pages by hand.
+- **Plain HTML and CSS only.** No frameworks, no build step, no npm, no static-site generator. Every page is a hand-editable `.html` file. (Tenet 3, highly efficient: simple over complex.) The one allowed exception is the Financial Ledger: `tools/ledger.py` (Python 3 standard library only) writes the pages under `financials/` and `inventory/`, and that output is committed, so GitHub Pages still serves plain static files. Never edit those pages by hand.
 - **No JavaScript** unless a feature truly can't work without it, and even then keep it small and inline.
 - **No tracking, analytics, cookies, ads, pop-ups, or third-party scripts and fonts.** The brand fonts are served from this site's own `/fonts` folder. Never load them from Google Fonts (the `@import` line in the brand kit's `brand-colors.css` is not used).
 - **Follow the brand kit** (v1, November 2026; Dylan keeps the full kit locally in `MercyWorksOutreach_BrandKit/`, which is git-ignored):
@@ -111,28 +111,30 @@ The tenets lead directly to these rules:
 /links/index.html     Only forwards the old /links/ address to /info/
 /financials/          The Financial Ledger and the books themselves (see section 4). index.html (summary), YYYY.html
                       (each year's summary) and ledger.html (every transaction) are written by tools/ledger.py (opened from Info)
-/impact/              The distribution log, one CSV per year (no page yet)
+/inventory/           The stock log and the Inventory pages (see section 4). index.html (on hand) and log.html (every
+                      movement) are written by tools/ledger.py (opened from Info)
+/impact/              The distribution log, one row per outreach (no page yet)
 /tools/               ledger.py, its tests and their made-up fixtures
 /support/index.html   Support page: "coming soon" panel, non-monetary donations, donor video placeholder
 /documents/           The published PDFs. Its index.html only forwards the old /documents/ address to /info/.
                       Board actions and minutes go in /documents/board-actions/, tax filings in /documents/tax/,
-                      each named YYYY-MM-DD-short-title.pdf.
+                      each named YYYY-MM-DD-short-title.pdf. Volunteer forms go in /documents/volunteer/.
 /style.css            The one stylesheet shared by every page
 /logo.svg             Brand logo (stacked, full color)
 /fonts/               EB Garamond Regular and Medium, Source Sans 3 Regular and SemiBold, with their licenses
 /favicon.*, /apple-touch-icon.png, /android-chrome-*.png, /site.webmanifest,
 /open-graph-share-image-1200x630.png      Icons and link-preview image from the brand kit
 ```
-- **Menu on every page:** Home, Info, Contact, Support. "Support" is styled as a solid blue pill to set it apart. On the pages opened from Info (the two board pages, Tax Documents and the Financial Ledger) the Info item is underlined (`aria-current="true"`). The ledger spec asked for a "Financials" menu item; Dylan chose instead (Nov 20, 2026) to reach the ledger from the Finance section of Info, so the menu stays at four items.
+- **Menu on every page:** Home, Info, Contact, Support. "Support" is styled as a solid blue pill to set it apart. On the pages opened from Info (the two board pages, Tax Documents, the Financial Ledger and Inventory) the Info item is underlined (`aria-current="true"`). The ledger spec asked for a "Financials" menu item; Dylan chose instead (Nov 20, 2026) to reach the ledger from the Finance section of Info, so the menu stays at four items.
 - **Which links open in a new tab (Dylan, Nov 19, 2026):** links to documents (the PDFs) and to other websites carry `target="_blank" rel="noopener"`. Links to other pages of this site, the menu, the logo and `mailto:` links stay in the same tab.
 - **Contact page:** email and mailing address only. There is no phone number; the ministry is volunteer-run, and email and mail go to a shared office rather than to one person. The map is a static image (`contact/map.jpg`) made once from OpenStreetMap tiles with a pin at the office, so no map service loads on the site. Keep the "© OpenStreetMap contributors" credit under it, and never embed Google Maps or any other live map (a plain link to Google Maps is fine).
-- **Info page, Finance** (added Nov 20, 2026, above Governance): Financial Ledger (live), Quarterly Financial Reports (placeholder), Tax Documents (live; renamed from "Annual Tax Return" Nov 19, 2026).
+- **Info page, Finance** (added Nov 20, 2026, above Governance): Financial Ledger (live), Inventory (live), Quarterly Financial Reports (placeholder), Tax Documents (live; renamed from "Annual Tax Return" Nov 19, 2026).
 - **Info page, Governance** (called Documents until Nov 20, 2026): names only, no descriptions. Published: Articles of Incorporation. Live pages: Current Board Leadership, Board Actions and Meeting Minutes. Placeholders: Bylaws, Guiding Principles, Organization Policies.
 - **Tax Documents page:** one row per IRS filing, oldest first, with the date filed. Published: Form 1023-EZ (filed Nov 19, 2026). Placeholder: Annual Tax Returns. Link each year's Form 990-N confirmation here once filed, and the IRS determination letter once it arrives. The note under the list says the application has not yet been decided; keep that until the determination letter arrives, then update it and the formation table. Filing the application is not 501(c)(3) status.
 - **Redaction before publishing:** a document that shows anyone's home address, personal email address, or a personal phone or fax number is published only as a redacted copy (e-signature audit pages list signers' email addresses). The 1023-EZ on the site has the three directors' home street addresses and the contact phone and fax numbers blacked out; page 1 was flattened to an image so the hidden text is gone, not just covered. The unredacted original stays in `Formation_Docs/` and is never committed. The redaction script is `.tools/redact.swift` (local, git-ignored; how to run it is at the top of the file), with `.tools/pages.swift` to render the result for a look before publishing.
 - **Board Actions and Meeting Minutes page:** one row per written action or set of minutes, in date order with the oldest first, each showing the date it took effect. Only signed documents are published. A document that is out for signature is listed by name, without a link, marked "Pending signatures." Published, all dated Nov 19, 2026 and listed in this order: Minutes of the Introductory Meeting of the Initial Directors; Written Action of the Sole Incorporator; Unanimous Written Action: Election of Officers; Unanimous Written Action: Authorization of Bank Account. The three written actions include their Adobe Sign audit pages with the email addresses blacked out.
 - **Current Board Leadership page:** kept very basic. One list of the directors, with no separate officers section. Each name is set in the heading face (EB Garamond Medium, Deep Blue) with a title under it in the tagline's face (EB Garamond Regular, Slate): the officer's role, or "Director" for a director who holds no office. Names and roles only: no addresses, phone numbers or personal email addresses.
-- **Info page, Volunteer Resources:** placeholders for the orientation video, "What a Volunteer Day Looks Like" and the Participant Waiver. Volunteer Sign-Up and Volunteer Schedule both link to a legacy SignUpGenius page that predates the organization. Keep the note under the list saying so and that its volunteers are not affiliated, until the links are replaced with the organization's own sign-up.
+- **Info page, Volunteer Resources:** the Distribution Log Form (a fillable PDF, see section 4), and placeholders for the orientation video, "What a Volunteer Day Looks Like" and the Participant Waiver. Volunteer Sign-Up and Volunteer Schedule both link to a legacy SignUpGenius page that predates the organization. Keep the note under the list saying so and that its volunteers are not affiliated, until the links are replaced with the organization's own sign-up.
 - **Info page, Impact:** placeholders for Impact Updates (regular, basic data on goods delivered and people served) and Newsletters.
 - **Support page:** everything is "coming soon," and it says gifts can't be accepted yet. Do not add a donate button until the bank account is open and the determination letter has arrived. When real ways to give are added, state the tax status accurately on that page (see the formation status rule above): no 501(c)(3) or tax-deductibility claim until the IRS letter arrives.
 - Placeholders are plain text marked "Coming", not dead links. When an item exists, add it and turn the placeholder into a link.
@@ -159,7 +161,9 @@ Built Nov 20, 2026 from Dylan's "Ledger & Accounting Spec (for Claude Code)", th
 - **One cumulative general ledger (Dylan, Nov 20, 2026).** `financials/general-ledger.csv` holds every transaction since inception; it is not broken into a file per year, as the spec first had it. Ids are still `YYYY-NNN`, counting up from 001 within each calendar year, and the page still summarizes one year at a time.
 - **The balance moves on every row (Dylan, Nov 20, 2026).** A paid-directly gift raises the balance and its expense lowers it again, so each pair nets to zero. The spec first had paid-directly rows leave the balance unchanged. The bank reconciliation adds up the `bank` rows only, so it is not affected.
 - **No names in the public files (Dylan, Nov 20, 2026).** A gift a director pays directly is shown as "Donor". Any other mention of a director or officer, such as a payment to one, is shown as "Director". Other donors are "Individual donor", "Foundation", "Church" or "Government" unless they opt in. The script fails if a director's name appears in a public CSV or page, and receipts are redacted to match.
-- In-kind goods stay out of the cash ledger, in their own log. Salaries and fundraising are both shown on the page and both expected to read $0.00.
+- In-kind goods stay out of the cash ledger, in their own log (the gift log, `financials/donated-goods.csv`), valued when given. Like the general ledger it is one file since inception, and each line has an id (`G2026-001`) and may name a redacted supporting document. Salaries and fundraising are both shown on the page and both expected to read $0.00.
+- **A stock log, built like the money ledger (Dylan, Nov 20, 2026).** `inventory/stock-log.csv` records every movement of stock: received, distributed or adjustment, with a running on-hand count for each item. Everything received traces to a gift-log line or to a purchase in the general ledger; everything distributed traces to an outreach in the distribution log. Items are counted in units, from the short fixed list in `inventory/items.csv`. Never publish where stock is stored or who received what.
+- Goods bought personally before the organization existed and then handed over are a gift of goods on the handover date, not a paid-directly pair. Donated goods count with cash toward the 990-N gross receipts and Attorney General warnings.
 - The $395.90 paid to form the organization before a bank account existed is recorded as contributions, not reimbursements.
 
 **Files (public, committed)**
@@ -168,14 +172,21 @@ financials/general-ledger.csv    the book of record, every transaction since inc
                                  counterparty, description, amount, method, balance, receipt, ref, approval
 financials/categories.csv        the fixed category list (adding one is a change Dylan approves); not linked from the page
 financials/reconciliations.csv   one row per closed month
-financials/inkind-2026.csv       donated goods, not cash (one file per year)
+financials/donated-goods.csv     the gift log, every gift of goods since inception: id, date, description, quantity,
+                                 estimated_value, valuation_basis, donor_type, document
+financials/donated-goods/<id>.pdf    redacted invoice or other support for a gift, named by its first line's id
 financials/receipts/2026/<id>.pdf    redacted receipt, named by ledger id
 financials/statements/2026-12.pdf    redacted bank statement initialed by the president
 financials/index.html            summary of the latest year      } written by the script;
 financials/2026.html             summary of that year            } never edit by hand
 financials/ledger.html           General Ledger: every transaction, newest month first }
-impact/2026.csv                  distribution log: date, area, volunteers, people_served_estimate, items
+financials/donated-goods.html    Donated Goods: every gift of goods                    }
+inventory/items.csv              the items we stock: item, unit, category (not linked from the page)
+inventory/stock-log.csv          every stock movement: id, date, item, type, quantity, on_hand, ref, note
+inventory/index.html, log.html   Inventory (on hand by item) and Stock Log; written by the script
+impact/distribution-log.csv      one row per outreach: date, area, volunteers, people_served_estimate, items
                                  (area is a general neighborhood; never names or photos of people served)
+documents/volunteer/distribution-log.pdf   the fillable form volunteers complete after each outreach
 tools/ledger.py                  check, build, summary, support
 tools/test_ledger.py, tools/fixtures/   tests, with one made-up clean ledger and broken fixtures for every rule
 ```
@@ -183,7 +194,7 @@ tools/test_ledger.py, tools/fixtures/   tests, with one made-up clean ledger and
 
 **Commands** (run from the repo root)
 ```
-python3 tools/ledger.py check       run all 11 rules; write nothing
+python3 tools/ledger.py check       run all 13 rules; write nothing
 python3 tools/ledger.py build       check, then write the pages (refuses if check fails)
 python3 tools/ledger.py build --receipts-pending    as build, but a receipt not yet published shows as "Pending"
 python3 tools/ledger.py summary     year-to-date totals, with the Attorney General and 990-N warnings
@@ -193,6 +204,7 @@ python3 -m unittest tools/test_ledger.py
 **The pages (Dylan, Nov 20, 2026)**
 - The Financial Ledger page (`/financials/`) is a summary: the year at a glance, totals by category, a link to the General Ledger, the monthly bank check, donated goods and downloads. The transactions are on their own page, `ledger.html`, so the summary stays short.
 - Downloads are General Ledger, Monthly Bank Checks and the Donated Goods Log. The category list is not offered.
+- Gifts of goods have their own page, `donated-goods.html`, and the Inventory page (`/inventory/`) shows received, given out and on hand for each item, with the Stock Log on its own page. Each stock row links back to the gift or purchase it came from.
 - There is no "How to read this page" section and no status note about the bank account.
 - **Never link or mention the GitHub history on the site.** The spec's "Every change to these books" link was removed at Dylan's request.
 
@@ -204,13 +216,21 @@ python3 -m unittest tools/test_ledger.py
 - Commit messages say what changed, e.g. "Close 2026-12: 14 rows, ties to statement $1,240.17".
 - The page's tax wording follows the formation rule above: no 501(c)(3) or deductibility claim until the determination letter arrives.
 
+**The Distribution Log form and the stock log (Dylan, Nov 20, 2026)**
+- `documents/volunteer/distribution-log.pdf` is a one-page fillable form, linked in Volunteer Resources. It is deliberately generic and lists no stock items, so it never changes when the inventory does: date, area, volunteers, people served, 13 rows of item, quantity and notes, and a notes box. Volunteers fill one in after each outreach and Dylan passes it back.
+- When a filled form arrives: add one row to `impact/distribution-log.csv`, then one `distributed` row to the stock log for each item on the form that is a stock item (match the volunteer's wording to `inventory/items.csv`; ask Dylan if a match is unclear). Things that are not stock items, such as sandwiches made that morning, go only in the distribution log's `items` text. Then `check` and `build`. The filled form itself is not published.
+- When goods arrive: a gift gets a line per kind of item in the gift log and a `received` row in the stock log; a purchase gets its ledger row and a `received` row pointing to it. A new kind of item is added to `inventory/items.csv` first.
+- A count that differs from the book is recorded as an `adjustment` row with a note. Never edit old rows to make the count fit.
+- The form is made by `.tools/make-distribution-form.py` (local, git-ignored): Chromium prints the page, then the script appends a standard PDF form (AcroForm). Do not add the fields with macOS PDFKit; it leaves out the form dictionary that Adobe Reader needs.
+
 **Monthly close** (within 15 days of the statement date, even for a quiet month): Dylan drops the statement and receipts in `Document_Inbox/` → file the originals in `Books/` → enter one row per statement line in posting order → record donors privately in `Books/donors.csv` → publish redacted receipts → add the month to `reconciliations.csv` → run `check` until it passes → the president reviews and initials the statement (its redacted copy goes to `financials/statements/`, the date to `president_reviewed_on`) → `build`, look at the pages → commit and push → Dylan sends a written acknowledgment for any single gift of $250 or more.
 
-**Year-end and reporting:** treasurer's report at each board meeting (`summary`); donor acknowledgments by January 31; close December at the January meeting and create the new year's `inkind-YYYY.csv` and `impact/YYYY.csv` (the general ledger simply continues); Form 990-N by May 15 while gross receipts are normally $50,000 or less; register with the Minnesota Attorney General within 30 days of passing $25,000 in a year's contributions (the script warns from $20,000); Minnesota Secretary of State renewal by December 31, 2027, then yearly.
+**Year-end and reporting:** treasurer's report at each board meeting (`summary`); donor acknowledgments by January 31; close December at the January meeting (the general ledger and the other logs simply continue); Form 990-N by May 15 while gross receipts are normally $50,000 or less; register with the Minnesota Attorney General within 30 days of passing $25,000 in a year's contributions (the script warns from $20,000); Minnesota Secretary of State renewal by December 31, 2027, then yearly.
 
 **Where things stand (Nov 20, 2026)**
 - The ledger holds the six opening rows (three paid-directly pairs, $395.90 in and out, balance back to $0.00). Their three receipts are redacted and published, and `check` passes.
 - Dylan is opening the bank account (Nov 20, 2026). No bank rows yet, so no month has been closed.
+- The gift log holds its first four lines (Nov 20, 2026): 100 hand sanitizers, 100 emergency blankets, 200 hand-warmer 2-packs and 100 winter sets, $585.00 at the price the donor paid before sales tax, with the redacted invoice. The stock log received all 500 units the same day. Nothing has been distributed yet, so the distribution log is empty.
 - Still owed by people, not the script: one acknowledgment letter for the three opening gifts, signed by the president, filed in `Books/acknowledgments/2026/`. A budget file for actual-versus-budget reports is not built.
 - One wrinkle in the close: rule 9 fails while `president_reviewed_on` is blank, so a month's row in `reconciliations.csv` only passes once the president has reviewed the statement.
 
