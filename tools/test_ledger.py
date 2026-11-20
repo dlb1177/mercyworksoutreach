@@ -1,0 +1,162 @@
+"""Tests for tools/ledger.py.
+
+Run from the repo root:  python3 -m unittest tools/test_ledger.py
+
+tools/fixtures/clean/ is one small made-up year (2030) that passes every rule.
+Each folder in tools/fixtures/broken/ holds only the files that differ from the
+clean year (and remove.txt lists files to delete), and breaks exactly one rule.
+The folder name starts with the number of the rule it breaks.
+"""
+
+import shutil
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import ledger  # noqa: E402
+
+FIXTURES = HERE / "fixtures"
+CLEAN_TRACKED = ["financials/2030.csv", "tools/ledger.py"]
+
+
+class LedgerTests(unittest.TestCase):
+
+    def setUp(self):
+        self._insiders = ledger.INSIDERS
+        ledger.INSIDERS = ["Pat Insider"]
+        self._tmp = []
+
+    def tearDown(self):
+        ledger.INSIDERS = self._insiders
+        for d in self._tmp:
+            shutil.rmtree(d, ignore_errors=True)
+
+    def repo(self, broken=None):
+        """Copy the clean year to a temp folder, then lay one broken fixture over it."""
+        root = Path(tempfile.mkdtemp(prefix="ledger-test-"))
+        self._tmp.append(root)
+        shutil.copytree(FIXTURES / "clean", root, dirs_exist_ok=True)
+        if broken:
+            src = FIXTURES / "broken" / broken
+            self.assertTrue(src.is_dir(), "no such fixture: %s" % broken)
+            shutil.copytree(src, root, dirs_exist_ok=True)
+            remove = root / "remove.txt"
+            if remove.is_file():
+                for line in remove.read_text().split():
+                    (root / line).unlink()
+                remove.unlink()
+        (root / "gitignore.txt").rename(root / ".gitignore")
+        (root / "Books").mkdir()
+        (root / "books_donors.csv").rename(root / "Books" / "donors.csv")
+        return root
+
+    def rules(self, broken=None, tracked=CLEAN_TRACKED):
+        books = ledger.run_check(self.repo(broken), tracked=list(tracked))
+        return sorted({p.rule for p in books.problems}), books
+
+    # ---- the clean year ----
+
+    def test_clean_year_passes(self):
+        rules, books = self.rules()
+        self.assertEqual([], [str(p) for p in books.problems])
+        self.assertEqual([], books.warnings)
+        t = books.totals(2030)
+        self.assertEqual("1125.05", str(t["received"]))
+        self.assertEqual("695.00", str(t["spent"]))
+        self.assertEqual("430.05", str(t["cash"]))
+        self.assertEqual("95.00", str(t["by_fn"]["Program"]))
+        self.assertEqual("600.00", str(t["by_fn"]["Management and general"]))
+        self.assertEqual("0.00", str(t["by_fn"]["Fundraising"]))
+
+    # ---- one or more broken fixtures for each rule ----
+
+    def test_every_broken_fixture_breaks_only_its_own_rule(self):
+        names = sorted(p.name for p in (FIXTURES / "broken").iterdir() if p.is_dir())
+        self.assertEqual(list(range(1, 12)), sorted({int(n[:2]) for n in names} | {11}),
+                         "every rule from 1 to 11 needs a broken fixture")
+        for name in names:
+            with self.subTest(fixture=name):
+                rules, books = self.rules(name)
+                self.assertEqual([int(name[:2])], rules, "\n".join(str(p) for p in books.problems))
+
+    def test_rule_11_tracked_private_file(self):
+        rules, books = self.rules(tracked=CLEAN_TRACKED + ["Books/donors.csv"])
+        self.assertEqual([11], rules)
+        rules, _ = self.rules(tracked=CLEAN_TRACKED + ["Document_Inbox/statement.pdf", "Formation_Docs/x.pdf"])
+        self.assertEqual([11], rules)
+
+    def test_problems_name_the_file_the_row_and_a_fix(self):
+        _, books = self.rules("05-balance")
+        text = str(books.problems[0])
+        self.assertIn("financials/2030.csv row 2030-007", text)
+        self.assertIn("[rule 5]", text)
+        self.assertIn("Fix:", text)
+
+    def test_missing_books_folder_warns_instead_of_failing(self):
+        root = self.repo()
+        shutil.rmtree(root / "Books")
+        books = ledger.run_check(root, tracked=CLEAN_TRACKED)
+        self.assertEqual([], books.problems)
+        self.assertEqual(1, len(books.warnings))
+
+    def test_warnings_do_not_fail(self):
+        root = self.repo()
+        path = root / "financials" / "2030.csv"
+        path.write_text(path.read_text() +
+                        "2030-011,2030-03-05,Contributions,Individual donor,Large gift,45000.00,bank,45430.05,,,\n"
+                        "2030-012,2030-03-06,Fundraising,Print Shop,Appeal letters,-10.00,bank,45420.05,receipts/2030/2030-012.pdf,,\n")
+        (root / "financials" / "receipts" / "2030" / "2030-012.pdf").write_text("fixture\n")
+        books = ledger.run_check(root, tracked=CLEAN_TRACKED)
+        self.assertEqual([], [str(p) for p in books.problems])
+        self.assertEqual(3, len(books.warnings))  # contributions, gross receipts, fundraising
+
+    # ---- build ----
+
+    def test_build_writes_pages_only_when_check_passes(self):
+        root = self.repo("05-balance")
+        books = ledger.Books(root, CLEAN_TRACKED)
+        ledger.run_check = lambda r, tracked=None: ledger.Books(r, CLEAN_TRACKED).run()
+        try:
+            _, blocking, written = ledger.build(root)
+            self.assertTrue(blocking)
+            self.assertEqual([], written)
+            self.assertFalse((root / "financials" / "index.html").exists())
+
+            root = self.repo()
+            _, blocking, written = ledger.build(root)
+            self.assertEqual([], [str(p) for p in blocking])
+            self.assertEqual(["2030.html", "index.html"], written)
+            page = (root / "financials" / "index.html").read_text()
+            for expected in ("$1,125.05", "$695.00", "$430.05", "13.7%", "Paid directly by donor",
+                             "receipts/2030/2030-002.pdf", "statements/2030-02.pdf", "February 2030",
+                             "−$600.00"):
+                self.assertIn(expected, page)
+            self.assertNotIn("<script", page)
+            # the pages it wrote pass the privacy scan too
+            again = ledger.run_check(root)
+            self.assertEqual([], [str(p) for p in again.problems])
+        finally:
+            ledger.run_check = lambda r, tracked=None: ledger.Books(r, tracked).run()
+
+    def test_receipts_pending_builds_but_check_still_fails(self):
+        root = self.repo("07-receipt-missing")
+        ledger.run_check = lambda r, tracked=None: ledger.Books(r, CLEAN_TRACKED).run()
+        try:
+            _, blocking, written = ledger.build(root)
+            self.assertTrue(blocking)
+            self.assertEqual([], written)
+            books, blocking, written = ledger.build(root, receipts_pending=True)
+            self.assertEqual([], blocking)
+            self.assertEqual([7], sorted({p.rule for p in books.problems}))
+            page = (root / "financials" / "index.html").read_text()
+            self.assertIn('<span class="pending">Pending</span>', page)
+            self.assertNotIn("receipts/2030/2030-002.pdf", page)
+        finally:
+            ledger.run_check = lambda r, tracked=None: ledger.Books(r, tracked).run()
+
+
+if __name__ == "__main__":
+    unittest.main()

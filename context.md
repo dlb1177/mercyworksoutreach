@@ -85,7 +85,7 @@ The website should be extremely simple and to the point. Outsiders, including do
 
 The tenets lead directly to these rules:
 
-- **Plain HTML and CSS only.** No frameworks, no build step, no npm, no static-site generator. Every page is a hand-editable `.html` file. (Tenet 3, highly efficient: simple over complex.)
+- **Plain HTML and CSS only.** No frameworks, no build step, no npm, no static-site generator. Every page is a hand-editable `.html` file. (Tenet 3, highly efficient: simple over complex.) The one allowed exception is the Financial Ledger: `tools/ledger.py` (Python 3 standard library only) writes `financials/index.html` and `financials/YYYY.html`, and that output is committed, so GitHub Pages still serves plain static files. Never edit those two pages by hand.
 - **No JavaScript** unless a feature truly can't work without it, and even then keep it small and inline.
 - **No tracking, analytics, cookies, ads, pop-ups, or third-party scripts and fonts.** The brand fonts are served from this site's own `/fonts` folder. Never load them from Google Fonts (the `@import` line in the brand kit's `brand-colors.css` is not used).
 - **Follow the brand kit** (v1, November 2026; Dylan keeps the full kit locally in `MercyWorksOutreach_BrandKit/`, which is git-ignored):
@@ -103,13 +103,18 @@ The tenets lead directly to these rules:
 ```
 /index.html           Home: what we do, the five tenets, inspiration (with a prayer of St. Teresa of Calcutta)
 /contact/index.html   Contact page: email, mailing address and a static map of the office
-/board/index.html     Current Board Leadership: the directors, and the officers once elected (opened from Links)
-/board-actions/index.html   Board Actions and Meeting Minutes: a dated list, oldest first (opened from Links)
-/tax-documents/index.html   Tax Documents: a dated list of IRS filings, oldest first (opened from Links)
-/links/index.html     Links page: the "New and still forming" notice (no visible page heading), then three sections in this order:
-                      Impact, Volunteer Resources, Documents
+/board/index.html     Current Board Leadership: the directors, and the officers once elected (opened from Info)
+/board-actions/index.html   Board Actions and Meeting Minutes: a dated list, oldest first (opened from Info)
+/tax-documents/index.html   Tax Documents: a dated list of IRS filings, oldest first (opened from Info)
+/info/index.html      Info page (called Links until Nov 20, 2026): the "New and still forming" notice (no visible page
+                      heading), then four sections in this order: Impact, Volunteer Resources, Finance, Governance
+/links/index.html     Only forwards the old /links/ address to /info/
+/financials/          The Financial Ledger and the books themselves (see section 4). index.html and YYYY.html are
+                      written by tools/ledger.py (opened from Info)
+/impact/              The distribution log, one CSV per year (no page yet)
+/tools/               ledger.py, its tests and their made-up fixtures
 /support/index.html   Support page: "coming soon" panel, non-monetary donations, donor video placeholder
-/documents/           The published PDFs. Its index.html only forwards the old /documents/ address to /links/.
+/documents/           The published PDFs. Its index.html only forwards the old /documents/ address to /info/.
                       Board actions and minutes go in /documents/board-actions/, tax filings in /documents/tax/,
                       each named YYYY-MM-DD-short-title.pdf.
 /style.css            The one stylesheet shared by every page
@@ -118,38 +123,87 @@ The tenets lead directly to these rules:
 /favicon.*, /apple-touch-icon.png, /android-chrome-*.png, /site.webmanifest,
 /open-graph-share-image-1200x630.png      Icons and link-preview image from the brand kit
 ```
-- **Menu on every page:** Home, Links, Contact, Support. "Support" is styled as a solid blue pill to set it apart. On the pages opened from Links (the two board pages and Tax Documents) the Links item is underlined (`aria-current="true"`).
+- **Menu on every page:** Home, Info, Contact, Support. "Support" is styled as a solid blue pill to set it apart. On the pages opened from Info (the two board pages, Tax Documents and the Financial Ledger) the Info item is underlined (`aria-current="true"`). The ledger spec asked for a "Financials" menu item; Dylan chose instead (Nov 20, 2026) to reach the ledger from the Finance section of Info, so the menu stays at four items.
 - **Which links open in a new tab (Dylan, Nov 19, 2026):** links to documents (the PDFs) and to other websites carry `target="_blank" rel="noopener"`. Links to other pages of this site, the menu, the logo and `mailto:` links stay in the same tab.
 - **Contact page:** email and mailing address only. There is no phone number; the ministry is volunteer-run, and email and mail go to a shared office rather than to one person. The map is a static image (`contact/map.jpg`) made once from OpenStreetMap tiles with a pin at the office, so no map service loads on the site. Keep the "© OpenStreetMap contributors" credit under it, and never embed Google Maps or any other live map (a plain link to Google Maps is fine).
-- **Links page, Documents:** names only, no descriptions. Published: Articles of Incorporation. Live pages: Current Board Leadership, Board Actions and Meeting Minutes, Tax Documents (renamed from "Annual Tax Return" at Dylan's request, Nov 19, 2026). Placeholders: Bylaws, Guiding Principles, Organization Policies, Quarterly Financial Reports.
-- **Tax Documents page:** one row per IRS filing, oldest first, with the date filed. Published: Form 1023-EZ (filed Nov 19, 2026). Placeholder: Annual Tax Returns. The note under the list says the application has not yet been decided; keep that until the determination letter arrives, then update it and the formation table. Filing the application is not 501(c)(3) status.
+- **Info page, Finance** (added Nov 20, 2026, above Governance): Financial Ledger (live), Quarterly Financial Reports (placeholder), Tax Documents (live; renamed from "Annual Tax Return" Nov 19, 2026).
+- **Info page, Governance** (called Documents until Nov 20, 2026): names only, no descriptions. Published: Articles of Incorporation. Live pages: Current Board Leadership, Board Actions and Meeting Minutes. Placeholders: Bylaws, Guiding Principles, Organization Policies.
+- **Tax Documents page:** one row per IRS filing, oldest first, with the date filed. Published: Form 1023-EZ (filed Nov 19, 2026). Placeholder: Annual Tax Returns. Link each year's Form 990-N confirmation here once filed, and the IRS determination letter once it arrives. The note under the list says the application has not yet been decided; keep that until the determination letter arrives, then update it and the formation table. Filing the application is not 501(c)(3) status.
 - **Redaction before publishing:** a document that shows anyone's home address, personal email address, or a personal phone or fax number is published only as a redacted copy (e-signature audit pages list signers' email addresses). The 1023-EZ on the site has the three directors' home street addresses and the contact phone and fax numbers blacked out; page 1 was flattened to an image so the hidden text is gone, not just covered. The unredacted original stays in `Formation_Docs/` and is never committed. The redaction script is `.tools/redact.swift` (local, git-ignored; how to run it is at the top of the file), with `.tools/pages.swift` to render the result for a look before publishing.
 - **Board Actions and Meeting Minutes page:** one row per written action or set of minutes, in date order with the oldest first, each showing the date it took effect. Only signed documents are published. A document that is out for signature is listed by name, without a link, marked "Pending signatures." Published, all dated Nov 19, 2026 and listed in this order: Minutes of the Introductory Meeting of the Initial Directors; Written Action of the Sole Incorporator; Unanimous Written Action: Election of Officers; Unanimous Written Action: Authorization of Bank Account. The three written actions include their Adobe Sign audit pages with the email addresses blacked out.
 - **Current Board Leadership page:** kept very basic. One list of the directors, with no separate officers section. Each name is set in the heading face (EB Garamond Medium, Deep Blue) with a title under it in the tagline's face (EB Garamond Regular, Slate): the officer's role, or "Director" for a director who holds no office. Names and roles only: no addresses, phone numbers or personal email addresses.
-- **Links page, Volunteer Resources:** placeholders for the orientation video, "What a Volunteer Day Looks Like" and the Participant Waiver. Volunteer Sign-Up and Volunteer Schedule both link to a legacy SignUpGenius page that predates the organization. Keep the note under the list saying so and that its volunteers are not affiliated, until the links are replaced with the organization's own sign-up.
-- **Links page, Impact:** placeholders for Impact Updates (regular, basic data on goods delivered and people served) and Newsletters.
-- **Support page:** everything is "coming soon." When real ways to give are added, state the tax status accurately on that page (see the formation status rule above): no 501(c)(3) or tax-deductibility claim until the IRS letter arrives.
+- **Info page, Volunteer Resources:** placeholders for the orientation video, "What a Volunteer Day Looks Like" and the Participant Waiver. Volunteer Sign-Up and Volunteer Schedule both link to a legacy SignUpGenius page that predates the organization. Keep the note under the list saying so and that its volunteers are not affiliated, until the links are replaced with the organization's own sign-up.
+- **Info page, Impact:** placeholders for Impact Updates (regular, basic data on goods delivered and people served) and Newsletters.
+- **Support page:** everything is "coming soon," and it says gifts can't be accepted yet because the bank account is not open. Do not add a donate button until the account is open and the determination letter has arrived. When real ways to give are added, state the tax status accurately on that page (see the formation status rule above): no 501(c)(3) or tax-deductibility claim until the IRS letter arrives.
 - Placeholders are plain text marked "Coming", not dead links. When an item exists, add it and turn the placeholder into a link.
 - The IRS EIN letter is not published (removed at Dylan's request); the EIN appears in the footer instead.
 - The footer on every page is a full-width Mist band carrying the organization's name, full address and EIN. The city is not repeated under the logo.
-- `Document_Inbox/` is a local, git-ignored holding folder. Dylan drops documents there to be added to the site. Once a document is handled, move it out to `Formation_Docs/` so the inbox is left empty. Check that a document is actually signed before publishing it as executed.
+- `Document_Inbox/` is a local, git-ignored holding folder. Dylan drops documents there to be added to the site. Once a document is handled, move it out to `Formation_Docs/` (or, for bank statements and receipts, to `Books/`) so the inbox is left empty. Check that a document is actually signed before publishing it as executed.
 - `Formation_Docs/` is Dylan's local folder for originals and is git-ignored. Copy a file into `documents/` with a lowercase-hyphenated name to publish it. Read every document for private data before publishing.
 
 ### Planned site structure (build when asked; don't build ahead)
 ```
-/financials/          Every transaction, line by line; quarterly reports
 /about/               (optional) Longer statement of the tenets
 ```
 
-### Financial transparency approach (future)
-- Keep the books in a simple CSV per year, e.g. `financials/2026.csv` with columns `date, description, category, amount, running_balance`, plus a receipt or reference column if useful.
-- Each year's page shows the CSV as a plain HTML table, plus summary totals: money in, money out, and the share spent on programs vs. required admin fees.
-- Offer the raw CSV as a link so anyone can download it.
-- Never publish bank account numbers, donor names (unless a donor opts in), or personal details of the people served.
+---
+
+## 4. The ledger (the organization's books)
+
+Built Nov 20, 2026 from Dylan's "Ledger & Accounting Spec (for Claude Code)". The spec PDF is kept locally at `Formation_Docs/Ledger & Accounting Spec (for Claude Code).pdf` (git-ignored); this section and the notes at the top of `tools/ledger.py` carry its rules.
+
+**What it is.** A public, cash-basis ledger that is itself the books. There is no accounting software. One CSV per calendar year is the book of record, git history is the audit trail, and `tools/ledger.py` checks the numbers and writes the page at `/financials/`.
+
+**Decisions made:** cash basis, calendar year. One checking account at Sunrise Banks with one debit card; all cash deposited intact; no petty cash. In-kind goods stay out of the cash ledger, in their own log. Donor names never appear in public files unless the donor opts in. Salaries and fundraising are both shown on the page and both expected to read $0.00. The $395.90 Dylan Brown paid to form the organization before a bank account existed is recorded as contributions, not reimbursements.
+
+**Files (public, committed)**
+```
+financials/2026.csv              ledger, book of record: id, date, category, counterparty, description,
+                                 amount, method, balance, receipt, ref, approval
+financials/categories.csv        the fixed category list (adding one is a change Dylan approves)
+financials/reconciliations.csv   one row per closed month
+financials/inkind-2026.csv       donated goods, not cash
+financials/receipts/2026/<id>.pdf    redacted receipt, named by ledger id
+financials/statements/2026-12.pdf    redacted bank statement initialed by the president
+financials/index.html, 2026.html     written by the script; never edit by hand
+impact/2026.csv                  distribution log: date, area, volunteers, people_served_estimate, items
+                                 (area is a general neighborhood; never names or photos of people served)
+tools/ledger.py                  check, build, summary, support
+tools/test_ledger.py, tools/fixtures/   tests, with one made-up clean year and a broken fixture per rule
+```
+**Files (private, git-ignored): `Books/`** holds original statements (`statements/YYYY-MM.pdf`, `-initialed.pdf`), original receipts (`receipts/<id>.pdf`), `donors.csv` (who gave what, and `public_name_ok`), and `acknowledgments/`. Dylan backs it up separately. The script fails if anything under `Books/`, `Document_Inbox/` or `Formation_Docs/` is tracked.
+
+**Commands** (run from the repo root)
+```
+python3 tools/ledger.py check       run all 11 rules; write nothing
+python3 tools/ledger.py build       check, then write the pages (refuses if check fails)
+python3 tools/ledger.py build --receipts-pending    as build, but a receipt not yet published shows as "Pending"
+python3 tools/ledger.py summary     year-to-date totals, with the Attorney General and 990-N warnings
+python3 tools/ledger.py support     public support percentage from Books/donors.csv; prints only
+python3 -m unittest tools/test_ledger.py
+```
+**Rules to remember**
+- Positive is money in, negative is money out. `method` is `bank` (on the statement) or `paid-directly` (someone paid the org's bill with their own money). A paid-directly gift is two rows on the same date: a Contributions row, then the expense with `ref` set to it. The balance does not move.
+- Every spending row needs a redacted receipt at `receipts/YYYY/<id>.pdf`. `approval` is required on any payment over $500 and any payment to a director or officer (the `INSIDERS` list in the script; keep it current when the board changes).
+- Closed months are append-only. Fix a mistake with a row that reverses it (`ref` to the wrong row, description starting "Reverses") plus a correct row. A balance that doesn't tie is found and fixed, never forced with a plug row.
+- Redaction removes the text, it does not cover it. Statements: remove full account and routing numbers, donor names in deposit lines and home addresses; keep the last 4 of the account, dates, amounts, balances and the president's initials. Receipts: remove card numbers except the last 4, personal addresses, phone numbers and loyalty numbers. Open every redacted file before committing it. `.tools/redact.swift` does this.
+- Commit messages say what changed, e.g. "Close 2026-12: 14 rows, ties to statement $1,240.17".
+- The page's tax wording follows the formation rule above: no 501(c)(3) or deductibility claim until the determination letter arrives.
+
+**Monthly close** (within 15 days of the statement date, even for a quiet month): Dylan drops the statement and receipts in `Document_Inbox/` → file the originals in `Books/` → enter one row per statement line in posting order → record donors privately in `Books/donors.csv` → publish redacted receipts → add the month to `reconciliations.csv` → run `check` until it passes → the president reviews and initials the statement (its redacted copy goes to `financials/statements/`, the date to `president_reviewed_on`) → `build`, look at the page → commit and push → Dylan sends a written acknowledgment for any single gift of $250 or more.
+
+**Year-end and reporting:** treasurer's report at each board meeting (`summary`); donor acknowledgments by January 31; close December and start the new year's CSV at the January meeting; Form 990-N by May 15 while gross receipts are normally $50,000 or less; register with the Minnesota Attorney General within 30 days of passing $25,000 in a year's contributions (the script warns from $20,000); Minnesota Secretary of State renewal by December 31, 2027, then yearly.
+
+**Where things stand (Nov 20, 2026)**
+- The ledger holds the six opening rows (three paid-directly pairs, $395.90 in and out, cash $0.00). The bank account is authorized but not open, so no month has been closed.
+- **The three opening receipts have not been received.** `check` fails on rule 7 for rows 2026-002, 2026-004 and 2026-006 until Dylan drops them in `Document_Inbox/` (MN Secretary of State filing fee receipt, Cloudflare domain invoice, Pay.gov payment confirmation). Until then the page is built with `--receipts-pending`. Once they are redacted and published, use plain `build`.
+- Open questions from the spec, answered by default for now: the opening rows name "Dylan Brown" as the donor (the alternative is "Director"; and if Dylan Brown CPA LLC's card paid any of them, that row's donor is the LLC); the GitHub repo is public, so the page links the commit history; a budget file for actual-versus-budget reports is not built.
+- Still owed by people, not the script: one acknowledgment letter for the three opening gifts, signed by the president, filed in `Books/acknowledgments/2026/`.
+- One wrinkle in the close: rule 9 fails while `president_reviewed_on` is blank, so a month's row in `reconciliations.csv` only passes once the president has reviewed the statement.
 
 ---
 
-## 4. Hosting and deploy
+## 5. Hosting and deploy
 
 - **GitHub repo:** `dlb1177/mercyworksoutreach` (public). It's set up the same way as Dylan's `alphastpeter.com` site.
 - **Host:** GitHub Pages, deploying from the `main` branch, root folder. The `.nojekyll` file tells GitHub to serve files as-is.

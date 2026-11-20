@@ -1,0 +1,11 @@
+id,date,category,counterparty,description,amount,method,balance,receipt,ref,approval
+2030-001,2030-01-05,Contributions,Individual donor,Gift by check,100.00,bank,100.00,,,
+2030-002,2030-01-10,Food,Corner Grocery,Sandwich supplies,-40.00,bank,60.00,receipts/2030/2030-002.pdf,,
+2030-003,2030-01-15,Contributions,Jane Example,Paid for blankets for the org,25.00,paid-directly,60.00,,,
+2030-004,2030-01-15,Clothing and blankets,Thrift Depot,Ten blankets,-25.00,paid-directly,60.00,receipts/2030/2030-004.pdf,2030-003,
+2030-005,2030-01-31,Interest,Sample Bank,Interest for January,0.05,bank,60.05,,,
+2030-006,2030-02-03,Grants,Foundation,Grant for winter supplies,1000.00,bank,1060.05,,,
+2030-007,2030-02-10,Insurance,Acme Insurance,Annual liability policy,-600.00,bank,460.05,receipts/2030/2030-007.pdf,,Written action 2030-02-01
+2030-008,2030-02-12,Food,Corner Grocery,"Soap and toothpaste, entered as food by mistake",-30.00,bank,430.05,receipts/2030/2030-008.pdf,,
+2030-009,2030-03-02,Food,Corner Grocery,"Reverses 2030-008, which was in the wrong category",30.00,bank,460.05,,2030-008,
+2030-010,2030-03-02,Hygiene and first aid,Corner Grocery,Soap and toothpaste (corrects 2030-008),30.00,bank,490.05,receipts/2030/2030-010.pdf,,

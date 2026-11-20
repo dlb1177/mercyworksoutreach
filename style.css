@@ -425,6 +425,114 @@ h2.label::before { display: none; }
   color: var(--slate);
 }
 
+/* Financial Ledger page. Its HTML is written by tools/ledger.py. */
+
+.page-wide { max-width: 1000px; }
+.fin > p, .fin > ul { max-width: 684px; }
+.fin-lead {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 1.42rem;
+  line-height: 1.4;
+  color: var(--deep-blue);
+}
+.fin-status, .fin-years { color: var(--slate); }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 0;
+}
+.stats div { padding: 18px 20px 16px; background: var(--mist); border-radius: 10px; }
+.stats dt {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+.stats dd {
+  margin: 6px 0 0;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.9rem;
+  line-height: 1.15;
+  color: var(--deep-blue);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.fin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.fin-table th, .fin-table td {
+  padding: 9px 10px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--hairline);
+}
+.fin-table th:first-child, .fin-table td:first-child { padding-left: 2px; }
+.fin-table th:last-child, .fin-table td:last-child { padding-right: 2px; }
+.fin-table thead th {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--slate);
+  vertical-align: bottom;
+  border-bottom: 2px solid var(--water-blue);
+}
+.fin-table .num { text-align: right; white-space: nowrap; }
+.fin-table tr.group th {
+  padding-top: 22px;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.2rem;
+  color: var(--deep-blue);
+}
+.fin-table tr.subtotal td { font-weight: 600; }
+.fin-table .date { white-space: nowrap; }
+.fin-table .pending, .fin-table .none { color: var(--slate); }
+.fin-table.totals { max-width: 684px; }
+.rowid, .paid-note { display: block; font-size: 0.76rem; color: var(--slate); }
+
+ul.plain { margin: 0; padding-left: 1.2em; }
+ul.plain li { margin: 0 0 0.6em; }
+
+/* On a narrow screen each row of a wide table becomes a small labeled block */
+@media (max-width: 760px) {
+  .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stats div { padding: 14px 14px 12px; }
+  .stats dd { font-size: 1.55rem; }
+  .stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .stack, .stack tbody, .stack tr, .stack td, .stack tr.group th { display: block; }
+  .stack tr { padding: 12px 0; border-bottom: 1px solid var(--hairline); }
+  .stack tr.group { padding: 20px 0 6px; border-bottom: 2px solid var(--water-blue); }
+  .stack th, .stack td { padding: 2px 0; border: 0; }
+  .stack tr.group th { padding: 0; }
+  .stack td[data-label] { display: flex; justify-content: space-between; gap: 16px; text-align: right; }
+  .stack td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    text-align: left;
+    padding-top: 2px;
+  }
+  .stack td.desc { padding-bottom: 6px; font-size: 1rem; font-weight: 600; }
+  .stack td.desc .paid-note { font-weight: 400; }
+  .stack .rowid { display: inline; margin-left: 8px; }
+  .stack td.date time { margin-left: auto; }
+}
+
 /* Footer */
 
 .site-footer {

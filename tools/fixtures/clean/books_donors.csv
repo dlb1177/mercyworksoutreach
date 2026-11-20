@@ -1,0 +1,3 @@
+ledger_id,date,donor_name,household_key,email,mailing_address,amount,type,public_name_ok,acknowledged_on
+2030-003,2030-01-15,Jane Example,example-jane,jane@example.com,"1 Sample St, Anytown",25.00,cash,yes,
+2030-001,2030-01-05,John Private,private-john,,,100.00,cash,no,

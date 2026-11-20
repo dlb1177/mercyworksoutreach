@@ -13,3 +13,9 @@ Document_Inbox/
 
 # Local helper scripts (PDF redaction); not part of the site
 .tools/
+
+# Private accounting records: original statements, receipts and donor names. Never published.
+Books/
+
+# Python cache
+__pycache__/
