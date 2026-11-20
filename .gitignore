@@ -10,3 +10,6 @@ MercyWorksOutreach_BrandKit/
 
 # Drop folder for documents waiting to be added to the site; never published
 Document_Inbox/
+
+# Local helper scripts (PDF redaction); not part of the site
+.tools/
