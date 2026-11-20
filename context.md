@@ -37,7 +37,7 @@ The home page wording was revised with the co-founder's edits; where his wording
 - **Officers:** John Mark Reimann, president; Dylan Brown, secretary and treasurer, elected by the board's unanimous written action, signed by all three directors on Nov 19, 2026 and published on the Board Actions page.
 - **Money safeguards (Article VII):** any payment over $500 needs two signers. The president reviews and initials the bank statement every month. No one can approve a payment to themselves. The board adopted these as policy, ahead of the bylaws, in its written action authorizing the bank account (Nov 19, 2026).
 
-### Formation status (as of Nov 19, 2026)
+### Formation status (as of Nov 20, 2026)
 | # | Step | Status |
 |---|------|--------|
 | 1 | Choose a name | ✅ Done: Mercy Works Outreach |
@@ -46,7 +46,7 @@ The home page wording was revised with the co-founder's edits; where his wording
 | 4 | Choose prospective board of directors | ✅ Done: three initial directors |
 | 5 | Incorporator signs a written action electing the board | ✅ Done: signed by the incorporator and all three directors Nov 19, 2026; published |
 | 6 | First board meeting: adopt bylaws and a conflict-of-interest policy, elect officers, approve a bank account and the tax-exemption application | ⏳ In progress: an introductory meeting was held Nov 19, 2026 (no votes); officers were elected and a bank account was authorized by written actions Nov 19, 2026. Still to do: bylaws, conflict-of-interest policy |
-| 7 | Open a bank account in the organization's name | ⏳ Authorized by the board Nov 19, 2026; not yet opened |
+| 7 | Open a bank account in the organization's name | ✅ Done: checking account opened at Sunrise Banks Nov 20, 2026, with a $100.00 opening deposit |
 | 8 | Apply for 501(c)(3) on IRS Form 1023-EZ ($275) | ✅ Filed Nov 19, 2026. ⏳ Waiting for the IRS determination letter |
 | 9 | Register with the MN Attorney General; apply for the MN sales tax exemption | ⏳ Not yet |
 | 10 | Get insurance quotes | ⏳ Not yet |
@@ -212,7 +212,7 @@ python3 -m unittest tools/test_ledger.py
 - Positive is money in, negative is money out. `method` is `bank` (on the statement) or `paid-directly` (someone paid the org's bill with their own money). A paid-directly gift is two rows on the same date: a Contributions row, then the expense with `ref` set to it.
 - Every spending row needs a redacted receipt at `receipts/YYYY/<id>.pdf`. `approval` is required on any payment over $500 and any payment to a director or officer (counterparty "Director"). Keep the `INSIDERS` list in the script current when the board changes; it is what the name check uses.
 - Closed months are append-only. Fix a mistake with a row that reverses it (`ref` to the wrong row, description starting "Reverses") plus a correct row. A balance that doesn't tie is found and fixed, never forced with a plug row.
-- Redaction removes the text, it does not cover it. Statements: remove full account and routing numbers, donor names in deposit lines and home addresses; keep the last 4 of the account, dates, amounts, balances and the president's initials. Receipts: remove the payer's name, card numbers except the last 4, personal addresses, email addresses, phone numbers and loyalty numbers; a vendor's own address and email stay. Open every redacted file before committing it. `.tools/redact.swift` does this (`ALLOW_AT=1` when a vendor's email address stays).
+- Redaction removes the text, it does not cover it. Statements: remove full account and routing numbers, donor names in deposit lines and home addresses; keep the last 4 of the account, dates, amounts, balances and the president's initials. Receipts: remove the payer's name, card numbers except the last 4, personal addresses, email addresses, phone numbers and loyalty numbers; a vendor's own address and email stay. Open every redacted file before committing it. `.tools/redact.swift` does this (`ALLOW_AT=1` when a vendor's email address stays). A phone scan carries hidden camera data even when nothing on it needs blacking out, so flatten it too (pass `rect:1:0,0,0,0`). A money-in row may carry a receipt as well, such as a bank deposit receipt.
 - Commit messages say what changed, e.g. "Close 2026-12: 14 rows, ties to statement $1,240.17".
 - The page's tax wording follows the formation rule above: no 501(c)(3) or deductibility claim until the determination letter arrives.
 
@@ -229,7 +229,8 @@ python3 -m unittest tools/test_ledger.py
 
 **Where things stand (Nov 20, 2026)**
 - The ledger holds the six opening rows (three paid-directly pairs, $395.90 in and out, balance back to $0.00). Their three receipts are redacted and published, and `check` passes.
-- Dylan is opening the bank account (Nov 20, 2026). No bank rows yet, so no month has been closed.
+- The bank account was opened Nov 20, 2026. The first bank row is the $100.00 opening deposit by check (2026-007), entered from the teller's deposit receipt, so cash in the bank is $100.00. No statement has arrived yet, so no month has been closed. When the November statement comes, confirm that row's posting date against it (the deposit was made at 4:03 p.m. on a Friday) before closing the month.
+- `Books/donors.csv` has a placeholder for who wrote that check ("TO CONFIRM WITH DYLAN"); fill it in once Dylan says. Publicly the row says "Donor"; change it to "Individual donor" if the check came from someone outside the board.
 - The gift log holds its first four lines (Nov 20, 2026): 100 hand sanitizers, 100 emergency blankets, 200 hand-warmer 2-packs and 100 winter sets, $585.00 at the price the donor paid before sales tax, with the redacted invoice. The stock log received all 500 units the same day. Nothing has been distributed yet, so the distribution log is empty.
 - Still owed by people, not the script: one acknowledgment letter for the three opening gifts, signed by the president, filed in `Books/acknowledgments/2026/`. A budget file for actual-versus-budget reports is not built.
 - One wrinkle in the close: rule 9 fails while `president_reviewed_on` is blank, so a month's row in `reconciliations.csv` only passes once the president has reviewed the statement.
