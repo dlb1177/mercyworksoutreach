@@ -85,7 +85,7 @@ The website should be extremely simple and to the point. Outsiders, including do
 
 The tenets lead directly to these rules:
 
-- **Plain HTML and CSS only.** No frameworks, no build step, no npm, no static-site generator. Every page is a hand-editable `.html` file. (Tenet 3, highly efficient: simple over complex.) The one allowed exception is the Financial Ledger: `tools/ledger.py` (Python 3 standard library only) writes `financials/index.html` and `financials/YYYY.html`, and that output is committed, so GitHub Pages still serves plain static files. Never edit those two pages by hand.
+- **Plain HTML and CSS only.** No frameworks, no build step, no npm, no static-site generator. Every page is a hand-editable `.html` file. (Tenet 3, highly efficient: simple over complex.) The one allowed exception is the Financial Ledger: `tools/ledger.py` (Python 3 standard library only) writes `financials/index.html`, `financials/YYYY.html` and `financials/ledger.html`, and that output is committed, so GitHub Pages still serves plain static files. Never edit those pages by hand.
 - **No JavaScript** unless a feature truly can't work without it, and even then keep it small and inline.
 - **No tracking, analytics, cookies, ads, pop-ups, or third-party scripts and fonts.** The brand fonts are served from this site's own `/fonts` folder. Never load them from Google Fonts (the `@import` line in the brand kit's `brand-colors.css` is not used).
 - **Follow the brand kit** (v1, November 2026; Dylan keeps the full kit locally in `MercyWorksOutreach_BrandKit/`, which is git-ignored):
@@ -109,8 +109,8 @@ The tenets lead directly to these rules:
 /info/index.html      Info page (called Links until Nov 20, 2026): the "New and still forming" notice (no visible page
                       heading), then four sections in this order: Impact, Volunteer Resources, Finance, Governance
 /links/index.html     Only forwards the old /links/ address to /info/
-/financials/          The Financial Ledger and the books themselves (see section 4). index.html and YYYY.html are
-                      written by tools/ledger.py (opened from Info)
+/financials/          The Financial Ledger and the books themselves (see section 4). index.html (summary), YYYY.html
+                      (each year's summary) and ledger.html (every transaction) are written by tools/ledger.py (opened from Info)
 /impact/              The distribution log, one CSV per year (no page yet)
 /tools/               ledger.py, its tests and their made-up fixtures
 /support/index.html   Support page: "coming soon" panel, non-monetary donations, donor video placeholder
@@ -134,7 +134,7 @@ The tenets lead directly to these rules:
 - **Current Board Leadership page:** kept very basic. One list of the directors, with no separate officers section. Each name is set in the heading face (EB Garamond Medium, Deep Blue) with a title under it in the tagline's face (EB Garamond Regular, Slate): the officer's role, or "Director" for a director who holds no office. Names and roles only: no addresses, phone numbers or personal email addresses.
 - **Info page, Volunteer Resources:** placeholders for the orientation video, "What a Volunteer Day Looks Like" and the Participant Waiver. Volunteer Sign-Up and Volunteer Schedule both link to a legacy SignUpGenius page that predates the organization. Keep the note under the list saying so and that its volunteers are not affiliated, until the links are replaced with the organization's own sign-up.
 - **Info page, Impact:** placeholders for Impact Updates (regular, basic data on goods delivered and people served) and Newsletters.
-- **Support page:** everything is "coming soon," and it says gifts can't be accepted yet because the bank account is not open. Do not add a donate button until the account is open and the determination letter has arrived. When real ways to give are added, state the tax status accurately on that page (see the formation status rule above): no 501(c)(3) or tax-deductibility claim until the IRS letter arrives.
+- **Support page:** everything is "coming soon," and it says gifts can't be accepted yet. Do not add a donate button until the bank account is open and the determination letter has arrived. When real ways to give are added, state the tax status accurately on that page (see the formation status rule above): no 501(c)(3) or tax-deductibility claim until the IRS letter arrives.
 - Placeholders are plain text marked "Coming", not dead links. When an item exists, add it and turn the placeholder into a link.
 - The IRS EIN letter is not published (removed at Dylan's request); the EIN appears in the footer instead.
 - The footer on every page is a full-width Mist band carrying the organization's name, full address and EIN. The city is not repeated under the logo.
@@ -150,26 +150,34 @@ The tenets lead directly to these rules:
 
 ## 4. The ledger (the organization's books)
 
-Built Nov 20, 2026 from Dylan's "Ledger & Accounting Spec (for Claude Code)". The spec PDF is kept locally at `Formation_Docs/Ledger & Accounting Spec (for Claude Code).pdf` (git-ignored); this section and the notes at the top of `tools/ledger.py` carry its rules.
+Built Nov 20, 2026 from Dylan's "Ledger & Accounting Spec (for Claude Code)", then changed the same day at Dylan's direction (the changes are marked below; where they differ from the spec, they win). The spec PDF is kept locally at `Formation_Docs/Ledger & Accounting Spec (for Claude Code).pdf` (git-ignored); this section and the notes at the top of `tools/ledger.py` carry the rules.
 
-**What it is.** A public, cash-basis ledger that is itself the books. There is no accounting software. One CSV per calendar year is the book of record, git history is the audit trail, and `tools/ledger.py` checks the numbers and writes the page at `/financials/`.
+**What it is.** A public, cash-basis ledger that is itself the books. There is no accounting software. One general ledger file is the book of record, git history is the audit trail, and `tools/ledger.py` checks the numbers and writes the pages at `/financials/`.
 
-**Decisions made:** cash basis, calendar year. One checking account at Sunrise Banks with one debit card; all cash deposited intact; no petty cash. In-kind goods stay out of the cash ledger, in their own log. Donor names never appear in public files unless the donor opts in. Salaries and fundraising are both shown on the page and both expected to read $0.00. The $395.90 Dylan Brown paid to form the organization before a bank account existed is recorded as contributions, not reimbursements.
+**Decisions made**
+- Cash basis, calendar year. One checking account at Sunrise Banks with one debit card; all cash deposited intact; no petty cash.
+- **One cumulative general ledger (Dylan, Nov 20, 2026).** `financials/general-ledger.csv` holds every transaction since inception; it is not broken into a file per year, as the spec first had it. Ids are still `YYYY-NNN`, counting up from 001 within each calendar year, and the page still summarizes one year at a time.
+- **The balance moves on every row (Dylan, Nov 20, 2026).** A paid-directly gift raises the balance and its expense lowers it again, so each pair nets to zero. The spec first had paid-directly rows leave the balance unchanged. The bank reconciliation adds up the `bank` rows only, so it is not affected.
+- **No names in the public files (Dylan, Nov 20, 2026).** A gift a director pays directly is shown as "Donor". Any other mention of a director or officer, such as a payment to one, is shown as "Director". Other donors are "Individual donor", "Foundation", "Church" or "Government" unless they opt in. The script fails if a director's name appears in a public CSV or page, and receipts are redacted to match.
+- In-kind goods stay out of the cash ledger, in their own log. Salaries and fundraising are both shown on the page and both expected to read $0.00.
+- The $395.90 paid to form the organization before a bank account existed is recorded as contributions, not reimbursements.
 
 **Files (public, committed)**
 ```
-financials/2026.csv              ledger, book of record: id, date, category, counterparty, description,
-                                 amount, method, balance, receipt, ref, approval
-financials/categories.csv        the fixed category list (adding one is a change Dylan approves)
+financials/general-ledger.csv    the book of record, every transaction since inception: id, date, category,
+                                 counterparty, description, amount, method, balance, receipt, ref, approval
+financials/categories.csv        the fixed category list (adding one is a change Dylan approves); not linked from the page
 financials/reconciliations.csv   one row per closed month
-financials/inkind-2026.csv       donated goods, not cash
+financials/inkind-2026.csv       donated goods, not cash (one file per year)
 financials/receipts/2026/<id>.pdf    redacted receipt, named by ledger id
 financials/statements/2026-12.pdf    redacted bank statement initialed by the president
-financials/index.html, 2026.html     written by the script; never edit by hand
+financials/index.html            summary of the latest year      } written by the script;
+financials/2026.html             summary of that year            } never edit by hand
+financials/ledger.html           General Ledger: every transaction, newest month first }
 impact/2026.csv                  distribution log: date, area, volunteers, people_served_estimate, items
                                  (area is a general neighborhood; never names or photos of people served)
 tools/ledger.py                  check, build, summary, support
-tools/test_ledger.py, tools/fixtures/   tests, with one made-up clean year and a broken fixture per rule
+tools/test_ledger.py, tools/fixtures/   tests, with one made-up clean ledger and broken fixtures for every rule
 ```
 **Files (private, git-ignored): `Books/`** holds original statements (`statements/YYYY-MM.pdf`, `-initialed.pdf`), original receipts (`receipts/<id>.pdf`), `donors.csv` (who gave what, and `public_name_ok`), and `acknowledgments/`. Dylan backs it up separately. The script fails if anything under `Books/`, `Document_Inbox/` or `Formation_Docs/` is tracked.
 
@@ -182,23 +190,28 @@ python3 tools/ledger.py summary     year-to-date totals, with the Attorney Gener
 python3 tools/ledger.py support     public support percentage from Books/donors.csv; prints only
 python3 -m unittest tools/test_ledger.py
 ```
+**The pages (Dylan, Nov 20, 2026)**
+- The Financial Ledger page (`/financials/`) is a summary: the year at a glance, totals by category, a link to the General Ledger, the monthly bank check, donated goods and downloads. The transactions are on their own page, `ledger.html`, so the summary stays short.
+- Downloads are General Ledger, Monthly Bank Checks and the Donated Goods Log. The category list is not offered.
+- There is no "How to read this page" section and no status note about the bank account.
+- **Never link or mention the GitHub history on the site.** The spec's "Every change to these books" link was removed at Dylan's request.
+
 **Rules to remember**
-- Positive is money in, negative is money out. `method` is `bank` (on the statement) or `paid-directly` (someone paid the org's bill with their own money). A paid-directly gift is two rows on the same date: a Contributions row, then the expense with `ref` set to it. The balance does not move.
-- Every spending row needs a redacted receipt at `receipts/YYYY/<id>.pdf`. `approval` is required on any payment over $500 and any payment to a director or officer (the `INSIDERS` list in the script; keep it current when the board changes).
+- Positive is money in, negative is money out. `method` is `bank` (on the statement) or `paid-directly` (someone paid the org's bill with their own money). A paid-directly gift is two rows on the same date: a Contributions row, then the expense with `ref` set to it.
+- Every spending row needs a redacted receipt at `receipts/YYYY/<id>.pdf`. `approval` is required on any payment over $500 and any payment to a director or officer (counterparty "Director"). Keep the `INSIDERS` list in the script current when the board changes; it is what the name check uses.
 - Closed months are append-only. Fix a mistake with a row that reverses it (`ref` to the wrong row, description starting "Reverses") plus a correct row. A balance that doesn't tie is found and fixed, never forced with a plug row.
-- Redaction removes the text, it does not cover it. Statements: remove full account and routing numbers, donor names in deposit lines and home addresses; keep the last 4 of the account, dates, amounts, balances and the president's initials. Receipts: remove card numbers except the last 4, personal addresses, phone numbers and loyalty numbers. Open every redacted file before committing it. `.tools/redact.swift` does this.
+- Redaction removes the text, it does not cover it. Statements: remove full account and routing numbers, donor names in deposit lines and home addresses; keep the last 4 of the account, dates, amounts, balances and the president's initials. Receipts: remove the payer's name, card numbers except the last 4, personal addresses, email addresses, phone numbers and loyalty numbers; a vendor's own address and email stay. Open every redacted file before committing it. `.tools/redact.swift` does this (`ALLOW_AT=1` when a vendor's email address stays).
 - Commit messages say what changed, e.g. "Close 2026-12: 14 rows, ties to statement $1,240.17".
 - The page's tax wording follows the formation rule above: no 501(c)(3) or deductibility claim until the determination letter arrives.
 
-**Monthly close** (within 15 days of the statement date, even for a quiet month): Dylan drops the statement and receipts in `Document_Inbox/` → file the originals in `Books/` → enter one row per statement line in posting order → record donors privately in `Books/donors.csv` → publish redacted receipts → add the month to `reconciliations.csv` → run `check` until it passes → the president reviews and initials the statement (its redacted copy goes to `financials/statements/`, the date to `president_reviewed_on`) → `build`, look at the page → commit and push → Dylan sends a written acknowledgment for any single gift of $250 or more.
+**Monthly close** (within 15 days of the statement date, even for a quiet month): Dylan drops the statement and receipts in `Document_Inbox/` → file the originals in `Books/` → enter one row per statement line in posting order → record donors privately in `Books/donors.csv` → publish redacted receipts → add the month to `reconciliations.csv` → run `check` until it passes → the president reviews and initials the statement (its redacted copy goes to `financials/statements/`, the date to `president_reviewed_on`) → `build`, look at the pages → commit and push → Dylan sends a written acknowledgment for any single gift of $250 or more.
 
-**Year-end and reporting:** treasurer's report at each board meeting (`summary`); donor acknowledgments by January 31; close December and start the new year's CSV at the January meeting; Form 990-N by May 15 while gross receipts are normally $50,000 or less; register with the Minnesota Attorney General within 30 days of passing $25,000 in a year's contributions (the script warns from $20,000); Minnesota Secretary of State renewal by December 31, 2027, then yearly.
+**Year-end and reporting:** treasurer's report at each board meeting (`summary`); donor acknowledgments by January 31; close December at the January meeting and create the new year's `inkind-YYYY.csv` and `impact/YYYY.csv` (the general ledger simply continues); Form 990-N by May 15 while gross receipts are normally $50,000 or less; register with the Minnesota Attorney General within 30 days of passing $25,000 in a year's contributions (the script warns from $20,000); Minnesota Secretary of State renewal by December 31, 2027, then yearly.
 
 **Where things stand (Nov 20, 2026)**
-- The ledger holds the six opening rows (three paid-directly pairs, $395.90 in and out, cash $0.00). The bank account is authorized but not open, so no month has been closed.
-- **The three opening receipts have not been received.** `check` fails on rule 7 for rows 2026-002, 2026-004 and 2026-006 until Dylan drops them in `Document_Inbox/` (MN Secretary of State filing fee receipt, Cloudflare domain invoice, Pay.gov payment confirmation). Until then the page is built with `--receipts-pending`. Once they are redacted and published, use plain `build`.
-- Open questions from the spec, answered by default for now: the opening rows name "Dylan Brown" as the donor (the alternative is "Director"; and if Dylan Brown CPA LLC's card paid any of them, that row's donor is the LLC); the GitHub repo is public, so the page links the commit history; a budget file for actual-versus-budget reports is not built.
-- Still owed by people, not the script: one acknowledgment letter for the three opening gifts, signed by the president, filed in `Books/acknowledgments/2026/`.
+- The ledger holds the six opening rows (three paid-directly pairs, $395.90 in and out, balance back to $0.00). Their three receipts are redacted and published, and `check` passes.
+- Dylan is opening the bank account (Nov 20, 2026). No bank rows yet, so no month has been closed.
+- Still owed by people, not the script: one acknowledgment letter for the three opening gifts, signed by the president, filed in `Books/acknowledgments/2026/`. A budget file for actual-versus-budget reports is not built.
 - One wrinkle in the close: rule 9 fails while `president_reviewed_on` is blank, so a month's row in `reconciliations.csv` only passes once the president has reviewed the statement.
 
 ---

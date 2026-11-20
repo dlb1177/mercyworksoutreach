@@ -1,7 +1,7 @@
 id,date,category,counterparty,description,amount,method,balance,receipt,ref,approval
-2026-001,2026-11-18,Contributions,Dylan Brown,Paid the Articles of Incorporation filing fee for the org,90.00,paid-directly,0.00,,,
+2026-001,2026-11-18,Contributions,Donor,Paid the Articles of Incorporation filing fee for the org,90.00,paid-directly,90.00,,,
 2026-002,2026-11-18,Filing and registration fees,Minnesota Secretary of State,Articles of Incorporation filing fee,-90.00,paid-directly,0.00,receipts/2026/2026-002.pdf,2026-001,
-2026-003,2026-11-18,Contributions,Dylan Brown,Paid the domain registration for the org,30.90,paid-directly,0.00,,,
+2026-003,2026-11-18,Contributions,Donor,Paid the domain registration for the org,30.90,paid-directly,30.90,,,
 2026-004,2026-11-18,Website and domain,Cloudflare,"mercyworksoutreach.org domain, 3 years",-30.90,paid-directly,0.00,receipts/2026/2026-004.pdf,2026-003,
-2026-005,2026-11-19,Contributions,Dylan Brown,Paid the IRS Form 1023-EZ user fee for the org,275.00,paid-directly,0.00,,,
+2026-005,2026-11-19,Contributions,Donor,Paid the IRS Form 1023-EZ user fee for the org,275.00,paid-directly,275.00,,,
 2026-006,2026-11-19,Filing and registration fees,Internal Revenue Service,Form 1023-EZ user fee (paid through Pay.gov),-275.00,paid-directly,0.00,receipts/2026/2026-006.pdf,2026-005,

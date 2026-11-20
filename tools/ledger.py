@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""Mercy Works Outreach: check the public ledger and build the Financial Ledger page.
+"""Mercy Works Outreach: check the public ledger and build the Financial Ledger pages.
 
-The ledger is the organization's books. One CSV file per year, financials/YYYY.csv,
-is the book of record; git history is the audit trail. This script checks the
-numbers and writes the page. It uses only the Python 3 standard library.
+The ledger is the organization's books. One file, financials/general-ledger.csv,
+holds every transaction since the organization began and is the book of record;
+git history is the audit trail. This script checks the numbers and writes the
+pages. It uses only the Python 3 standard library.
 
     python3 tools/ledger.py check            run every rule below; write nothing
-    python3 tools/ledger.py build            run check, then write financials/index.html
-                                             and one financials/YYYY.html per year
+    python3 tools/ledger.py build            run check, then write, in financials/:
+                                             index.html (summary of the latest year),
+                                             YYYY.html (summary of each year) and
+                                             ledger.html (every transaction)
     python3 tools/ledger.py build --receipts-pending
                                              the same, but a receipt that has not been
                                              published yet shows as "Pending" on the page
@@ -18,20 +21,24 @@ numbers and writes the page. It uses only the Python 3 standard library.
 
 What check verifies (the numbers are the rule numbers printed with each problem):
   1  Header and format   exact columns in order; ISO dates; two-decimal amounts, never 0
-  2  Ids                 unique and sequential, YYYY-001 upward, year matching the file
-  3  Dates               inside the file's year, never earlier than the row above
+  2  Ids                 YYYY-NNN, where YYYY is the year of the row's date and NNN
+                         counts up from 001 within that year, with no gaps or repeats
+  3  Dates               never earlier than the row above
   4  Categories, signs   category exists; "in" is positive and "out" negative, except on
                          a correction (a row with a ref whose description starts "Reverses")
-  5  Running balance     bank rows move the balance; paid-directly rows do not
+  5  Running balance     every row's balance is the balance above plus its amount,
+                         starting from 0.00. A paid-directly gift and its expense move
+                         it up and back down, so each pair leaves it unchanged
   6  Pairs               every paid-directly expense refs a paid-directly Contributions
                          row of the same date and opposite amount, and the reverse
   7  Receipts            every spending row has receipts/YYYY/<id>.pdf and the file
                          exists; every file in receipts/ belongs to exactly one row
   8  Approvals           filled on any payment over $500.00 and any payment to a
-                         director or officer (the INSIDERS list below)
-  9  Reconciliation      each closed month ties to its bank statement to the cent
-  10 Privacy scan        no email addresses, phone numbers or runs of 9+ digits in the
-                         public files; donors are named only if they opted in
+                         director or officer (counterparty "Director")
+  9  Reconciliation      each closed month's bank rows tie to its statement to the cent
+  10 Privacy scan        no email addresses, phone numbers, runs of 9+ digits or
+                         directors' names in the public files; a donor is named only
+                         if they opted in
   11 Git hygiene         nothing under Books/, Document_Inbox/ or Formation_Docs/ is tracked
 """
 
@@ -44,31 +51,30 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-# Current directors and officers. A payment to any of them, or to a business
-# carrying one of their names, needs an approval (rule 8).
+# Current directors and officers. Their names must never appear in the public
+# files (rule 10): a gift from one of them is shown as "Donor" or "Director",
+# and a payment to one of them as "Director", which needs an approval (rule 8).
 INSIDERS = ["John Mark Reimann", "Dylan Brown", "Amara Miller"]
 
-GENERIC_DONORS = ["Individual donor", "Foundation", "Church", "Government"]
+GENERIC_DONORS = ["Donor", "Director", "Individual donor", "Foundation", "Church", "Government"]
 GIFT_CATEGORIES = ["Contributions", "Grants"]
 PRIVATE_DIRS = ["Books", "Document_Inbox", "Formation_Docs"]
 APPROVAL_OVER = Decimal("500.00")
 WARN_CONTRIBUTIONS = Decimal("20000.00")   # MN Attorney General registration is at $25,000
 WARN_GROSS_RECEIPTS = Decimal("40000.00")  # Form 990-N limit is normally $50,000
-HISTORY_URL = "https://github.com/dlb1177/mercyworksoutreach/commits/main/financials"
+ZERO = Decimal("0.00")
 
+LEDGER = "financials/general-ledger.csv"
 LEDGER_COLS = ["id", "date", "category", "counterparty", "description", "amount",
                "method", "balance", "receipt", "ref", "approval"]
 CATEGORY_COLS = ["category", "kind", "form_990_function"]
 RECON_COLS = ["month", "statement_ending_balance", "president_reviewed_on", "statement_file"]
 INKIND_COLS = ["date", "description", "quantity", "estimated_value", "valuation_basis", "donor_type"]
 IMPACT_COLS = ["date", "area", "volunteers", "people_served_estimate", "items"]
-DONOR_COLS = ["ledger_id", "date", "donor_name", "household_key", "email", "mailing_address",
-              "amount", "type", "public_name_ok", "acknowledged_on"]
 FUNCTIONS = ["Program", "Management and general", "Fundraising"]
 
 MONEY = re.compile(r"^-?\d+\.\d{2}$")
 ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-YEAR_FILE = re.compile(r"^\d{4}\.csv$")
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 PHONE = re.compile(r"(?<!\d)(?:\(\d{3}\)\s?|\d{3}[-.\s])\d{3}[-.\s]\d{4}(?!\d)")
 LONG_DIGITS = re.compile(r"\d{9,}")
@@ -110,13 +116,13 @@ class Books:
         self.tracked = tracked          # list of tracked paths; None means ask git
         self.problems, self.warnings = [], []
         self.categories = {}            # name -> (kind, function), in file order
-        self.years = {}                 # year -> list of row dicts, in file order
-        self.opening = {}               # year -> Decimal
-        self.closing = {}               # year -> Decimal
+        self.rows = []                  # every ledger row, in file order
+        self.ledger_ok = False          # False if the ledger file could not be read
+        self.sums_ok = False            # False if any row's date or amount could not be read
+        self.years = []                 # the years that have rows, oldest first
         self.recs = []                  # reconciliation rows
         self.inkind = {}                # year -> list of rows
         self.pending_receipts = set()   # ids whose receipt file is not there yet
-        self.unreadable = set()         # years whose ledger file could not be read
 
     def problem(self, rule, where, message, fix, code=""):
         self.problems.append(Problem(rule, where, message, fix, code))
@@ -152,16 +158,17 @@ class Books:
 
     def load(self):
         self.load_categories()
-        files = sorted(p.name for p in self.fin.glob("*.csv") if YEAR_FILE.match(p.name)) if self.fin.is_dir() else []
-        if not files:
-            self.problem(1, "financials/", "There is no ledger file.", "Create financials/YYYY.csv for the first year.")
-        for name in files:
-            year = int(name[:4])
-            rows = self.read_table("financials/" + name, LEDGER_COLS)
-            if rows is not None:
-                self.years[year] = rows
-            else:
-                self.unreadable.add(year)
+        rows = self.read_table(LEDGER, LEDGER_COLS)
+        self.ledger_ok = rows is not None
+        self.rows = rows or []
+        for r in self.rows:
+            r["amt"] = parse_money(r["amount"])
+            r["bal"] = parse_money(r["balance"])
+            r["d"] = parse_date(r["date"])
+            r["_where"] = "%s row %s" % (LEDGER, r["id"] or "(line %d)" % r["_line"])
+        # The bank rows can only be added up if every row has a real date and amount
+        self.sums_ok = self.ledger_ok and all(r["d"] is not None and r["amt"] is not None for r in self.rows)
+        self.years = sorted({r["d"].year for r in self.rows if r["d"] is not None})
         self.recs = self.read_table("financials/reconciliations.csv", RECON_COLS) or []
         for year in self.years:
             self.inkind[year] = self.read_table("financials/inkind-%d.csv" % year, INKIND_COLS) or []
@@ -225,17 +232,16 @@ class Books:
         """A money-out row: negative, in an "out" category."""
         return self.kind(row) == "out" and row["amt"] is not None and row["amt"] < 0
 
-    def check_year(self, year, opening):
-        rel = "financials/%d.csv" % year
-        rows = self.years[year]
+    def year_rows(self, year):
+        return [r for r in self.rows if r["d"] is not None and r["d"].year == year]
+
+    def check_ledger(self):
+        rows = self.rows
         by_id = {}
-        prev_date, prev_balance = None, opening
-        for i, r in enumerate(rows, start=1):
-            where = "%s row %s" % (rel, r["id"] or "(line %d)" % r["_line"])
-            r["_where"] = where
-            r["amt"] = parse_money(r["amount"])
-            r["bal"] = parse_money(r["balance"])
-            r["d"] = parse_date(r["date"])
+        count = {}                      # year -> rows so far in that year
+        prev_date, prev_balance, prev_year = None, ZERO, None
+        for r in rows:
+            where = r["_where"]
 
             # Rule 1: format
             if r["d"] is None:
@@ -249,31 +255,32 @@ class Books:
             if r["method"] not in ("bank", "paid-directly"):
                 self.problem(1, where, 'The method "%s" is not bank or paid-directly.' % r["method"], "Use bank or paid-directly.")
             if not r["counterparty"]:
-                self.problem(1, where, "The counterparty is blank.", "Name the vendor, or use a donor label such as Individual donor.")
+                self.problem(1, where, "The counterparty is blank.", "Name the vendor, or use a donor label such as Donor.")
             if not r["description"] or len(r["description"]) >= 80:
                 self.problem(1, where, "The description is blank or 80 characters or longer.", "Write one plain line under 80 characters.")
 
-            # Rule 2: ids
-            expected = "%d-%03d" % (year, i)
-            if r["id"] != expected:
-                self.problem(2, where, 'The id should be %s (ids run in order with no gaps or repeats).' % expected, "Change the id to %s." % expected)
+            # Rule 2: ids. The year comes from the row's date, and the number counts up within the year.
+            year = r["d"].year if r["d"] is not None else prev_year
+            if year is not None:
+                count[year] = count.get(year, 0) + 1
+                expected = "%d-%03d" % (year, count[year])
+                if r["id"] != expected:
+                    self.problem(2, where, "The id should be %s (the year of the date, then a number that counts up with no gaps or repeats)." % expected, "Change the id to %s." % expected)
+                prev_year = year
             if r["id"] and r["id"] not in by_id:
                 by_id[r["id"]] = r
 
             # Rule 3: dates
             if r["d"] is not None:
-                if r["d"].year != year:
-                    self.problem(3, where, "The date %s is not in %d." % (r["date"], year), "Move the row to the file for its year.")
                 if prev_date is not None and r["d"] < prev_date:
                     self.problem(3, where, "The date %s is earlier than the row above it." % r["date"], "Put the rows in date order and renumber the ids.")
                 prev_date = r["d"]
 
-            # Rule 5: running balance
-            if r["amt"] is not None and r["bal"] is not None and r["method"] in ("bank", "paid-directly"):
-                want = prev_balance + r["amt"] if r["method"] == "bank" else prev_balance
+            # Rule 5: running balance. Every row moves it, bank or paid-directly.
+            if r["amt"] is not None and r["bal"] is not None:
+                want = prev_balance + r["amt"]
                 if r["bal"] != want:
-                    why = "the balance above plus this amount" if r["method"] == "bank" else "the balance above, because paid-directly rows do not move the bank balance"
-                    self.problem(5, where, "The balance is %s but should be %s (%s)." % (r["balance"], want, why), "Change the balance to %s, or correct the amount." % want)
+                    self.problem(5, where, "The balance is %s but should be %s (the balance above plus this amount)." % (r["balance"], want), "Change the balance to %s, or correct the amount." % want)
             if r["bal"] is not None:
                 prev_balance = r["bal"]   # carry on from the stated balance, so one mistake is reported once
 
@@ -281,7 +288,7 @@ class Books:
             where = r["_where"]
             target = by_id.get(r["ref"]) if r["ref"] else None
             if r["ref"] and (target is None or target is r or target["_line"] > r["_line"]):
-                self.problem(1, where, 'The ref "%s" does not point to an earlier row in this file.' % r["ref"], "Use the id of the row this one pairs with or reverses, or leave ref blank.")
+                self.problem(1, where, 'The ref "%s" does not point to an earlier row.' % r["ref"], "Use the id of the row this one pairs with or reverses, or leave ref blank.")
                 target = None
 
             # Rule 4: categories and signs
@@ -298,7 +305,7 @@ class Books:
                     self.problem(4, where, 'The category "%s" is money out, but the amount is positive.' % r["category"], 'Make the amount negative, or, if this corrects an earlier row, set ref to that row and start the description with "Reverses".')
 
             # Rule 7: receipts
-            want_receipt = "receipts/%d/%s.pdf" % (year, r["id"])
+            want_receipt = "receipts/%s/%s.pdf" % (r["id"][:4], r["id"])
             if self.is_spending(r) and r["receipt"] != want_receipt:
                 self.problem(7, where, 'A spending row needs its receipt path, which should be %s.' % want_receipt, "Set receipt to %s and publish the redacted receipt there." % want_receipt)
             elif r["receipt"]:
@@ -310,11 +317,10 @@ class Books:
 
             # Rule 8: approvals
             if self.is_spending(r) and not r["approval"]:
-                insider = [n for n in INSIDERS if n.lower() in r["counterparty"].lower()]
                 if -r["amt"] > APPROVAL_OVER:
                     self.problem(8, where, "A payment over $500.00 needs an approval.", 'Fill approval with the approving action, such as "Written action 2027-02-03".')
-                elif insider:
-                    self.problem(8, where, "A payment to a director or officer (%s) needs an approval." % insider[0], "Fill approval with the two disinterested directors' written approval.")
+                elif "director" in r["counterparty"].lower() or "officer" in r["counterparty"].lower():
+                    self.problem(8, where, "A payment to a director or officer needs an approval.", "Fill approval with the two disinterested directors' written approval.")
 
         # Rule 6: paid-directly pairs
         refs_to = {}
@@ -339,41 +345,26 @@ class Books:
             else:
                 self.problem(6, where, "A paid-directly row must be a Contributions row or an expense.", "Use method bank, or change the category.")
 
-        self.opening[year] = opening
-        self.closing[year] = prev_balance
-
     def check_orphan_receipts(self):
         base = self.fin / "receipts"
-        if not base.is_dir():
+        if not base.is_dir() or not self.ledger_ok:
             return
         used = {}
-        for rows in self.years.values():
-            for r in rows:
-                if r["receipt"]:
-                    used[r["receipt"]] = used.get(r["receipt"], 0) + 1
+        for r in self.rows:
+            if r["receipt"]:
+                used[r["receipt"]] = used.get(r["receipt"], 0) + 1
         for p in sorted(base.rglob("*")):
             if p.is_file() and not p.name.startswith("."):
                 rel = p.relative_to(self.fin).as_posix()
-                if rel.split("/")[1].isdigit() and int(rel.split("/")[1]) in self.unreadable:
-                    continue   # that year's ledger could not be read; its header problem is already reported
                 if used.get(rel, 0) != 1:
                     self.problem(7, "financials/" + rel, "The receipt file is referenced by %d ledger rows, not exactly one." % used.get(rel, 0), "Name it after its ledger row id, or remove it.")
 
     def bank_rows(self):
-        for year in sorted(self.years):
-            for r in self.years[year]:
-                if r["method"] == "bank" and r["d"] is not None and r["bal"] is not None:
-                    yield r
+        return [r for r in self.rows if r["method"] == "bank" and r["d"] is not None and r["amt"] is not None]
 
-    def ledger_balance_at(self, year, month):
-        """Bank balance after the last bank row on or before the end of the month."""
-        end = month_end(year, month)
-        first = min(self.years) if self.years else year
-        balance = self.opening.get(first, Decimal("0.00"))
-        for r in self.bank_rows():
-            if r["d"].toordinal() <= end:
-                balance = r["bal"]
-        return balance
+    def bank_balance(self, through):
+        """What the bank account should hold at the end of a day: the sum of the bank rows so far."""
+        return sum((r["amt"] for r in self.bank_rows() if r["d"].toordinal() <= through), ZERO)
 
     def check_reconciliations(self):
         rel = "financials/reconciliations.csv"
@@ -390,24 +381,21 @@ class Books:
                 self.problem(9, where, "The months are repeated or out of order.", "List each closed month once, oldest first.")
             last = r["_ym"]
             seen.append(r["_ym"])
-            if r["_ym"][0] in self.unreadable:
-                continue
-            if r["_ym"][0] not in self.years:
-                self.problem(9, where, "There is no ledger file for %d." % r["_ym"][0], "Remove this row or create the ledger file.")
-                continue
+            if not self.sums_ok:
+                continue   # the ledger's own format problems are already reported
             if stated is None:
                 self.problem(9, where, 'The statement ending balance "%s" is not a number with two decimals.' % r["statement_ending_balance"], "Copy the ending balance from the statement, like 1240.17.")
             else:
-                r["_ledger"] = self.ledger_balance_at(*r["_ym"])
+                r["_ledger"] = self.bank_balance(month_end(*r["_ym"]))
                 r["_stated"] = stated
                 if r["_ledger"] != stated:
-                    self.problem(9, where, "The ledger balance at month end is %s but the statement says %s." % (r["_ledger"], stated), "Find the missing or wrong row. Never force it with a plug row.")
+                    self.problem(9, where, "The ledger's bank rows add up to %s at month end but the statement says %s." % (r["_ledger"], stated), "Find the missing or wrong row. Never force it with a plug row.")
             if parse_date(r["president_reviewed_on"]) is None:
                 self.problem(9, where, "The date the president reviewed the statement is blank or not a date.", "Fill president_reviewed_on once the president has initialed the statement.")
             want = "statements/%s.pdf" % r["month"]
             if r["statement_file"] != want or not (self.fin / want).is_file():
                 self.problem(9, where, "The redacted statement financials/%s is missing or the path is wrong." % want, "Save the redacted, initialed statement there and set statement_file to %s." % want)
-        if seen:
+        if seen and self.sums_ok:
             latest = max(seen)
             for ym in sorted({(r["d"].year, r["d"].month) for r in self.bank_rows()}):
                 if ym < latest and ym not in seen:
@@ -428,6 +416,9 @@ class Books:
                 found = rx.search(line)
                 if found:
                     self.problem(10, "%s line %d" % (where, n), 'The line contains %s ("%s").' % (what, found.group(0)), "Remove it. Private details stay in Books/.", code=code)
+            for name in INSIDERS:
+                if name.lower() in line.lower():
+                    self.problem(10, "%s line %d" % (where, n), "The line names a director or officer.", 'Use "Donor" for a gift or "Director" for a payment. Names stay in Books/.', code=code)
 
     def check_privacy(self):
         for p in self.public_files():
@@ -441,10 +432,9 @@ class Books:
             return
         with open(donors, newline="", encoding="utf-8") as f:
             named = {d.get("donor_name", "") for d in csv.DictReader(f) if d.get("public_name_ok", "").strip().lower() == "yes"}
-        for year, rows in self.years.items():
-            for r in rows:
-                if r["category"] in GIFT_CATEGORIES and r["counterparty"] not in GENERIC_DONORS and r["counterparty"] not in named:
-                    self.problem(10, r["_where"], 'The donor "%s" is named, but Books/donors.csv has no opt-in for that name.' % r["counterparty"], "Use Individual donor, Foundation, Church or Government, or record public_name_ok = yes if the donor asked to be named.")
+        for r in self.rows:
+            if r["category"] in GIFT_CATEGORIES and r["counterparty"] not in GENERIC_DONORS and r["counterparty"] not in named:
+                self.problem(10, r["_where"], 'The donor "%s" is named, but Books/donors.csv has no opt-in for that name.' % r["counterparty"], "Use one of: %s. Or record public_name_ok = yes if the donor asked to be named." % ", ".join(GENERIC_DONORS))
 
     def check_git(self):
         ignore = self.root / ".gitignore"
@@ -466,35 +456,30 @@ class Books:
     # ---------- totals and warnings ----------
 
     def totals(self, year):
-        by_cat = {name: Decimal("0.00") for name in self.categories}
-        for r in self.years[year]:
+        by_cat = {name: ZERO for name in self.categories}
+        for r in self.year_rows(year):
             if r["category"] in by_cat and r["amt"] is not None:
                 by_cat[r["category"]] += r["amt"]
-        received = sum((v for k, v in by_cat.items() if self.categories[k][0] == "in"), Decimal("0.00"))
-        by_fn = {fn: -sum((v for k, v in by_cat.items() if self.categories[k][1] == fn), Decimal("0.00")) for fn in FUNCTIONS}
-        spent = sum(by_fn.values(), Decimal("0.00"))
+        received = sum((v for k, v in by_cat.items() if self.categories[k][0] == "in"), ZERO)
+        by_fn = {fn: -sum((v for k, v in by_cat.items() if self.categories[k][1] == fn), ZERO) for fn in FUNCTIONS}
+        spent = sum(by_fn.values(), ZERO)
         return {"by_cat": by_cat, "received": received, "spent": spent, "by_fn": by_fn,
-                "cash": self.closing.get(year, Decimal("0.00")),
+                "cash": self.bank_balance(month_end(year, 12)),
                 "share": (by_fn["Program"] * 100 / spent) if spent > 0 else None}
 
     def add_warnings(self):
-        for year in sorted(self.years):
+        for year in self.years:
             t = self.totals(year)
             if t["by_cat"].get("Contributions", 0) > WARN_CONTRIBUTIONS:
                 self.warn("%d contributions are %s. Registration with the Minnesota Attorney General is required within 30 days of passing $25,000." % (year, money(t["by_cat"]["Contributions"])))
             if t["received"] > WARN_GROSS_RECEIPTS:
                 self.warn("%d gross receipts are %s. Form 990-N is only for gross receipts normally $50,000 or less." % (year, money(t["received"])))
-            if any(self.function(r) == "Fundraising" for r in self.years[year]):
+            if any(self.function(r) == "Fundraising" for r in self.year_rows(year)):
                 self.warn("%d has Fundraising rows. They are allowed, but the tenets aim for $0." % year)
 
     def run(self):
         self.load()
-        opening = Decimal("0.00")
-        for year in sorted(self.years):
-            if year - 1 not in self.years and year != min(self.years):
-                self.problem(5, "financials/%d.csv" % year, "There is no ledger file for %d, so the opening balance is unknown." % (year - 1), "Add financials/%d.csv." % (year - 1))
-            self.check_year(year, opening)
-            opening = self.closing[year]
+        self.check_ledger()
         self.check_orphan_receipts()
         self.check_reconciliations()
         self.check_privacy()
@@ -507,7 +492,7 @@ def run_check(root, tracked=None):
     return Books(root, tracked).run()
 
 
-# ---------- the page ----------
+# ---------- the pages ----------
 
 def money(value):
     text = "${:,.2f}".format(abs(value))
@@ -522,17 +507,13 @@ def long_date(d):
     return "%s %d, %d" % (MONTHS[d.month - 1], d.day, d.year)
 
 
-def short_date(d):
-    return "%s %d" % (MONTHS[d.month - 1][:3], d.day)
-
-
 HEAD = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{title} — Mercy Works Outreach</title>
-  <meta name="description" content="Every dollar Mercy Works Outreach has received and spent, with the receipt and bank statement behind it.">
+  <meta name="description" content="{description}">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -548,7 +529,7 @@ HEAD = """<!DOCTYPE html>
 <body>
   <!-- This page is written by tools/ledger.py from the CSV files in this folder.
        Do not edit it by hand: change the CSV, then run python3 tools/ledger.py build -->
-  <div class="page page-wide">
+  <div class="page{page_class}">
 
     <header class="masthead">
       <p class="logo"><a href="../"><img src="../logo.svg" alt="Mercy Works Outreach" width="230" height="217"></a></p>
@@ -578,34 +559,25 @@ FOOT = """    </main>
 </html>
 """
 
+LEAD = "Every dollar Mercy Works Outreach has received and spent, with the receipt and bank statement behind it."
 
-def render(books, year, is_index):
+
+def render_summary(books, year, is_index):
+    """The Financial Ledger page: one year's totals, with a link to every transaction."""
     years = sorted(books.years, reverse=True)
-    rows = books.years[year]
-    t = books.totals(year)
     latest = years[0]
+    t = books.totals(year)
     o = []
     w = o.append
 
     w('      <h1 class="title">Financial Ledger</h1>')
-    w('      <p class="fin-lead">Every dollar Mercy Works Outreach has received and spent, with the receipt and bank statement behind it.</p>')
+    w('      <p class="fin-lead">%s</p>' % LEAD)
     closed = [r for r in books.recs if r.get("_ym", (0, 0))[0] == year and "_ledger" in r]
-    any_bank = any(r["d"].year <= year for r in books.bank_rows())
     if closed:
-        ym = closed[-1]["_ym"]
-        status = "Checked against the bank statement through %s." % long_date(date.fromordinal(month_end(*ym)))
-    elif not any_bank:
-        status = "The bank account is not open yet, so no bank transactions have posted and the cash balance is $0.00. The rows below are bills a donor paid directly."
-    else:
-        status = "No month of %d has been closed against a bank statement yet." % year
-    w('      <p class="fin-status">%s</p>' % esc(status))
+        through = date.fromordinal(month_end(*closed[-1]["_ym"]))
+        w('      <p class="fin-status">Checked against the bank statement through %s.</p>' % long_date(through))
     if len(years) > 1:
-        links = []
-        for y in years:
-            if y == year:
-                links.append('<strong>%d</strong>' % y)
-            else:
-                links.append('<a href="%s">%d</a>' % ("./" if y == latest else "%d.html" % y, y))
+        links = ['<strong>%d</strong>' % y if y == year else '<a href="%s">%d</a>' % ("./" if y == latest else "%d.html" % y, y) for y in years]
         w('      <p class="fin-years">Years: %s</p>' % " &middot; ".join(links))
 
     share = "n/a" if t["share"] is None else ("%.1f" % t["share"]).replace(".0", "") + "%"
@@ -614,7 +586,7 @@ def render(books, year, is_index):
     w('      <dl class="stats">')
     for label, value in (("Received", money(t["received"])), ("Spent", money(t["spent"])),
                          ("Cash in the bank", money(t["cash"])), ("Share spent on programs", share),
-                         ("Paid in salaries", money(Decimal("0.00"))), ("Spent on fundraising", money(t["by_fn"]["Fundraising"]))):
+                         ("Paid in salaries", money(ZERO)), ("Spent on fundraising", money(t["by_fn"]["Fundraising"]))):
         w('        <div><dt>%s</dt><dd>%s</dd></div>' % (label, value))
     w('      </dl>')
 
@@ -633,39 +605,13 @@ def render(books, year, is_index):
         w('        </tbody>')
     w('      </table>')
 
+    n = len(books.rows)
     w('')
     w('      <h2 id="ledger">Every transaction</h2>')
-    w('      <table class="fin-table ledger stack">')
-    w('        <thead><tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col">Category</th><th scope="col">Counterparty</th><th scope="col" class="num">Amount</th><th scope="col" class="num">Balance</th><th scope="col">Receipt</th></tr></thead>')
-    months = sorted({(r["d"].year, r["d"].month) for r in rows}, reverse=True)
-    for ym in months:
-        w('        <tbody>')
-        w('          <tr class="group"><th scope="rowgroup" colspan="7">%s %d</th></tr>' % (MONTHS[ym[1] - 1], ym[0]))
-        for r in rows:
-            if (r["d"].year, r["d"].month) != ym:
-                continue
-            note = '<span class="paid-note">Paid directly by donor</span>' if r["method"] == "paid-directly" else ""
-            if r["receipt"] and r["id"] in books.pending_receipts:
-                receipt = '<span class="pending">Pending</span>'
-            elif r["receipt"]:
-                receipt = '<a href="%s" target="_blank" rel="noopener">Receipt<span class="visually-hidden"> for %s</span></a>' % (esc(r["receipt"]), esc(r["id"]))
-            else:
-                receipt = '<span class="none">&ndash;</span>'
-            w('          <tr id="r%s">' % esc(r["id"]))
-            w('            <td data-label="Date" class="date"><time datetime="%s">%s</time> <span class="rowid">%s</span></td>' % (esc(r["date"]), short_date(r["d"]), esc(r["id"])))
-            w('            <td class="desc">%s%s</td>' % (esc(r["description"]), note))
-            w('            <td data-label="Category">%s</td>' % esc(r["category"]))
-            w('            <td data-label="Counterparty">%s</td>' % esc(r["counterparty"]))
-            w('            <td data-label="Amount" class="num%s">%s</td>' % (" out" if r["amt"] < 0 else "", money(r["amt"])))
-            w('            <td data-label="Balance" class="num">%s</td>' % money(r["bal"]))
-            w('            <td data-label="Receipt">%s</td>' % receipt)
-            w('          </tr>')
-        w('        </tbody>')
-    w('      </table>')
-    if not rows:
-        w('      <p class="note">No transactions have been recorded for %d yet.</p>' % year)
-    if any(r["id"] in books.pending_receipts for r in rows):
-        w('      <p class="note"><strong>Receipts marked Pending.</strong> These receipts are being prepared for publication, with card numbers and personal details removed. Each will be linked here.</p>')
+    w('      <p>The general ledger lists every transaction since Mercy Works Outreach began, each expense with its receipt.</p>')
+    w('      <ul class="rows">')
+    w('        <li><a href="ledger.html">General Ledger</a> <span class="meta">%d %s</span></li>' % (n, "transaction" if n == 1 else "transactions"))
+    w('      </ul>')
 
     w('')
     w('      <h2 id="bank-check">Monthly bank check</h2>')
@@ -687,56 +633,84 @@ def render(books, year, is_index):
         w('      </table>')
         w('      <p class="note">Each month the ledger is compared with the bank statement, and the president reviews and initials the statement. The difference is always $0.00.</p>')
     else:
-        w('      <p>No month has been closed yet. Once the bank account is open, each month&rsquo;s ledger balance will be compared here with the bank statement, alongside the date the president reviewed it and a copy of the statement.</p>')
+        w('      <p>No month has been closed yet. Each month, the ledger will be compared here with the bank statement, alongside the date the president reviewed it and a copy of the statement.</p>')
 
-    kind_total = sum((parse_money(r["estimated_value"]) or Decimal("0.00") for r in books.inkind.get(year, [])), Decimal("0.00"))
-    count = len(books.inkind.get(year, []))
+    kind_rows = books.inkind.get(year, [])
+    kind_total = sum((parse_money(r["estimated_value"]) or ZERO for r in kind_rows), ZERO)
     w('')
     w('      <h2 id="donated-goods">Donated goods</h2>')
-    w('      <p>Goods given to us, such as clothing or food, are not cash, so they are kept out of the ledger above and listed in their own log. In %d so far: %d %s, with an estimated value of %s. <a href="inkind-%d.csv">Donated goods log (CSV)</a></p>' % (year, count, "gift" if count == 1 else "gifts", money(kind_total), year))
+    w('      <p>Goods given to us, such as clothing or food, are not cash, so they are kept out of the ledger and listed in their own log. In %d so far: %d %s, with an estimated value of %s.</p>' % (year, len(kind_rows), "gift" if len(kind_rows) == 1 else "gifts", money(kind_total)))
 
     w('')
-    w('      <h2 id="how-to-read">How to read this page</h2>')
-    w('      <ul class="plain">')
-    w('        <li><strong>Cash basis, calendar year.</strong> A row is recorded on the date money actually moves, not when a bill arrives or a gift is promised. The year runs January 1 to December 31.</li>')
-    w('        <li><strong>Amounts.</strong> Money in is positive. Money out has a minus sign. Balance is the bank balance after that row.</li>')
-    w('        <li><strong>Paid directly by donor.</strong> Sometimes a donor pays one of our bills with their own money and does not want it back. That appears as two rows on the same date: the gift and the matching expense. No money passes through the bank, so the balance does not move.</li>')
-    w('        <li><strong>Receipts and statements.</strong> Every expense links to its receipt, and every closed month links to its bank statement. Before publishing we remove card numbers and account numbers except the last four digits, routing numbers, personal addresses and phone numbers, and donor names. Nothing else is changed.</li>')
-    w('        <li><strong>Donor names.</strong> Donors are listed as Individual donor, Foundation, Church or Government unless a donor asks to be named.</li>')
-    w('        <li><strong>Salaries.</strong> No one is paid, so there is no salary category and the figure is always $0.00.</li>')
-    if year == min(books.years):
-        w('        <li><strong>Share spent on programs.</strong> Program spending divided by all spending for the year. The first year reads low because the fees to form the organization are its only costs so far.</li>')
-    else:
-        w('        <li><strong>Share spent on programs.</strong> Program spending divided by all spending for the year.</li>')
-    w('        <li><strong>Corrections.</strong> Once a month is closed, its rows are never edited or deleted. A mistake is fixed in the open with a row that reverses it and a new, correct row.</li>')
-    w('      </ul>')
-
-    w('')
-    w('      <h2 id="downloads">Downloads and history</h2>')
+    w('      <h2 id="downloads">Downloads</h2>')
     w('      <ul class="rows">')
-    w('        <li><a href="%d.csv">Ledger for %d (CSV)</a></li>' % (year, year))
-    w('        <li><a href="categories.csv">Category list (CSV)</a></li>')
-    w('        <li><a href="reconciliations.csv">Monthly bank checks (CSV)</a></li>')
-    w('        <li><a href="inkind-%d.csv">Donated goods log for %d (CSV)</a></li>' % (year, year))
-    w('        <li><a href="../tools/ledger.py">The script that checks these books</a></li>')
-    w('        <li><a href="%s" target="_blank" rel="noopener">Every change to these books</a> <span class="meta">GitHub history</span></li>' % HISTORY_URL)
+    w('        <li><a href="general-ledger.csv">General Ledger</a> <span class="meta">CSV</span></li>')
+    w('        <li><a href="reconciliations.csv">Monthly Bank Checks</a> <span class="meta">CSV</span></li>')
+    w('        <li><a href="inkind-%d.csv">Donated Goods Log, %d</a> <span class="meta">CSV</span></li>' % (year, year))
     w('      </ul>')
 
     title = "Financial Ledger" if is_index else "Financial Ledger %d" % year
     canonical = "" if year == latest else "%d.html" % year
-    return HEAD.format(title=title, canonical=canonical) + "\n".join(o) + "\n" + FOOT
+    return HEAD.format(title=title, description=LEAD, canonical=canonical, page_class="") + "\n".join(o) + "\n" + FOOT
+
+
+def render_ledger(books):
+    """The General Ledger page: every transaction since inception, newest month first."""
+    rows = books.rows
+    o = []
+    w = o.append
+    w('      <h1 class="title">General Ledger</h1>')
+    w('      <p class="fin-lead">Every transaction since Mercy Works Outreach began, newest month first.</p>')
+    w('      <p class="fin-status"><a href="./">Back to the summary</a> &middot; <a href="general-ledger.csv">Download as CSV</a></p>')
+    w('')
+    w('      <table class="fin-table ledger stack">')
+    w('        <thead><tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col">Category</th><th scope="col">Counterparty</th><th scope="col" class="num">Amount</th><th scope="col" class="num">Balance</th><th scope="col">Receipt</th></tr></thead>')
+    for ym in sorted({(r["d"].year, r["d"].month) for r in rows}, reverse=True):
+        w('        <tbody>')
+        w('          <tr class="group"><th scope="rowgroup" colspan="7">%s %d</th></tr>' % (MONTHS[ym[1] - 1], ym[0]))
+        for r in rows:
+            if (r["d"].year, r["d"].month) != ym:
+                continue
+            note = '<span class="paid-note">Paid directly by donor</span>' if r["method"] == "paid-directly" else ""
+            if r["receipt"] and r["id"] in books.pending_receipts:
+                receipt = '<span class="pending">Pending</span>'
+            elif r["receipt"]:
+                receipt = '<a href="%s" target="_blank" rel="noopener">Receipt<span class="visually-hidden"> for %s</span></a>' % (esc(r["receipt"]), esc(r["id"]))
+            else:
+                receipt = '<span class="none">&ndash;</span>'
+            w('          <tr id="r%s">' % esc(r["id"]))
+            w('            <td data-label="Date" class="date"><time datetime="%s">%s %d</time> <span class="rowid">%s</span></td>' % (esc(r["date"]), MONTHS[r["d"].month - 1][:3], r["d"].day, esc(r["id"])))
+            w('            <td class="desc">%s%s</td>' % (esc(r["description"]), note))
+            w('            <td data-label="Category">%s</td>' % esc(r["category"]))
+            w('            <td data-label="Counterparty">%s</td>' % esc(r["counterparty"]))
+            w('            <td data-label="Amount" class="num">%s</td>' % money(r["amt"]))
+            w('            <td data-label="Balance" class="num">%s</td>' % money(r["bal"]))
+            w('            <td data-label="Receipt">%s</td>' % receipt)
+            w('          </tr>')
+        w('        </tbody>')
+    w('      </table>')
+    if not rows:
+        w('      <p class="note">No transactions have been recorded yet.</p>')
+    if any(r["id"] in books.pending_receipts for r in rows):
+        w('      <p class="note"><strong>Receipts marked Pending.</strong> These receipts are being prepared for publication, with card numbers and personal details removed. Each will be linked here.</p>')
+    if any(r["method"] == "paid-directly" for r in rows):
+        w('      <p class="note"><strong>Paid directly by donor.</strong> A donor paid this bill with their own money and did not ask for it back. The gift and the expense are both recorded, so the balance rises and falls by the same amount.</p>')
+    description = "Every transaction of Mercy Works Outreach since it began, each expense with its receipt."
+    return HEAD.format(title="General Ledger", description=description, canonical="ledger.html", page_class=" page-wide") + "\n".join(o) + "\n" + FOOT
 
 
 def build(root, receipts_pending=False):
     books = run_check(root)
     blocking = [p for p in books.problems
                 if p.code != "old-page" and not (receipts_pending and p.code == "receipt-missing")]
+    if not blocking and not books.years:
+        books.problem(1, LEDGER, "The ledger has no rows, so there is nothing to build.", "Enter the first transaction.")
+        blocking = books.problems[-1:]
     if blocking:
         return books, blocking, []
-    latest = max(books.years)
-    pages = {"index.html": render(books, latest, True)}
+    pages = {"index.html": render_summary(books, max(books.years), True), "ledger.html": render_ledger(books)}
     for year in books.years:
-        pages["%d.html" % year] = render(books, year, False)
+        pages["%d.html" % year] = render_summary(books, year, False)
     before = len(books.problems)
     for name, text in pages.items():
         books.scan_text("financials/" + name, text)
@@ -762,7 +736,7 @@ def cmd_check(root):
     if books.problems:
         print("\ncheck FAILED: %d problem%s." % (len(books.problems), "" if len(books.problems) == 1 else "s"))
         return 1
-    print("check passed: %s." % ", ".join("%d has %d rows" % (y, len(books.years[y])) for y in sorted(books.years)))
+    print("check passed: %d rows, %s." % (len(books.rows), ", ".join("%d in %d" % (len(books.year_rows(y)), y) for y in books.years)))
     return 0
 
 
@@ -786,7 +760,7 @@ def cmd_summary(root, year):
         return 1
     year = year or max(books.years)
     if year not in books.years:
-        print("There is no ledger file for %d." % year)
+        print("The ledger has no rows dated %d." % year)
         return 1
     t = books.totals(year)
     print("Mercy Works Outreach, %d year to date (cash basis)\n" % year)
@@ -798,7 +772,7 @@ def cmd_summary(root, year):
     print("  Spent: %s  (Program %s, Management and general %s, Fundraising %s)" % tuple(money(v) for v in (t["spent"], t["by_fn"]["Program"], t["by_fn"]["Management and general"], t["by_fn"]["Fundraising"])))
     print("  Share spent on programs: %s" % ("n/a" if t["share"] is None else "%.1f%%" % t["share"]))
     print("  Cash in the bank: %s" % money(t["cash"]))
-    print("  Contributions year to date: %s  (Attorney General registration at $25,000)" % money(t["by_cat"].get("Contributions", Decimal("0.00"))))
+    print("  Contributions year to date: %s  (Attorney General registration at $25,000)" % money(t["by_cat"].get("Contributions", ZERO)))
     print("  Form 990-N: gross receipts must normally be $50,000 or less; now %s" % money(t["received"]))
     print()
     print_report(books, books.problems)
@@ -813,7 +787,7 @@ def cmd_support(root):
     if not path.is_file():
         print("Books/donors.csv is not on this machine, so the public support test cannot be run here.")
         return 1
-    households, total = {}, Decimal("0.00")
+    households, total = {}, ZERO
     with open(path, newline="", encoding="utf-8") as f:
         for d in csv.DictReader(f):
             amount = parse_money(d.get("amount", ""))
@@ -821,16 +795,16 @@ def cmd_support(root):
                 print("Skipped a line with no valid amount: ledger_id %s" % d.get("ledger_id", "?"))
                 continue
             key = d.get("household_key") or d.get("donor_name") or "unknown"
-            households[key] = households.get(key, Decimal("0.00")) + amount
+            households[key] = households.get(key, ZERO) + amount
             total += amount
     books = run_check(root)
-    interest = sum((books.totals(y)["by_cat"].get("Interest", Decimal("0.00")) for y in books.years), Decimal("0.00"))
+    interest = sum((books.totals(y)["by_cat"].get("Interest", ZERO) for y in books.years), ZERO)
     total += interest
     if total <= 0:
         print("No support has been recorded yet.")
         return 0
     cap = total * 2 / 100
-    public = sum((min(v, cap) for v in households.values()), Decimal("0.00"))
+    public = sum((min(v, cap) for v in households.values()), ZERO)
     pct = public * 100 / total
     print("Public support test (all years on file; the first test covers years 1 to 5 together)")
     print("  Total support: %s  (gifts and grants %s, interest %s)" % (money(total), money(total - interest), money(interest)))

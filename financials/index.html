@@ -20,7 +20,7 @@
 <body>
   <!-- This page is written by tools/ledger.py from the CSV files in this folder.
        Do not edit it by hand: change the CSV, then run python3 tools/ledger.py build -->
-  <div class="page page-wide">
+  <div class="page">
 
     <header class="masthead">
       <p class="logo"><a href="../"><img src="../logo.svg" alt="Mercy Works Outreach" width="230" height="217"></a></p>
@@ -36,7 +36,6 @@
     <main class="fin">
       <h1 class="title">Financial Ledger</h1>
       <p class="fin-lead">Every dollar Mercy Works Outreach has received and spent, with the receipt and bank statement behind it.</p>
-      <p class="fin-status">The bank account is not open yet, so no bank transactions have posted and the cash balance is $0.00. The rows below are bills a donor paid directly.</p>
 
       <h2 id="summary">2026 at a glance</h2>
       <dl class="stats">
@@ -83,94 +82,22 @@
       </table>
 
       <h2 id="ledger">Every transaction</h2>
-      <table class="fin-table ledger stack">
-        <thead><tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col">Category</th><th scope="col">Counterparty</th><th scope="col" class="num">Amount</th><th scope="col" class="num">Balance</th><th scope="col">Receipt</th></tr></thead>
-        <tbody>
-          <tr class="group"><th scope="rowgroup" colspan="7">November 2026</th></tr>
-          <tr id="r2026-001">
-            <td data-label="Date" class="date"><time datetime="2026-11-18">Nov 18</time> <span class="rowid">2026-001</span></td>
-            <td class="desc">Paid the Articles of Incorporation filing fee for the org<span class="paid-note">Paid directly by donor</span></td>
-            <td data-label="Category">Contributions</td>
-            <td data-label="Counterparty">Dylan Brown</td>
-            <td data-label="Amount" class="num">$90.00</td>
-            <td data-label="Balance" class="num">$0.00</td>
-            <td data-label="Receipt"><span class="none">&ndash;</span></td>
-          </tr>
-          <tr id="r2026-002">
-            <td data-label="Date" class="date"><time datetime="2026-11-18">Nov 18</time> <span class="rowid">2026-002</span></td>
-            <td class="desc">Articles of Incorporation filing fee<span class="paid-note">Paid directly by donor</span></td>
-            <td data-label="Category">Filing and registration fees</td>
-            <td data-label="Counterparty">Minnesota Secretary of State</td>
-            <td data-label="Amount" class="num out">−$90.00</td>
-            <td data-label="Balance" class="num">$0.00</td>
-            <td data-label="Receipt"><span class="pending">Pending</span></td>
-          </tr>
-          <tr id="r2026-003">
-            <td data-label="Date" class="date"><time datetime="2026-11-18">Nov 18</time> <span class="rowid">2026-003</span></td>
-            <td class="desc">Paid the domain registration for the org<span class="paid-note">Paid directly by donor</span></td>
-            <td data-label="Category">Contributions</td>
-            <td data-label="Counterparty">Dylan Brown</td>
-            <td data-label="Amount" class="num">$30.90</td>
-            <td data-label="Balance" class="num">$0.00</td>
-            <td data-label="Receipt"><span class="none">&ndash;</span></td>
-          </tr>
-          <tr id="r2026-004">
-            <td data-label="Date" class="date"><time datetime="2026-11-18">Nov 18</time> <span class="rowid">2026-004</span></td>
-            <td class="desc">mercyworksoutreach.org domain, 3 years<span class="paid-note">Paid directly by donor</span></td>
-            <td data-label="Category">Website and domain</td>
-            <td data-label="Counterparty">Cloudflare</td>
-            <td data-label="Amount" class="num out">−$30.90</td>
-            <td data-label="Balance" class="num">$0.00</td>
-            <td data-label="Receipt"><span class="pending">Pending</span></td>
-          </tr>
-          <tr id="r2026-005">
-            <td data-label="Date" class="date"><time datetime="2026-11-19">Nov 19</time> <span class="rowid">2026-005</span></td>
-            <td class="desc">Paid the IRS Form 1023-EZ user fee for the org<span class="paid-note">Paid directly by donor</span></td>
-            <td data-label="Category">Contributions</td>
-            <td data-label="Counterparty">Dylan Brown</td>
-            <td data-label="Amount" class="num">$275.00</td>
-            <td data-label="Balance" class="num">$0.00</td>
-            <td data-label="Receipt"><span class="none">&ndash;</span></td>
-          </tr>
-          <tr id="r2026-006">
-            <td data-label="Date" class="date"><time datetime="2026-11-19">Nov 19</time> <span class="rowid">2026-006</span></td>
-            <td class="desc">Form 1023-EZ user fee (paid through Pay.gov)<span class="paid-note">Paid directly by donor</span></td>
-            <td data-label="Category">Filing and registration fees</td>
-            <td data-label="Counterparty">Internal Revenue Service</td>
-            <td data-label="Amount" class="num out">−$275.00</td>
-            <td data-label="Balance" class="num">$0.00</td>
-            <td data-label="Receipt"><span class="pending">Pending</span></td>
-          </tr>
-        </tbody>
-      </table>
-      <p class="note"><strong>Receipts marked Pending.</strong> These receipts are being prepared for publication, with card numbers and personal details removed. Each will be linked here.</p>
-
-      <h2 id="bank-check">Monthly bank check</h2>
-      <p>No month has been closed yet. Once the bank account is open, each month&rsquo;s ledger balance will be compared here with the bank statement, alongside the date the president reviewed it and a copy of the statement.</p>
-
-      <h2 id="donated-goods">Donated goods</h2>
-      <p>Goods given to us, such as clothing or food, are not cash, so they are kept out of the ledger above and listed in their own log. In 2026 so far: 0 gifts, with an estimated value of $0.00. <a href="inkind-2026.csv">Donated goods log (CSV)</a></p>
-
-      <h2 id="how-to-read">How to read this page</h2>
-      <ul class="plain">
-        <li><strong>Cash basis, calendar year.</strong> A row is recorded on the date money actually moves, not when a bill arrives or a gift is promised. The year runs January 1 to December 31.</li>
-        <li><strong>Amounts.</strong> Money in is positive. Money out has a minus sign. Balance is the bank balance after that row.</li>
-        <li><strong>Paid directly by donor.</strong> Sometimes a donor pays one of our bills with their own money and does not want it back. That appears as two rows on the same date: the gift and the matching expense. No money passes through the bank, so the balance does not move.</li>
-        <li><strong>Receipts and statements.</strong> Every expense links to its receipt, and every closed month links to its bank statement. Before publishing we remove card numbers and account numbers except the last four digits, routing numbers, personal addresses and phone numbers, and donor names. Nothing else is changed.</li>
-        <li><strong>Donor names.</strong> Donors are listed as Individual donor, Foundation, Church or Government unless a donor asks to be named.</li>
-        <li><strong>Salaries.</strong> No one is paid, so there is no salary category and the figure is always $0.00.</li>
-        <li><strong>Share spent on programs.</strong> Program spending divided by all spending for the year. The first year reads low because the fees to form the organization are its only costs so far.</li>
-        <li><strong>Corrections.</strong> Once a month is closed, its rows are never edited or deleted. A mistake is fixed in the open with a row that reverses it and a new, correct row.</li>
+      <p>The general ledger lists every transaction since Mercy Works Outreach began, each expense with its receipt.</p>
+      <ul class="rows">
+        <li><a href="ledger.html">General Ledger</a> <span class="meta">6 transactions</span></li>
       </ul>
 
-      <h2 id="downloads">Downloads and history</h2>
+      <h2 id="bank-check">Monthly bank check</h2>
+      <p>No month has been closed yet. Each month, the ledger will be compared here with the bank statement, alongside the date the president reviewed it and a copy of the statement.</p>
+
+      <h2 id="donated-goods">Donated goods</h2>
+      <p>Goods given to us, such as clothing or food, are not cash, so they are kept out of the ledger and listed in their own log. In 2026 so far: 0 gifts, with an estimated value of $0.00.</p>
+
+      <h2 id="downloads">Downloads</h2>
       <ul class="rows">
-        <li><a href="2026.csv">Ledger for 2026 (CSV)</a></li>
-        <li><a href="categories.csv">Category list (CSV)</a></li>
-        <li><a href="reconciliations.csv">Monthly bank checks (CSV)</a></li>
-        <li><a href="inkind-2026.csv">Donated goods log for 2026 (CSV)</a></li>
-        <li><a href="../tools/ledger.py">The script that checks these books</a></li>
-        <li><a href="https://github.com/dlb1177/mercyworksoutreach/commits/main/financials" target="_blank" rel="noopener">Every change to these books</a> <span class="meta">GitHub history</span></li>
+        <li><a href="general-ledger.csv">General Ledger</a> <span class="meta">CSV</span></li>
+        <li><a href="reconciliations.csv">Monthly Bank Checks</a> <span class="meta">CSV</span></li>
+        <li><a href="inkind-2026.csv">Donated Goods Log, 2026</a> <span class="meta">CSV</span></li>
       </ul>
     </main>
 
