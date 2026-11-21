@@ -15,21 +15,22 @@ Dylan Brown, CPA, is the founder and treasurer. He is not a web developer. Expla
 Run from the repo root. Python 3 standard library only; nothing to install.
 
 ```
-python3 -m unittest tools/test_ledger.py tools/test_zeffy.py   all tests (18)
+python3 -m unittest tools/test_ledger.py tools/test_zeffy.py   all tests (24)
 python3 tools/ledger.py check      check the books against all 13 rules; writes nothing
 python3 tools/ledger.py build      check, then rewrite the pages under financials/ and inventory/
 python3 tools/ledger.py summary    the books at a glance
-python3 tools/zeffy.py status      what Zeffy still owes (needs the private Books/ folder)
+python3 tools/zeffy.py status      what Zeffy still owes, and anything waiting on a person
 ```
 
 After any change to a CSV under `financials/`, `inventory/` or `impact/`: `check`, then `build`, then look at the pages.
 
 ## What is not in the repo
 
-`Books/` (private accounting records and donor names), `Formation_Docs/` (unredacted originals), `Document_Inbox/` (where documents arrive) and the brand kit exist only on Dylan's Mac and are git-ignored. Without `Books/`:
+`Books/` (private accounting records and donor names), `Formation_Docs/` (unredacted originals), `Document_Inbox/` (where documents arrive) and the brand kit exist only on Dylan's Mac and are git-ignored. Without `Books/`, `check` prints one warning about donor names. That is expected. Nothing else needs it.
 
-- `check` prints one warning about donor names. That is expected.
-- **`tools/zeffy.py import` and `payout` refuse to run,** on purpose, so gifts are not entered twice. Do not work around it. See `context.md` sections 6 and 9.
+## The hourly Zeffy sync
+
+A scheduled task reads Zeffy once an hour, enters new online gifts and pushes to `main` by itself. If you are that run, follow `context.md` section 6, "The hourly run, step by step", exactly and do nothing else. Otherwise: pull before you start, never enter an online gift by hand, and never edit `financials/zeffy-log.csv` by hand.
 
 The PDF redaction scripts in `tools/mac/` need macOS. Elsewhere, use another tool that truly removes content and verify the same way (`context.md` section 4).
 
@@ -38,6 +39,7 @@ The PDF redaction scripts in `tools/mac/` need macOS. Elsewhere, use another too
 - Plain HTML and CSS only. No frameworks, no JavaScript, no build step, no tracking, no third-party scripts, fonts or embeds. The one exception: `tools/ledger.py` writes the pages under `financials/` and `inventory/`. Never edit those pages by hand.
 - Keep the Berkshire Hathaway–style look: simple, text-first, no frills. Use the brand colors and the self-hosted fonts in `/fonts`. Never load Google Fonts.
 - **Never claim 501(c)(3) status, tax-exempt status or tax-deductibility** until `context.md` says the IRS determination letter has arrived.
+- **Never write a donor's name, email address or home address to any file.** Donor details live in Zeffy only.
 - **Never commit or publish private data:** originals of redacted documents, bank account numbers, donor names without consent, home addresses, personal emails or phone numbers, or anything identifying the people served.
 - **Never name a director or officer in the financial files or pages.** Use "Donor" or "Director".
 - **Redaction must remove the content, not cover it,** and must be verified before committing.

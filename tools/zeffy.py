@@ -1,161 +1,193 @@
 #!/usr/bin/env python3
-"""Mercy Works Outreach: bring a Zeffy export into the books.
+"""Mercy Works Outreach: keep the books in step with Zeffy.
 
-Zeffy is the online donation platform. Its export (Payments > Export, an .xlsx
-file) lists every payment. This script reads an export, finds what is new since
-the last one, and enters it. It uses only the Python 3 standard library.
+Zeffy is the online donation platform and the organization's record of who gave.
+Once an hour a scheduled session reads Zeffy, writes down a few facts about each
+payment that are not private (the "feed"), and hands them to this script. The
+script enters what is new. It uses only the Python 3 standard library.
 
-    python3 tools/zeffy.py import <export.xlsx>   enter what is new, then file the export
-    python3 tools/zeffy.py status                 what Zeffy still owes, and anything open
-    python3 tools/zeffy.py payout YYYY-MM-DD [--posted YYYY-MM-DD]
-                                                  a payout has reached the bank: clear it
-    python3 tools/zeffy.py match "<key>" <ledger ids>
-                                                  say which ledger rows a hand-entered
-                                                  Zeffy payment is already recorded as
+    python3 tools/zeffy.py hourly <feed.json>    the whole hourly run: tests, sync, check,
+                                                 build, and a last look at what changed
+    python3 tools/zeffy.py sync <feed.json>      only enter what is new in the feed
+    python3 tools/zeffy.py status                what Zeffy still owes, and anything open
+    python3 tools/zeffy.py payout YYYY-MM-DD [--posted YYYY-MM-DD] [--amount 0.00]
+                                                 a payout has reached the bank: clear it
+    python3 tools/zeffy.py match <fingerprint> <ledger ids>
+                                                 say which ledger rows a payment is recorded as
+    python3 tools/zeffy.py enter <fingerprint> "<label>"
+                                                 enter a waiting online gift under a public label
 
 How a gift moves through the books
-  1. Given online. The export shows it with a payout date ("Upcoming" at first).
-     import enters it in the general ledger on the day it was given, as a
-     Contributions row with method zeffy. From then on it is a payout receivable:
-     part of the balance, not yet cash in the bank.
-  2. Paid out. A later export shows the real payout date. import records it and
-     says which payout to look for on the bank statement.
+  1. Given online. sync enters it in the general ledger on the day it was given,
+     as a Contributions row with method zeffy. From then on it is a payout
+     receivable: part of the balance, not yet cash in the bank.
+  2. Paid out. A later feed carries the payout date. sync records it and says
+     which payout to look for on the bank statement.
   3. Cleared. When the bank statement shows the deposit, payout enters a pair of
      Transfers rows (out of Zeffy, into the bank). The receivable goes down and the
-     cash in the bank goes up by the same amount.
+     cash in the bank goes up by the same amount. This step is done by a person at
+     the monthly close, never by the hourly run, so the date is the bank's date.
 
-Payments entered into Zeffy by hand (a cheque, cash, a gift in kind) have no payout
-date. They never pass through Zeffy, so they are not entered from the export: they
-reach the books the usual way, from the deposit slip or the receipt. import only
-checks that each one is matched to ledger rows, and says so if one is not.
+Payments entered into Zeffy by hand (a cheque, cash, a gift in kind) never pass
+through Zeffy, so they are not entered from the feed: they reach the books the
+usual way, from the deposit slip or the receipt. sync ties each one to its ledger
+row when the amount and date make that unambiguous, and says so if it cannot.
 
-The private log
-  Books/zeffy-log.csv is how import knows what it has already entered. Books/ is
-  never committed, so on a machine without it (a fresh clone, a cloud session)
-  import and payout refuse to run rather than enter every gift a second time.
+Left for a person, and reported once with "ATTENTION": refunds, failed and
+disputed payments, gifts from an organization (which need a public label), and
+anything dated in a closed month.
+
+The feed
+  A JSON file written outside the repo, deleted after the run:
+    {"payments": [{"id": "...", "created": 1795218477, "amount_cents": 25000,
+                   "currency": "usd", "type": "online", "method": "card",
+                   "status": "succeeded", "refunded_cents": 0, "disputed": false,
+                   "from": "individual", "payout_date": ""}]}
+  id            Zeffy's own payment id. It is used only to make the fingerprint.
+  created       the payment's Unix time, copied as it is. The script works out the
+                date in the organization's time zone.
+  type          online, manual or imported, as Zeffy gives it.
+  status        succeeded, failed or pending, as Zeffy gives it.
+  from          director, individual or organization. The session compares the
+                giver's name with the directors and writes only this word.
+  payout_date   the day Zeffy paid the gift out (YYYY-MM-DD), or "" if not yet.
+  Any other field, and anything that looks like an email address, is refused, so
+  a name or an address cannot reach the books by mistake.
 
 What is public and what is private
-  The ledger row says only "Donor" (a director) or "Individual donor", the date and
-  the amount. Names, email addresses and home addresses go to Books/donors.csv and
-  Books/zeffy-log.csv, which are never committed. The export itself is filed in
-  Books/zeffy/. Nothing private is printed into a public file.
+  Everything this script keeps is public. The ledger row says only "Donor" (a
+  director) or "Individual donor", the date and the amount. financials/zeffy-log.csv
+  is how sync knows what it has already entered: one line per payment with a
+  fingerprint, the date, the amount, how it was paid, and where it stands. The
+  fingerprint is a one-way scramble of Zeffy's payment id; it cannot be turned back
+  into the id. Names, email addresses and home addresses stay in Zeffy and are
+  never written here.
 """
 
 import csv
+import hashlib
+import json
 import re
-import shutil
+import subprocess
 import sys
-import zipfile
-import xml.etree.ElementTree as ET
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import ledger  # noqa: E402
 
-LOG = "Books/zeffy-log.csv"
-LOG_COLS = ["key", "payment_date", "payment_time", "amount", "payment_method", "status",
-            "payout_date", "refund_amount", "first_name", "last_name", "email",
-            "kind", "ledger_ids", "cleared_ids", "first_seen"]
-DONORS = "Books/donors.csv"
-DONOR_COLS = ["ledger_id", "date", "donor_name", "household_key", "email", "mailing_address",
-              "amount", "type", "public_name_ok", "acknowledged_on"]
-NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
-NEEDED = ["Payment Date (America/Chicago)", "Payment Time (America/Chicago)", "Total Amount",
-          "Payment Method", "Payment Status", "Payout Date", "First Name", "Last Name", "Email"]
+LOG = "financials/zeffy-log.csv"
+LOG_COLS = ["fingerprint", "date", "amount", "kind", "method", "status", "refund", "payout_date",
+            "ledger_ids", "cleared_ids", "waiting_on", "first_seen"]
+TIMEZONE = "America/Chicago"
+FEED_KEYS = {"id", "created", "amount_cents", "currency", "type", "method", "status",
+             "refunded_cents", "disputed", "from", "payout_date"}
+TYPES = ("online", "manual", "imported")
+STATUSES = ("succeeded", "failed", "pending")
+GIVERS = ("director", "individual", "organization")
+LABELS = [g for g in ledger.GENERIC_DONORS if g != "Director"]
+ZERO = Decimal("0.00")
+# The only files an hourly run may change. Anything else stops the run.
+HOURLY_MAY_CHANGE = re.compile(r"^(financials/general-ledger\.csv|financials/zeffy-log\.csv|financials/[^/]+\.html|inventory/[^/]+\.html)$")
 
 
-# ---------- reading the export ----------
+# ---------- the feed ----------
 
-def read_xlsx(path):
-    """Rows of the first sheet as dicts keyed by the header row."""
-    with zipfile.ZipFile(path) as z:
-        shared = []
-        if "xl/sharedStrings.xml" in z.namelist():
-            for si in ET.fromstring(z.read("xl/sharedStrings.xml")).findall(NS + "si"):
-                shared.append("".join(t.text or "" for t in si.iter(NS + "t")))
-        sheets = sorted(n for n in z.namelist() if re.match(r"xl/worksheets/sheet\d+\.xml$", n))
-        table = []
-        for row in ET.fromstring(z.read(sheets[0])).iter(NS + "row"):
-            cells = {}
-            for c in row.findall(NS + "c"):
-                col = 0
-                for ch in re.match(r"[A-Z]+", c.get("r")).group(0):
-                    col = col * 26 + ord(ch) - 64
-                v = c.find(NS + "v")
-                if c.get("t") == "s" and v is not None:
-                    value = shared[int(v.text)]
-                elif c.get("t") == "inlineStr":
-                    value = "".join(t.text or "" for t in c.iter(NS + "t"))
-                else:
-                    value = v.text if v is not None and v.text is not None else ""
-                cells[col - 1] = value.strip()
-            table.append(cells)
-    if not table:
-        raise ValueError("The export is empty.")
-    header = [table[0].get(i, "") for i in range(max(table[0]) + 1)]
-    missing = [h for h in NEEDED if h not in header]
-    if missing:
-        raise ValueError("This does not look like a Zeffy payments export. Missing columns: " + ", ".join(missing))
-    return [{h: cells.get(i, "") for i, h in enumerate(header)} for cells in table[1:] if any(cells.values())]
+def fingerprint(payment_id):
+    """A one-way scramble of Zeffy's payment id, in letters only.
+
+    Letters only, so the privacy scan never mistakes it for an account number.
+    """
+    digest = hashlib.sha256(("zeffy-payment:" + payment_id.strip().lower()).encode("utf-8")).hexdigest()[:20]
+    return digest.translate(str.maketrans("0123456789abcdef", "ghijklmnopabcdef"))
 
 
-def us_date(text):
-    """11/20/2026 -> 2026-11-20. Returns "" for anything that is not a date."""
+def cents(n):
+    return str((Decimal(n) / 100).quantize(Decimal("0.01")))
+
+
+def read_feed(path):
+    """The feed's payments, checked and tidied. Refuses anything it does not expect."""
     try:
-        return datetime.strptime(text.strip(), "%m/%d/%Y").date().isoformat()
-    except ValueError:
-        return ""
-
-
-def payments(path):
-    """The export's rows, tidied, each with a key that stays the same from one export to the next."""
-    out, seen = [], {}
-    for raw in read_xlsx(path):
-        day = us_date(raw["Payment Date (America/Chicago)"])
-        if not day:
-            raise ValueError('Cannot read the payment date "%s".' % raw["Payment Date (America/Chicago)"])
-        try:
-            clock = datetime.strptime(raw["Payment Time (America/Chicago)"].strip().upper(), "%I:%M %p").strftime("%H:%M")
-        except ValueError:
-            clock = raw["Payment Time (America/Chicago)"].strip()
-        amount = Decimal(raw["Total Amount"] or "0").quantize(Decimal("0.01"))
-        refund = Decimal(raw.get("Refund Amount") or "0").quantize(Decimal("0.01"))
-        key = "%s %s|%s|%s" % (day, clock, amount, raw["Email"].lower() or (raw["First Name"] + " " + raw["Last Name"]).lower())
-        seen[key] = seen.get(key, 0) + 1
-        if seen[key] > 1:
-            key += "#%d" % seen[key]
-        payout = raw["Payout Date"].strip()
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise ValueError("Cannot read the feed %s: %s" % (path, e))
+    if not isinstance(data, dict) or not isinstance(data.get("payments"), list) or set(data) - {"payments"}:
+        raise ValueError('The feed must be {"payments": [...]} and nothing else.')
+    out, seen = [], set()
+    for n, p in enumerate(data["payments"], start=1):
+        where = "Payment %d in the feed" % n
+        if not isinstance(p, dict):
+            raise ValueError("%s is not an object." % where)
+        extra = sorted(set(p) - FEED_KEYS)
+        if extra:
+            raise ValueError("%s has fields the books must never see (%s). Nothing was entered. "
+                             "The feed carries only: %s." % (where, ", ".join(extra), ", ".join(sorted(FEED_KEYS))))
+        missing = sorted(FEED_KEYS - set(p))
+        if missing:
+            raise ValueError("%s is missing: %s." % (where, ", ".join(missing)))
+        if any(isinstance(v, str) and "@" in v for v in p.values()):
+            raise ValueError("%s contains what looks like an email address. Nothing was entered." % where)
+        if not isinstance(p["id"], str) or not re.match(r"^[A-Za-z0-9_-]{8,80}$", p["id"]):
+            raise ValueError("%s: the id is not a Zeffy payment id." % where)
+        for key in ("created", "amount_cents", "refunded_cents"):
+            if not isinstance(p[key], int) or isinstance(p[key], bool) or p[key] < 0:
+                raise ValueError("%s: %s must be a whole number, zero or more." % (where, key))
+        if str(p["currency"]).lower() != "usd":
+            raise ValueError("%s is not in US dollars. Nothing was entered." % where)
+        if p["type"] not in TYPES or p["status"] not in STATUSES or p["from"] not in GIVERS:
+            raise ValueError("%s: type must be one of %s, status one of %s, and from one of %s."
+                             % (where, ", ".join(TYPES), ", ".join(STATUSES), ", ".join(GIVERS)))
+        if not isinstance(p["method"], str) or not re.match(r"^[A-Za-z]{1,30}$", p["method"]):
+            raise ValueError("%s: method must be one word, such as card or cheque." % where)
+        if not isinstance(p["disputed"], bool):
+            raise ValueError("%s: disputed must be true or false." % where)
+        if p["payout_date"] != "" and ledger.parse_date(p["payout_date"]) is None:
+            raise ValueError('%s: payout_date must be YYYY-MM-DD or "".' % where)
+        if p["refunded_cents"] > p["amount_cents"]:
+            raise ValueError("%s: more was refunded than was given." % where)
+        fp = fingerprint(p["id"])
+        if fp in seen:
+            raise ValueError("%s appears twice in the feed." % where)
+        seen.add(fp)
         out.append({
-            "key": key, "payment_date": day, "payment_time": clock, "amount": str(amount),
-            "payment_method": raw["Payment Method"], "status": raw["Payment Status"],
-            "payout_date": us_date(payout) or payout, "refund_amount": str(refund),
-            "first_name": raw["First Name"], "last_name": raw["Last Name"], "email": raw["Email"],
-            "kind": "online" if payout else "manual",
-            "company": raw.get("Company Name", ""),
-            "address": ", ".join(x for x in (raw.get("Address", ""), raw.get("City", ""),
-                                             (raw.get("State", "") + " " + raw.get("Postal Code", "")).strip()) if x),
+            "fingerprint": fp,
+            "created": p["created"],
+            "date": datetime.fromtimestamp(p["created"], ZoneInfo(TIMEZONE)).date().isoformat(),
+            "amount": cents(p["amount_cents"]),
+            "kind": "online" if p["type"] == "online" else "manual",
+            "method": p["method"],
+            "status": "disputed" if p["disputed"] else p["status"],
+            "refund": cents(p["refunded_cents"]),
+            "from": p["from"],
+            "payout_date": p["payout_date"],
         })
-    out.sort(key=lambda p: (p["payment_date"], p["payment_time"]))
+    out.sort(key=lambda p: (p["created"], p["fingerprint"]))
     return out
 
 
-# ---------- the private files ----------
+# ---------- the log ----------
 
-def read_csv(path, cols):
+def read_log(root):
+    path = Path(root) / LOG
     if not path.is_file():
         return []
     with open(path, newline="", encoding="utf-8") as f:
-        return [{c: r.get(c, "") or "" for c in cols} for r in csv.DictReader(f)]
+        reader = csv.DictReader(f)
+        if reader.fieldnames != LOG_COLS:
+            raise ValueError("%s does not have the expected header." % LOG)
+        return [{c: r.get(c, "") or "" for c in LOG_COLS} for r in reader]
 
 
-def write_csv(path, cols, rows):
-    path.parent.mkdir(parents=True, exist_ok=True)
+def write_log(root, log):
+    path = Path(root) / LOG
+    log.sort(key=lambda e: (e["date"], e["first_seen"], e["fingerprint"]))
     with open(path, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f, lineterminator="\n")
-        w.writerow(cols)
-        w.writerows([[r.get(c, "") for c in cols] for r in rows])
+        w.writerow(LOG_COLS)
+        w.writerows([[e[c] for c in LOG_COLS] for e in log])
 
 
 def ledger_rows(root):
@@ -163,118 +195,148 @@ def ledger_rows(root):
         return list(csv.DictReader(f))
 
 
-def public_label(p):
-    """What the public ledger calls the donor. Never a name."""
-    name = ("%s %s" % (p["first_name"], p["last_name"])).strip().lower()
-    return "Donor" if any(name == n.lower() for n in ledger.INSIDERS) else "Individual donor"
-
-
-def household(p, donors):
-    name = ("%s %s" % (p["first_name"], p["last_name"])).strip()
-    for d in donors:
-        if d["household_key"] and ((p["email"] and d["email"].lower() == p["email"].lower()) or d["donor_name"].lower() == name.lower()):
-            return d["household_key"]
-    return re.sub(r"[^a-z0-9]+", "-", ("%s %s" % (p["last_name"], p["first_name"])).lower()).strip("-") or "unknown"
+def closed_month(root):
+    recs = Path(root) / "financials" / "reconciliations.csv"
+    if not recs.is_file():
+        return ""
+    with open(recs, newline="", encoding="utf-8") as f:
+        return max([r["month"] for r in csv.DictReader(f)] or [""])
 
 
 def require_log(root, log):
-    """Stop if the private Zeffy log is missing or behind the ledger.
+    """Stop if the ledger has online gifts the log does not know about.
 
-    The log is how import knows what it has already entered. It lives in Books/,
-    which is never committed. On a machine without it (a fresh clone, a cloud
-    session) every gift in an export would look new and be entered twice.
+    The log is how sync knows what it has already entered. If the two disagree,
+    entering anything could put a gift in the books twice.
     """
-    logged = {i for r in log for i in (r["ledger_ids"] + " " + r["cleared_ids"]).split()}
+    logged = {i for e in log for i in (e["ledger_ids"] + " " + e["cleared_ids"]).split()}
     unknown = [r["id"] for r in ledger_rows(root) if r["method"] == "zeffy" and r["id"] not in logged]
     if unknown:
-        raise ValueError("The ledger has Zeffy rows (%s) that Books/zeffy-log.csv on this machine does not know about. "
-                         "That private log is missing or out of date here, so nothing was entered. "
-                         "Run this where Books/ is kept, or bring Books/zeffy-log.csv and Books/donors.csv here first."
-                         % ", ".join(unknown))
+        raise ValueError("The ledger has Zeffy rows (%s) that %s does not know about, so nothing was entered. "
+                         "Find out how they were entered, then tie each to its payment with: "
+                         "python3 tools/zeffy.py match <fingerprint> <ledger ids>" % (", ".join(unknown), LOG))
 
 
-# ---------- import ----------
+def open_amount(e):
+    """How much of this payment the ledger should still show as owed by Zeffy."""
+    if e["kind"] != "online" or not e["ledger_ids"] or e["cleared_ids"]:
+        return ZERO
+    if e["waiting_on"] == "person":
+        return Decimal(e["amount"])            # the correcting entry has not been made yet
+    if e["status"] != "succeeded":
+        return ZERO
+    return Decimal(e["amount"]) - Decimal(e["refund"] or "0")
 
-def import_export(root, export, today=None, archive=True):
-    """Enter what is new in a Zeffy export. Returns the lines of a report."""
+
+def what(e):
+    return "$%s payment on %s (%s)" % (e["amount"], e["date"], e["method"])
+
+
+def find(log, text):
+    """The one log entry whose fingerprint starts with text."""
+    hits = [e for e in log if e["fingerprint"].startswith(text)] if len(text) >= 6 else []
+    if len(hits) != 1:
+        raise ValueError('"%s" does not pick out one payment in %s. Use the fingerprint shown by: python3 tools/zeffy.py status' % (text, LOG))
+    return hits[0]
+
+
+# ---------- sync ----------
+
+class Result:
+    def __init__(self):
+        self.lines, self.attention, self.entered, self.changed = [], [], [], False
+
+
+def sync(root, feed, today=None):
+    """Enter what is new in the feed. Returns a Result."""
     root = Path(root)
     today = today or date.today().isoformat()
-    log = read_csv(root / LOG, LOG_COLS)
+    payments = read_feed(feed)
+    log = read_log(root)
+    before = [dict(e) for e in log]
     require_log(root, log)
-    known = {r["key"]: r for r in log}
-    donors = read_csv(root / DONORS, DONOR_COLS)
-    report, attention, new_gifts = [], [], []
-    matched = {i for r in log for i in r["ledger_ids"].split()}
+    known = {e["fingerprint"]: e for e in log}
+    res = Result()
+    closed = closed_month(root)
+    matched = {i for e in log for i in e["ledger_ids"].split()}
+    to_enter = []
 
-    for p in payments(export):
-        old = known.get(p["key"])
-        what = "%s gift of $%s on %s" % (p["payment_method"].lower(), p["amount"], p["payment_date"])
-        if old:
-            if p["payout_date"] != old["payout_date"]:
-                if old["kind"] == "online" and ledger.parse_date(p["payout_date"]):
-                    report.append("Paid out by Zeffy on %s: the %s (ledger %s)." % (p["payout_date"], what, old["ledger_ids"]))
-                old["payout_date"] = p["payout_date"]
-            if p["refund_amount"] != (old["refund_amount"] or "0.00") or p["status"] != old["status"]:
-                attention.append("The %s (ledger %s) now shows status %s and refund $%s. It needs a correcting entry by hand." % (what, old["ledger_ids"], p["status"], p["refund_amount"]))
-                old["refund_amount"], old["status"] = p["refund_amount"], p["status"]
+    def wait(e, reason, message):
+        if e["waiting_on"] != reason:
+            e["waiting_on"] = reason
+            res.attention.append(message)
+
+    for p in payments:
+        e = known.get(p["fingerprint"])
+        if e is None:
+            if p["amount"] == "0.00":
+                continue
+            if p["status"] == "pending":
+                res.lines.append("Still processing at Zeffy, not entered yet: a %s." % what(p))
+                continue
+            e = {c: p.get(c, "") for c in LOG_COLS}
+            e.update(ledger_ids="", cleared_ids="", waiting_on="", first_seen=today, payout_date="")
+            log.append(e)
+            known[e["fingerprint"]] = e
+            if p["status"] != "succeeded":
+                res.attention.append("Not entered: a %s shows as %s at Zeffy. Nothing needs doing unless the donor expected it to go through." % (what(p), p["status"]))
+        else:
+            if (p["amount"], p["date"]) != (e["amount"], e["date"]):
+                wait(e, "person", "The %s (ledger %s) now shows as $%s on %s in Zeffy. It needs a person to look."
+                     % (what(e), e["ledger_ids"] or "not entered", p["amount"], p["date"]))
+            elif (p["status"], p["refund"]) != (e["status"], e["refund"]):
+                e["status"], e["refund"] = p["status"], p["refund"]
+                if e["ledger_ids"] and e["kind"] == "online" and (p["status"] != "succeeded" or Decimal(p["refund"]) != 0):
+                    wait(e, "person", "The %s (ledger %s) now shows status %s and $%s refunded. It needs a correcting entry by a person."
+                         % (what(e), e["ledger_ids"], p["status"], p["refund"]))
+            e["method"] = p["method"]
+
+        if p["payout_date"] and p["payout_date"] != e["payout_date"]:
+            e["payout_date"] = p["payout_date"]
+            if e["kind"] == "online" and e["ledger_ids"]:
+                res.lines.append("Paid out by Zeffy on %s: the %s (ledger %s)." % (p["payout_date"], what(e), e["ledger_ids"]))
+
+        if e["ledger_ids"] or e["waiting_on"] in ("person", "label") or e["status"] != "succeeded":
             continue
-        if p["status"] != "Succeeded":
-            attention.append("Not entered: a %s with status %s. It will be looked at again on the next export." % (what, p["status"]))
-            continue
-        if Decimal(p["refund_amount"]) != 0:
-            attention.append("Not entered: a %s with a refund of $%s. Enter it by hand." % (what, p["refund_amount"]))
-            continue
-        entry = {c: p.get(c, "") for c in LOG_COLS}
-        entry["first_seen"] = today
-        if p["kind"] == "manual":
+        if e["kind"] == "manual":
             # Entered into Zeffy by hand, so it never passes through Zeffy. Is it already in the ledger?
             close = [r for r in ledger_rows(root)
-                     if r["category"] in ledger.GIFT_CATEGORIES and r["method"] != "zeffy" and r["amount"] == p["amount"]
-                     and r["id"] not in matched and abs((date.fromisoformat(r["date"]) - date.fromisoformat(p["payment_date"])).days) <= 5]
+                     if r["category"] in ledger.GIFT_CATEGORIES and r["method"] != "zeffy" and r["amount"] == e["amount"]
+                     and r["id"] not in matched and abs((date.fromisoformat(r["date"]) - date.fromisoformat(e["date"])).days) <= 5]
             if len(close) == 1:
-                entry["ledger_ids"] = close[0]["id"]
+                e["ledger_ids"], e["waiting_on"] = close[0]["id"], ""
                 matched.add(close[0]["id"])
-                report.append("Entered in Zeffy by hand, already in the ledger as %s: the %s." % (close[0]["id"], what))
+                res.lines.append("Entered in Zeffy by hand, already in the ledger as %s: the %s." % (close[0]["id"], what(e)))
             else:
-                attention.append('Entered in Zeffy by hand and not matched to the ledger: the %s. If it is already recorded, run: python3 tools/zeffy.py match "%s" <ledger ids>' % (what, p["key"]))
-            log.append(entry)
-            known[p["key"]] = entry
+                wait(e, "deposit", "Entered in Zeffy by hand and not yet in the ledger: a %s. It reaches the books from the deposit slip or receipt. "
+                     "If it is already recorded, run: python3 tools/zeffy.py match %s <ledger ids>" % (what(e), e["fingerprint"][:8]))
             continue
-        if p["company"]:
-            attention.append("Not entered: a %s from an organization. Decide its public label (Foundation, Church, Government) and enter it by hand." % what)
-            continue
-        new_gifts.append((p, entry))
+        if Decimal(e["refund"]) != 0:
+            wait(e, "person", "Not entered: a %s with $%s refunded before it reached the books. It needs a person to enter what was kept." % (what(e), e["refund"]))
+        elif p["from"] == "organization":
+            wait(e, "label", 'Not entered: a %s from an organization. Choose its public label, then run: python3 tools/zeffy.py enter %s "Foundation"'
+                 % (what(e), e["fingerprint"][:8]))
+        elif e["date"][:7] <= closed:
+            wait(e, "person", "Not entered: a %s is dated in %s, which is closed. It needs a person." % (what(e), e["date"][:7]))
+        else:
+            to_enter.append((e, "Donor" if p["from"] == "director" else "Individual donor"))
 
-    if new_gifts:
-        ids = ledger.add_rows(root, [{"date": p["payment_date"], "category": "Contributions", "counterparty": public_label(p),
-                                      "description": "Gift given online", "amount": p["amount"], "method": "zeffy"} for p, _ in new_gifts])
-        for (p, entry), lid in zip(new_gifts, ids):
-            entry["ledger_ids"] = lid
-            log.append(entry)
-            name = ("%s %s" % (p["first_name"], p["last_name"])).strip()
-            donors.append({"ledger_id": lid, "date": p["payment_date"], "donor_name": name, "household_key": household(p, donors),
-                           "email": p["email"], "mailing_address": p["address"], "amount": p["amount"], "type": "cash",
-                           "public_name_ok": "no", "acknowledged_on": ""})
-            report.append("New: online gift of $%s on %s, entered as %s (%s)." % (p["amount"], p["payment_date"], lid, public_label(p)))
-        write_csv(root / DONORS, DONOR_COLS, donors)
-    write_csv(root / LOG, LOG_COLS, log)
-
-    if archive:
-        folder = root / "Books" / "zeffy"
-        folder.mkdir(parents=True, exist_ok=True)
-        target = folder / ("export-%s.xlsx" % today)
-        n = 2
-        while target.exists():
-            target = folder / ("export-%s-%d.xlsx" % (today, n))
-            n += 1
-        shutil.move(str(export), str(target))
-        report.append("The export is filed at %s." % target.relative_to(root))
-    if not new_gifts:
-        report.append("No new online gifts in this export.")
-    return report + ["ATTENTION: " + a for a in attention] + status(root)
+    if to_enter:
+        ids = ledger.add_rows(root, [{"date": e["date"], "category": "Contributions", "counterparty": label,
+                                      "description": "Gift given online", "amount": e["amount"], "method": "zeffy"} for e, label in to_enter])
+        for (e, label), lid in zip(to_enter, ids):
+            e["ledger_ids"] = lid
+            res.entered.append(lid)
+            res.lines.append("New: online gift of $%s on %s, entered as %s (%s)." % (e["amount"], e["date"], lid, label))
+    if log != before:
+        write_log(root, log)
+    res.changed = bool(to_enter) or log != before
+    if not res.changed:
+        res.lines.append("Nothing new from Zeffy.")
+    return res
 
 
-# ---------- status, payout, match ----------
+# ---------- status, payout, match, enter ----------
 
 def count(group):
     return "1 gift" if len(group) == 1 else "%d gifts" % len(group)
@@ -282,37 +344,45 @@ def count(group):
 
 def status(root):
     root = Path(root)
-    log = read_csv(root / LOG, LOG_COLS)
-    rows = ledger_rows(root)
-    owed = sum((Decimal(r["amount"]) for r in rows if r["method"] == "zeffy"), Decimal("0.00"))
-    online = [r for r in log if r["kind"] == "online" and r["ledger_ids"]]
-    open_ = [r for r in online if not r["cleared_ids"]]
+    log = read_log(root)
+    owed = sum((Decimal(r["amount"]) for r in ledger_rows(root) if r["method"] == "zeffy"), ZERO)
+    open_ = [e for e in log if open_amount(e) != 0]
+    logged = sum((open_amount(e) for e in open_), ZERO)
     lines = ["Payout receivable in the ledger (given through Zeffy, not yet cleared to the bank): $%s" % owed]
-    if sum((Decimal(r["amount"]) for r in open_), Decimal("0.00")) != owed:
-        lines.append("ATTENTION: the private Zeffy log says $%s is open, which does not match the ledger." % sum((Decimal(r["amount"]) for r in open_), Decimal("0.00")))
-    upcoming = [r for r in open_ if not ledger.parse_date(r["payout_date"])]
+    if logged != owed:
+        lines.append("ATTENTION: the Zeffy log says $%s is open, which does not match the ledger." % logged)
+    upcoming = [e for e in open_ if not e["payout_date"]]
     if upcoming:
-        lines.append("  Not paid out yet: %s, $%s" % (count(upcoming), sum(Decimal(r["amount"]) for r in upcoming)))
-    for day in sorted({r["payout_date"] for r in open_ if ledger.parse_date(r["payout_date"])}):
-        group = [r for r in open_ if r["payout_date"] == day]
+        lines.append("  Not paid out yet: %s, $%s" % (count(upcoming), sum(open_amount(e) for e in upcoming)))
+    for day in sorted({e["payout_date"] for e in open_ if e["payout_date"]}):
+        group = [e for e in open_ if e["payout_date"] == day]
         lines.append("  Paid out by Zeffy on %s: %s, $%s. When that deposit is on the bank statement, run: python3 tools/zeffy.py payout %s"
-                     % (day, count(group), sum(Decimal(r["amount"]) for r in group), day))
-    for r in log:
-        if r["kind"] == "manual" and not r["ledger_ids"]:
-            lines.append('ATTENTION: hand-entered Zeffy payment not matched to the ledger: $%s on %s (%s). Key: "%s"' % (r["amount"], r["payment_date"], r["payment_method"], r["key"]))
+                     % (day, count(group), sum(open_amount(e) for e in group), day))
+    waiting = {"deposit": "entered in Zeffy by hand, not yet in the ledger",
+               "label": "from an organization, needs a public label",
+               "person": "needs a person to look"}
+    for e in log:
+        if e["waiting_on"]:
+            lines.append("ATTENTION: %s: a %s (status %s, refunded $%s, ledger %s). Fingerprint %s"
+                         % (waiting.get(e["waiting_on"], e["waiting_on"]), what(e), e["status"], e["refund"], e["ledger_ids"] or "none", e["fingerprint"][:8]))
     return lines
 
 
-def payout(root, day, posted=None):
+def payout(root, day, posted=None, amount=None):
     """A Zeffy payout has reached the bank: move it from the receivable to the bank."""
     root = Path(root)
     posted = posted or day
-    log = read_csv(root / LOG, LOG_COLS)
+    log = read_log(root)
     require_log(root, log)
-    group = [r for r in log if r["kind"] == "online" and r["payout_date"] == day and r["ledger_ids"] and not r["cleared_ids"]]
+    group = [e for e in log if e["payout_date"] == day and open_amount(e) != 0]
     if not group:
-        raise ValueError("The Zeffy log has no uncleared gifts with payout date %s. Import a newer export first." % day)
-    total = sum(Decimal(r["amount"]) for r in group)
+        raise ValueError("The Zeffy log has no uncleared gifts with payout date %s." % day)
+    held = [e for e in group if e["waiting_on"]]
+    if held:
+        raise ValueError("A gift in this payout is waiting on a person (%s). Settle it first; see: python3 tools/zeffy.py status" % what(held[0]))
+    total = sum(open_amount(e) for e in group)
+    if amount is not None and Decimal(amount) != total:
+        raise ValueError("The books expect a payout of $%s for %s, but the deposit is $%s. Nothing was entered. Find the difference first." % (total, day, amount))
     n = len(group)
     ids = ledger.add_rows(root, [
         {"date": posted, "category": "Transfers", "counterparty": "Zeffy", "amount": str(-total), "method": "zeffy",
@@ -320,49 +390,138 @@ def payout(root, day, posted=None):
         {"date": posted, "category": "Transfers", "counterparty": "Sunrise Banks", "amount": str(total), "method": "bank",
          "description": "Payout of %d online %s received from Zeffy" % (n, "gift" if n == 1 else "gifts"), "ref": "@0"},
     ])
-    for r in group:
-        r["cleared_ids"] = " ".join(ids)
-    write_csv(root / LOG, LOG_COLS, log)
+    for e in group:
+        e["cleared_ids"] = " ".join(ids)
+    write_log(root, log)
     return ["Cleared the payout of $%s (%s, paid out %s, posted %s) as %s and %s." % (total, count(group), day, posted, ids[0], ids[1])] + status(root)
 
 
-def match(root, key, ids):
+def match(root, text, ids):
+    """Say which ledger rows a payment is recorded as. Nothing is waiting on it afterwards."""
     root = Path(root)
-    log = read_csv(root / LOG, LOG_COLS)
+    log = read_log(root)
+    e = find(log, text)
     have = {r["id"] for r in ledger_rows(root)}
-    for r in log:
-        if r["key"] == key:
-            if r["kind"] != "manual":
-                raise ValueError("That payment went through Zeffy. Only hand-entered payments are matched this way.")
-            missing = [i for i in ids if i not in have]
-            if missing:
-                raise ValueError("Not in the ledger: " + ", ".join(missing))
-            r["ledger_ids"] = " ".join(ids)
-            write_csv(root / LOG, LOG_COLS, log)
-            return ["Matched the hand-entered payment of $%s on %s to %s." % (r["amount"], r["payment_date"], r["ledger_ids"])]
-    raise ValueError("No payment in the Zeffy log has that key.")
+    missing = [i for i in ids if i not in have]
+    if missing:
+        raise ValueError("Not in the ledger: " + ", ".join(missing))
+    e["ledger_ids"], e["waiting_on"] = " ".join(ids), ""
+    write_log(root, log)
+    return ["Tied the %s to %s." % (what(e), e["ledger_ids"])]
+
+
+def enter(root, text, label):
+    """Enter an online gift that was waiting for a public label."""
+    root = Path(root)
+    log = read_log(root)
+    require_log(root, log)
+    e = find(log, text)
+    if label not in LABELS:
+        raise ValueError("The label must be one of: %s." % ", ".join(LABELS))
+    if e["kind"] != "online" or e["ledger_ids"] or e["status"] != "succeeded" or Decimal(e["refund"]) != 0:
+        raise ValueError("Only an online gift that succeeded, was not refunded and is not in the ledger yet can be entered this way.")
+    lid = ledger.add_rows(root, [{"date": e["date"], "category": "Contributions", "counterparty": label,
+                                  "description": "Gift given online", "amount": e["amount"], "method": "zeffy"}])[0]
+    e["ledger_ids"], e["waiting_on"] = lid, ""
+    write_log(root, log)
+    return ["Entered the %s as %s (%s)." % (what(e), lid, label)]
+
+
+# ---------- the hourly run ----------
+
+def git(root, *args):
+    return subprocess.run(["git", "-C", str(root)] + list(args), capture_output=True, text=True)
+
+
+def changed_files(root):
+    out = git(root, "status", "--porcelain", "--untracked-files=all")
+    if out.returncode != 0:
+        raise ValueError("Could not ask git what changed: %s" % out.stderr.strip())
+    return [line[3:].split(" -> ")[-1].strip('"') for line in out.stdout.splitlines() if line.strip()]
+
+
+def hourly(root, feed, today=None, run_tests=True):
+    """The whole hourly run. Returns (lines, result) where result is nothing-new, ready or stopped.
+
+    It never commits or pushes; the session does that, and only on "ready".
+    On "stopped" every file is put back as it was.
+    """
+    root = Path(root)
+    lines = []
+
+    def stop(why):
+        # The run started from a clean working copy, so whatever differs now is its own doing.
+        git(root, "checkout", "--", ".")
+        for name in changed_files(root):
+            (root / name).unlink(missing_ok=True)
+        return lines + ["STOPPED: " + why, "Nothing was changed. Do not commit or push."], "stopped"
+
+    try:
+        if changed_files(root):
+            return lines + ["STOPPED: the working copy already has changes, so the hourly run did not start.",
+                            "Nothing was changed. Do not commit or push."], "stopped"
+        if run_tests:
+            t = subprocess.run([sys.executable, "-m", "unittest", "tools/test_ledger.py", "tools/test_zeffy.py"],
+                               cwd=str(root), capture_output=True, text=True)
+            if t.returncode != 0:
+                return stop("the tests did not pass.\n" + t.stderr[-2000:])
+        res = sync(root, feed, today)
+        lines += res.lines + ["ATTENTION: " + a for a in res.attention]
+        if not res.changed:
+            return lines, "nothing-new"
+        books, blocking, _ = ledger.build(root)
+        if blocking:
+            return stop("the books did not pass the check after the sync:\n" + "\n".join(str(p) for p in blocking))
+        stray = [f for f in changed_files(root) if not HOURLY_MAY_CHANGE.match(f)]
+        if stray:
+            return stop("files changed that an hourly run must never touch: " + ", ".join(stray))
+        lines += status(root)
+        parts = []
+        if res.entered:
+            parts.append("%d online %s entered (%s)" % (len(res.entered), "gift" if len(res.entered) == 1 else "gifts", ", ".join(res.entered)))
+        if any(l.startswith("Paid out") for l in res.lines):
+            parts.append("payout recorded")
+        if res.attention:
+            parts.append("%d for a person" % len(res.attention))
+        lines.append("COMMIT MESSAGE: Zeffy sync: " + ("; ".join(parts) or "log updated"))
+        return lines, "ready"
+    except ValueError as e:
+        return stop(str(e))
 
 
 def main(argv):
     root = Path(__file__).resolve().parent.parent
     cmd = argv[1] if len(argv) > 1 else ""
+
+    def option(name):
+        return argv[argv.index(name) + 1] if name in argv else None
     try:
-        if cmd == "import" and len(argv) == 3:
-            lines = import_export(root, Path(argv[2]))
+        if cmd == "hourly" and len(argv) == 3:
+            lines, result = hourly(root, Path(argv[2]))
+            print("\n".join(lines))
+            notify = result == "stopped" or any(l.startswith(("New:", "Paid out", "ATTENTION")) for l in lines)
+            print("\nRESULT: %s\nNOTIFY: %s" % (result, "yes" if notify else "no"))
+            return 1 if result == "stopped" else 0
+        if cmd == "sync" and len(argv) == 3:
+            res = sync(root, Path(argv[2]))
+            lines = res.lines + ["ATTENTION: " + a for a in res.attention] + status(root)
         elif cmd == "status":
             lines = status(root)
         elif cmd == "payout" and len(argv) >= 3:
-            lines = payout(root, argv[2], argv[argv.index("--posted") + 1] if "--posted" in argv else None)
+            lines = payout(root, argv[2], option("--posted"), option("--amount"))
         elif cmd == "match" and len(argv) >= 4:
             lines = match(root, argv[2], argv[3:])
+        elif cmd == "enter" and len(argv) == 4:
+            lines = enter(root, argv[2], argv[3])
         else:
             print(__doc__)
             return 2
-    except (ValueError, KeyError, zipfile.BadZipFile) as e:
+    except (ValueError, KeyError) as e:
         print("Stopped: %s" % e)
         return 1
     print("\n".join(lines))
-    print("\nNext: python3 tools/ledger.py check, then build, then commit and push.")
+    if cmd != "status":
+        print("\nNext: python3 tools/ledger.py check, then build, then commit and push.")
     return 0
 
 
