@@ -29,6 +29,11 @@ date. They never pass through Zeffy, so they are not entered from the export: th
 reach the books the usual way, from the deposit slip or the receipt. import only
 checks that each one is matched to ledger rows, and says so if one is not.
 
+The private log
+  Books/zeffy-log.csv is how import knows what it has already entered. Books/ is
+  never committed, so on a machine without it (a fresh clone, a cloud session)
+  import and payout refuse to run rather than enter every gift a second time.
+
 What is public and what is private
   The ledger row says only "Donor" (a director) or "Individual donor", the date and
   the amount. Names, email addresses and home addresses go to Books/donors.csv and
@@ -172,6 +177,22 @@ def household(p, donors):
     return re.sub(r"[^a-z0-9]+", "-", ("%s %s" % (p["last_name"], p["first_name"])).lower()).strip("-") or "unknown"
 
 
+def require_log(root, log):
+    """Stop if the private Zeffy log is missing or behind the ledger.
+
+    The log is how import knows what it has already entered. It lives in Books/,
+    which is never committed. On a machine without it (a fresh clone, a cloud
+    session) every gift in an export would look new and be entered twice.
+    """
+    logged = {i for r in log for i in (r["ledger_ids"] + " " + r["cleared_ids"]).split()}
+    unknown = [r["id"] for r in ledger_rows(root) if r["method"] == "zeffy" and r["id"] not in logged]
+    if unknown:
+        raise ValueError("The ledger has Zeffy rows (%s) that Books/zeffy-log.csv on this machine does not know about. "
+                         "That private log is missing or out of date here, so nothing was entered. "
+                         "Run this where Books/ is kept, or bring Books/zeffy-log.csv and Books/donors.csv here first."
+                         % ", ".join(unknown))
+
+
 # ---------- import ----------
 
 def import_export(root, export, today=None, archive=True):
@@ -179,6 +200,7 @@ def import_export(root, export, today=None, archive=True):
     root = Path(root)
     today = today or date.today().isoformat()
     log = read_csv(root / LOG, LOG_COLS)
+    require_log(root, log)
     known = {r["key"]: r for r in log}
     donors = read_csv(root / DONORS, DONOR_COLS)
     report, attention, new_gifts = [], [], []
@@ -286,6 +308,7 @@ def payout(root, day, posted=None):
     root = Path(root)
     posted = posted or day
     log = read_csv(root / LOG, LOG_COLS)
+    require_log(root, log)
     group = [r for r in log if r["kind"] == "online" and r["payout_date"] == day and r["ledger_ids"] and not r["cleared_ids"]]
     if not group:
         raise ValueError("The Zeffy log has no uncleared gifts with payout date %s. Import a newer export first." % day)

@@ -145,6 +145,17 @@ class ZeffyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             zeffy.payout(self.root, "2030-03-10")          # already cleared
 
+    def test_import_refuses_when_the_private_log_is_missing(self):
+        """A fresh clone has the ledger but not Books/. It must not enter the same gifts again."""
+        rows = [payment("03/04/2030", "5:47 PM", "250")]
+        zeffy.import_export(self.root, self.export(rows), today="2030-03-06")
+        (self.root / "Books" / "zeffy-log.csv").unlink()
+        with self.assertRaises(ValueError):
+            zeffy.import_export(self.root, self.export(rows), today="2030-03-08")
+        with self.assertRaises(ValueError):
+            zeffy.payout(self.root, "2030-03-10")
+        self.assertEqual(11, len(self.rows()))
+
     def test_hand_entered_payments_are_matched_not_entered(self):
         export = self.export([payment("01/06/2030", "10:00 AM", "100", method="Cheque", payout=""),
                               payment("01/20/2030", "10:05 AM", "77", method="In kind", payout="")])

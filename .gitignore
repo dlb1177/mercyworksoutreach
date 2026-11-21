@@ -11,7 +11,7 @@ MercyWorksOutreach_BrandKit/
 # Drop folder for documents waiting to be added to the site; never published
 Document_Inbox/
 
-# Local helper scripts (PDF redaction); not part of the site
+# Old local copy of the helper scripts now kept in tools/mac/
 .tools/
 
 # Private accounting records: original statements, receipts and donor names. Never published.
