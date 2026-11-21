@@ -98,7 +98,7 @@ In priority order, most important first. The site lists them in this order. The 
 ### Rules
 - **Plain HTML and CSS only.** No frameworks, no build step, no npm, no static-site generator. Every page is a hand-editable `.html` file. Why: tenet 3, simple over complex. **One exception:** `tools/ledger.py` writes the pages under `financials/` and `inventory/`, and that output is committed, so GitHub Pages still serves plain static files. Never edit those generated pages by hand (each says so in a comment at the top).
 - **No JavaScript** unless a feature truly cannot work without it. There is none today.
-- **No tracking, analytics, cookies, ads, pop-ups, or third-party scripts, fonts or embeds.** A plain link to another site is fine. This is why the fonts are self-hosted and the map is a static image. **One exception, at Dylan's request (Nov 21, 2026):** Zeffy's giving form opens inside a box on the Support page, and only when the visitor chooses to open it (see Support below). Nothing from another website loads on any page by itself.
+- **No tracking, analytics, cookies, ads, pop-ups, or third-party scripts, fonts or embeds.** A plain link to another site is fine. This is why the fonts are self-hosted and the map is a static image. **One exception, at Dylan's request (Nov 21, 2026):** Zeffy's giving form is shown in a frame on the Support page (see Support below), so that page, and only that page, loads content from zeffy.com for every visitor. It is a plain frame: no script of Zeffy's runs in our own pages.
 - **Free hosting only:** GitHub Pages. No paid services.
 - **Honest copy:** short, factual, warm. No marketing language and nothing that is not true yet.
 - **Accessible and fast:** semantic HTML, good contrast, works on phones, light-only (no dark mode). Check a change at a desktop width and at about 390 px.
@@ -116,7 +116,6 @@ In priority order, most important first. The site lists them in this order. The 
 /info/index.html            Info: the hub page that links to everything else
 /contact/index.html         Contact, with contact/map.jpg
 /support/index.html         Support
-/support/give.html          Not a page of its own: what the giving box on Support shows before the form is opened
 /board/index.html           Current Board Leadership           (opened from Info)
 /board-actions/index.html   Board Actions and Meeting Minutes  (opened from Info)
 /tax-documents/index.html   Tax Documents                      (opened from Info)
@@ -136,7 +135,7 @@ In priority order, most important first. The site lists them in this order. The 
 
 **Tagline:** "Called to Love. Sent to Serve." under the logo on every page. JM proposed it as a trial, so it may change.
 
-**Which links open in a new tab (Dylan, Nov 19, 2026):** links to documents (PDFs) and to other websites carry `target="_blank" rel="noopener"`. Links to other pages of this site, the menu, the logo and `mailto:` links stay in the same tab. The one deliberate exception is the button in `support/give.html`, which has no target so that Zeffy's form opens inside the giving box.
+**Which links open in a new tab (Dylan, Nov 19, 2026):** links to documents (PDFs) and to other websites carry `target="_blank" rel="noopener"`. Links to other pages of this site, the menu, the logo and `mailto:` links stay in the same tab.
 
 **Placeholders** are plain text marked "Coming" (`<span class="pending">` with `<span class="meta">Coming</span>`), never dead links. When the thing exists, turn the placeholder into a link.
 
@@ -162,7 +161,7 @@ Email and mailing address only, with a sentence that there is no phone number an
 Rewritten Nov 21, 2026, when Dylan asked for the page to send people to Zeffy and to embed the form. In order:
 - An opening paragraph in the words of tenets 3 and 4: run by volunteers, no salaries, nothing spent on fundraising or advertising, and what gifts pay for (the same list of essentials as tenet 3 on the home page).
 - **Give Online.** A solid blue button, "Give on our Zeffy page", to the organization's page on Zeffy (`https://www.zeffy.com/en-US/organizations/mercy-works-outreach`), in a new tab. The organization page is used, not one campaign's form, so the button stays right when campaigns change.
-- **The giving box.** An `<iframe>` that first shows our own `support/give.html` (a title, one sentence and a button). The button there opens Zeffy's embedded form inside the same box (`https://www.zeffy.com/embed/donation-form/support-outreach-supply-costs`, the address from the campaign's Share dialog, "Embedded form"). This is how the form is on the page without any script and without anything loading from zeffy.com until a visitor asks for it. **Do not paste Zeffy's own embed code:** it loads a script from zeffy.com on every visit. **Do not set the box to open the form by itself** unless Dylan asks; that would load Zeffy for every visitor. A test in Chrome showed that `loading="lazy"` or a closed `<details>` does not hold a frame back, so those are not substitutes. If the campaign is replaced, change the address in `give.html`. The box is 640 px tall (`.give-frame` in `style.css`); the form scrolls inside it.
+- **The giving box.** An `<iframe>` showing Zeffy's embedded form (`https://www.zeffy.com/embed/donation-form/support-outreach-supply-costs`, the address from the campaign's Share dialog, "Embedded form"), with a one-line note under it saying the form is Zeffy's and loads from zeffy.com. It was first built to load only when a visitor pressed a button; Dylan tried it and asked the same day for the form to show straight away, knowing that this loads Zeffy for every visitor to the page. **Do not paste Zeffy's own embed code:** it adds a script from zeffy.com to our page, which the no-JavaScript rule does not allow; the plain frame is the part of that code that needs no script. Without the script the box cannot resize itself, so it is a fixed 640 px tall (`.give-frame` in `style.css`) and the form scrolls inside it. If the campaign is replaced, change the address in `support/index.html`.
 - **Four notes under the box:** Zeffy may suggest a tip (optional, does not come to us, can be set to $0); tax status (applied, waiting, cannot say a gift is tax-deductible; links to Tax Documents); every gift is in the public ledger by date and amount and a donor is named only if they ask; questions to the info@ address. **The tax note follows the tax-status rule. Change it only when the determination letter arrives.**
 - "Non-Monetary Donations" (list to come) and a placeholder for a video for donors are unchanged.
 
@@ -453,7 +452,7 @@ One online gift ($250.00, Nov 20) is entered and not yet paid out; Zeffy pays ou
 4. **Never name a director or officer in the financial files or pages.** Use "Donor" or "Director".
 5. **Never publish a redaction that only covers text.** Remove it, and verify.
 6. **Never publish an unsigned document as executed.**
-7. **Never add** tracking, analytics, cookies, third-party scripts, fonts or embeds (including Google Fonts and Google Maps), a framework, or a build step beyond `tools/ledger.py`. The only embed is the giving box on Support, which loads Zeffy only when a visitor opens it (section 3).
+7. **Never add** tracking, analytics, cookies, third-party scripts, fonts or embeds (including Google Fonts and Google Maps), a framework, or a build step beyond `tools/ledger.py`. The only embed is Zeffy's giving form in a plain frame on Support (section 3).
 8. **Never edit the generated pages** under `financials/` and `inventory/` by hand.
 9. **Never link to or mention the GitHub history on the site.**
 10. **Never add blue stripes resembling the Missionaries of Charity sari border, never use Mother Teresa's image, and never pair the logo with her name.**
@@ -488,7 +487,7 @@ One online gift ($250.00, Nov 20) is entered and not yet paid out; Zeffy pays ou
 - **Bylaws and the conflict-of-interest policy:** drafted, not adopted. When adopted and signed, publish them (the Info page has a Bylaws placeholder) and list the adopting action on the Board Actions page.
 - **Minnesota sales tax exemption** and **insurance quotes:** not started.
 - **An acknowledgment letter** to the director who gave, covering the formation gifts, the cheque, the online gift and the goods, signed by the president.
-- **The giving box on Support has not been seen working by the session that built it.** Zeffy's bot check stopped the session's browser, so only the page around the form was checked. Dylan was asked on Nov 21, 2026 to open the form on a computer and a phone and to say whether 640 px is tall enough.
+- **The giving box on Support:** Dylan confirmed on Nov 21, 2026 that the form opens and works. He has not yet said whether 640 px is tall enough on a phone.
 - **The Distribution Log form** has been filled and checked on a Mac only. Dylan was asked to try it in Adobe Reader and on a phone.
 - **The first filled Distribution Log form.** No outreach has been recorded yet.
 

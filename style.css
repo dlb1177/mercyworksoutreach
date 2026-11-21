@@ -440,7 +440,7 @@ h2.label::before { display: none; }
 
 .give-action { margin: 24px 0 34px; }
 
-/* The box that holds the giving form. It shows support/give.html first. */
+/* The box that holds Zeffy's giving form */
 .give-frame {
   height: 640px;
   background: var(--mist);
@@ -456,26 +456,6 @@ h2.label::before { display: none; }
 }
 .give-notes li:first-child { border-top: 1px solid var(--hairline); }
 .give-notes strong { color: var(--deep-blue); }
-
-/* support/give.html: what the box shows before the form is opened */
-body.give-start {
-  justify-content: center;
-  align-items: center;
-  padding: 28px 24px;
-  border-top: 0;
-  background: var(--mist);
-  text-align: center;
-}
-body.give-start main { max-width: 26em; }
-body.give-start p { margin: 0 0 18px; }
-body.give-start p:last-child { margin: 26px 0 0; }
-.give-start-title {
-  font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 1.9rem;
-  line-height: 1.2;
-  color: var(--deep-blue);
-}
 
 /* Financial Ledger page. Its HTML is written by tools/ledger.py. */
 
