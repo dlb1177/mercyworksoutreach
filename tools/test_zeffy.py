@@ -250,9 +250,11 @@ class ZeffyTests(unittest.TestCase):
 
     def test_hourly_run_builds_the_pages_and_changes_only_what_it_may(self):
         self.repo()
-        lines, result = zeffy.hourly(self.root, self.feed([]), today="2030-03-06", run_tests=False)
+        lines, result = zeffy.hourly(self.root, self.feed([]), today="2030-03-06", run_tests=False, check_push=False)
         self.assertEqual(("nothing-new", ""), (result, self.git("status", "--porcelain")))
-        lines, result = zeffy.hourly(self.root, self.feed([payment("a", "2030-03-04", 250)]), today="2030-03-06", run_tests=False)
+        self.assertIn("Read 0 payments from Zeffy.", lines)
+        self.assertFalse((self.out / "feed.json").exists())          # the feed is deleted whatever happens
+        lines, result = zeffy.hourly(self.root, self.feed([payment("a", "2030-03-04", 250)]), today="2030-03-06", run_tests=False, check_push=False)
         self.assertEqual("ready", result)
         self.assertIn("COMMIT MESSAGE: Zeffy sync: 1 online gift entered (2030-011)", lines)
         changed = zeffy.changed_files(self.root)
@@ -266,15 +268,20 @@ class ZeffyTests(unittest.TestCase):
         self.repo()
         # a working copy that already has changes
         (self.root / "index.html").write_text("stray")
-        lines, result = zeffy.hourly(self.root, self.feed([payment("a", "2030-03-04", 250)]), today="2030-03-06", run_tests=False)
+        lines, result = zeffy.hourly(self.root, self.feed([payment("a", "2030-03-04", 250)]), today="2030-03-06", run_tests=False, check_push=False)
         self.assertEqual("stopped", result)
         (self.root / "index.html").unlink()
+        self.assertFalse((self.out / "feed.json").exists())
+        # a session that may not push: the practice push fails (this test repo has nowhere to push to)
+        lines, result = zeffy.hourly(self.root, self.feed([payment("a", "2030-03-04", 250)]), today="2030-03-06", run_tests=False)
+        self.assertEqual(("stopped", ""), (result, self.git("status", "--porcelain")))
+        self.assertIn("cannot push to main", "\n".join(lines))
         # a feed the script refuses
-        lines, result = zeffy.hourly(self.root, self.feed([dict(payment("a", "2030-03-04", 250), email="x")]), today="2030-03-06", run_tests=False)
+        lines, result = zeffy.hourly(self.root, self.feed([dict(payment("a", "2030-03-04", 250), email="x")]), today="2030-03-06", run_tests=False, check_push=False)
         self.assertEqual(("stopped", ""), (result, self.git("status", "--porcelain")))
         # books that do not pass the check after the sync: everything is put back
         ledger.INSIDERS = ["Individual donor"]
-        lines, result = zeffy.hourly(self.root, self.feed([payment("a", "2030-03-04", 250)]), today="2030-03-06", run_tests=False)
+        lines, result = zeffy.hourly(self.root, self.feed([payment("a", "2030-03-04", 250)]), today="2030-03-06", run_tests=False, check_push=False)
         self.assertEqual(("stopped", ""), (result, self.git("status", "--porcelain")))
         self.assertEqual(10, len(self.rows()))
 

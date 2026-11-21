@@ -383,13 +383,12 @@ The scheduled task's own instructions point here. A session doing the run follow
    | `payout_date` | the payout date Zeffy shows for the payment (under `table` in the result), as `YYYY-MM-DD`; `""` if it is blank, "Upcoming" or not a real date |
 
    Nothing else goes in the feed. **No name, email address, home address or card detail is written to any file,** not even a scratch file. The script refuses a feed with any other field.
-4. Run `python3 tools/zeffy.py hourly /tmp/zeffy-feed.json`. It runs the tests, enters what is new, runs the check, rebuilds the pages and confirms that only the ledger, the Zeffy log and the generated pages changed. Its last lines are `RESULT:` and `NOTIFY:`.
+4. Run `python3 tools/zeffy.py hourly /tmp/zeffy-feed.json`, as one command by itself. It makes a practice push that sends nothing (to prove this session may push to `main`), runs the tests, enters what is new, runs the check, rebuilds the pages, confirms that only the ledger, the Zeffy log and the generated pages changed, and deletes the feed. Its last lines are `RESULT:` and `NOTIFY:`.
 5. Act on `RESULT`:
    - `nothing-new`: commit nothing. Done.
    - `ready`: commit every change with the message printed after `COMMIT MESSAGE:`, push to `main`, and confirm the push succeeded. If the push is rejected because `main` moved, start again from step 1 once; never force-push.
    - `stopped`: commit nothing and push nothing. The script has already put every file back.
-6. Delete `/tmp/zeffy-feed.json`.
-7. If `NOTIFY` is `yes`, tell Dylan in plain words what was entered or what needs him, with dates and amounts and **no donor names**. If it is `no`, say nothing.
+6. Report. If `NOTIFY` is `yes`, tell Dylan in plain words what was entered or what needs him, with dates and amounts and **no donor names**. If it is `no`, the report is only the lines the script printed above `RESULT:` (such as "Nothing new from Zeffy." and how many payments it read).
 
 **The run never** edits a file by hand, fixes a problem it finds, runs `payout`, `match` or `enter`, changes `context.md`, or uses a Zeffy tool that changes data. If anything is unclear or fails, it stops, pushes nothing and tells Dylan.
 
@@ -423,7 +422,7 @@ python3 tools/zeffy.py enter <fingerprint> "<label>"       enter a waiting onlin
 - The three payments already in Zeffy were carried into the public log: the online gift (ledger 2026-008), the cheque (2026-007) and the formation costs entered in kind (2026-001, 2026-003, 2026-005).
 
 ### Where Zeffy stands (Nov 21, 2026)
-One online gift ($250.00, Nov 20) is entered and not yet paid out; Zeffy pays out weekly. The campaign is called "Help Launch Mercy Works Outreach". **No payout has happened yet, so step 2 above has only been tested with made-up data.** Check the first real payout by hand (section 9).
+One online gift ($250.00, Nov 20) is entered and not yet paid out; Zeffy pays out weekly. A test of the scheduled task on Nov 21, 2026 read Zeffy and found nothing new, as expected. **The task has not yet pushed a real gift;** the practice push in every run is what shows it can. The campaign is called "Help Launch Mercy Works Outreach". **No payout has happened yet, so step 2 above has only been tested with made-up data.** Check the first real payout by hand (section 9).
 
 ---
 

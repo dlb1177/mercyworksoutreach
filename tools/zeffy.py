@@ -6,8 +6,9 @@ Once an hour a scheduled session reads Zeffy, writes down a few facts about each
 payment that are not private (the "feed"), and hands them to this script. The
 script enters what is new. It uses only the Python 3 standard library.
 
-    python3 tools/zeffy.py hourly <feed.json>    the whole hourly run: tests, sync, check,
-                                                 build, and a last look at what changed
+    python3 tools/zeffy.py hourly <feed.json>    the whole hourly run: a practice push, tests,
+                                                 sync, check, build, a last look at what
+                                                 changed; it deletes the feed when done
     python3 tools/zeffy.py sync <feed.json>      only enter what is new in the feed
     python3 tools/zeffy.py status                what Zeffy still owes, and anything open
     python3 tools/zeffy.py payout YYYY-MM-DD [--posted YYYY-MM-DD] [--amount 0.00]
@@ -38,7 +39,7 @@ disputed payments, gifts from an organization (which need a public label), and
 anything dated in a closed month.
 
 The feed
-  A JSON file written outside the repo, deleted after the run:
+  A JSON file written outside the repo; hourly deletes it when it finishes:
     {"payments": [{"id": "...", "created": 1795218477, "amount_cents": 25000,
                    "currency": "usd", "type": "online", "method": "card",
                    "status": "succeeded", "refunded_cents": 0, "disputed": false,
@@ -244,7 +245,7 @@ def find(log, text):
 
 class Result:
     def __init__(self):
-        self.lines, self.attention, self.entered, self.changed = [], [], [], False
+        self.lines, self.attention, self.entered, self.changed, self.seen = [], [], [], False, 0
 
 
 def sync(root, feed, today=None):
@@ -257,6 +258,7 @@ def sync(root, feed, today=None):
     require_log(root, log)
     known = {e["fingerprint"]: e for e in log}
     res = Result()
+    res.seen = len(payments)
     closed = closed_month(root)
     matched = {i for e in log for i in e["ledger_ids"].split()}
     to_enter = []
@@ -440,13 +442,19 @@ def changed_files(root):
     return [line[3:].split(" -> ")[-1].strip('"') for line in out.stdout.splitlines() if line.strip()]
 
 
-def hourly(root, feed, today=None, run_tests=True):
+def hourly(root, feed, today=None, run_tests=True, check_push=True):
     """The whole hourly run. Returns (lines, result) where result is nothing-new, ready or stopped.
 
     It never commits or pushes; the session does that, and only on "ready".
-    On "stopped" every file is put back as it was.
+    On "stopped" every file is put back as it was. The feed is deleted whatever happens.
     """
-    root = Path(root)
+    try:
+        return hourly_run(Path(root), feed, today, run_tests, check_push)
+    finally:
+        Path(feed).unlink(missing_ok=True)
+
+
+def hourly_run(root, feed, today, run_tests, check_push):
     lines = []
 
     def stop(why):
@@ -460,6 +468,12 @@ def hourly(root, feed, today=None, run_tests=True):
         if changed_files(root):
             return lines + ["STOPPED: the working copy already has changes, so the hourly run did not start.",
                             "Nothing was changed. Do not commit or push."], "stopped"
+        if check_push:
+            # A practice push that sends nothing. It fails if this session may not push to main,
+            # so that is found out now and not on the day a gift arrives.
+            practice = git(root, "push", "--dry-run", "origin", "HEAD:main")
+            if practice.returncode != 0:
+                return stop("this session cannot push to main, so a new gift could not be published.\n" + practice.stderr.strip()[-1000:])
         if run_tests:
             t = subprocess.run([sys.executable, "-m", "unittest", "tools/test_ledger.py", "tools/test_zeffy.py"],
                                cwd=str(root), capture_output=True, text=True)
@@ -467,15 +481,17 @@ def hourly(root, feed, today=None, run_tests=True):
                 return stop("the tests did not pass.\n" + t.stderr[-2000:])
         res = sync(root, feed, today)
         lines += res.lines + ["ATTENTION: " + a for a in res.attention]
+        health = "Read %d %s from Zeffy.%s" % (res.seen, "payment" if res.seen == 1 else "payments",
+                                               " Push access to main confirmed." if check_push else "")
         if not res.changed:
-            return lines, "nothing-new"
+            return lines + [health], "nothing-new"
         books, blocking, _ = ledger.build(root)
         if blocking:
             return stop("the books did not pass the check after the sync:\n" + "\n".join(str(p) for p in blocking))
         stray = [f for f in changed_files(root) if not HOURLY_MAY_CHANGE.match(f)]
         if stray:
             return stop("files changed that an hourly run must never touch: " + ", ".join(stray))
-        lines += status(root)
+        lines += status(root) + [health]
         parts = []
         if res.entered:
             parts.append("%d online %s entered (%s)" % (len(res.entered), "gift" if len(res.entered) == 1 else "gifts", ", ".join(res.entered)))
