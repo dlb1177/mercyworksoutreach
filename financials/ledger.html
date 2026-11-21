@@ -16,6 +16,14 @@
   <meta property="og:image" content="https://mercyworksoutreach.org/open-graph-share-image-1200x630.png">
   <link rel="canonical" href="https://mercyworksoutreach.org/financials/ledger.html">
   <link rel="stylesheet" href="../style.css">
+  <style>
+    /* Written by tools/ledger.py: the category and year filters. The rest is in style.css. */
+    @supports selector(:has(*)) {
+      .fin:has([name="cat"][value="contributions"]:checked) .ledger tr[data-cat]:not([data-cat="contributions"]) { display: none; }
+      .fin:has([name="cat"][value="filing-and-registration-fees"]:checked) .ledger tr[data-cat]:not([data-cat="filing-and-registration-fees"]) { display: none; }
+      .fin:has([name="cat"][value="website-and-domain"]:checked) .ledger tr[data-cat]:not([data-cat="website-and-domain"]) { display: none; }
+    }
+  </style>
 </head>
 <body>
   <!-- This page is written by tools/ledger.py from the CSV files in the repo.
@@ -35,96 +43,123 @@
 
     <main class="fin">
       <h1 class="title">General Ledger</h1>
-      <p class="fin-lead">Every transaction since Mercy Works Outreach began, newest month first.</p>
+      <p class="fin-lead">Every transaction since Mercy Works Outreach began, newest first.</p>
       <p class="fin-status"><a href="./">Back to the summary</a> &middot; <a href="general-ledger.csv">Download as CSV</a></p>
 
-      <table class="fin-table ledger stack">
-        <thead><tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col">Category</th><th scope="col">Counterparty</th><th scope="col" class="num">Amount</th><th scope="col" class="num">Balance</th><th scope="col">Receipt</th></tr></thead>
-        <tbody>
-          <tr class="group"><th scope="rowgroup" colspan="7">November 2026</th></tr>
-          <tr id="r2026-001">
-            <td data-label="Date" class="date"><time datetime="2026-11-18">Nov 18</time> <span class="rowid">2026-001</span></td>
-            <td class="desc">Paid the Articles of Incorporation filing fee for the org<span class="paid-note">Paid directly by donor</span></td>
-            <td data-label="Category">Contributions</td>
-            <td data-label="Counterparty">Donor</td>
-            <td data-label="Amount" class="num">$90.00</td>
-            <td data-label="Balance" class="num">$90.00</td>
-            <td data-label="Receipt"><span class="none">&ndash;</span></td>
+      <form class="ledger-controls" aria-label="Sort and filter the ledger">
+        <div class="choices" role="radiogroup" aria-labelledby="by-sort">
+          <span class="choices-label" id="by-sort">Sort by</span>
+          <label class="chip"><input type="radio" name="sort" value="new" checked> Newest first</label>
+          <label class="chip"><input type="radio" name="sort" value="old"> Oldest first</label>
+          <label class="chip"><input type="radio" name="sort" value="big"> Largest amount</label>
+          <label class="chip"><input type="radio" name="sort" value="small"> Smallest amount</label>
+          <label class="chip"><input type="radio" name="sort" value="cat"> Category, A to Z</label>
+          <label class="chip"><input type="radio" name="sort" value="who"> Counterparty, A to Z</label>
+        </div>
+        <div class="choices" role="radiogroup" aria-labelledby="by-show">
+          <span class="choices-label" id="by-show">Show</span>
+          <label class="chip"><input type="radio" name="show" value="all" checked> Everything</label>
+          <label class="chip"><input type="radio" name="show" value="in"> Money received</label>
+          <label class="chip"><input type="radio" name="show" value="out"> Money spent</label>
+        </div>
+        <div class="choices" role="radiogroup" aria-labelledby="by-cat">
+          <span class="choices-label" id="by-cat">Category</span>
+          <label class="chip"><input type="radio" name="cat" value="all" checked> All categories</label>
+          <label class="chip"><input type="radio" name="cat" value="contributions"> Contributions</label>
+          <label class="chip"><input type="radio" name="cat" value="filing-and-registration-fees"> Filing and registration fees</label>
+          <label class="chip"><input type="radio" name="cat" value="website-and-domain"> Website and domain</label>
+        </div>
+        <p class="choices-reset"><button type="reset">Back to everything, newest first</button></p>
+      </form>
+
+      <table class="fin-table ledger stack" role="table">
+        <thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col">Date</th><th role="columnheader" scope="col">Description</th><th role="columnheader" scope="col">Category</th><th role="columnheader" scope="col">Counterparty</th><th role="columnheader" scope="col" class="num">Amount</th><th role="columnheader" scope="col" class="num bal">Balance</th><th role="columnheader" scope="col">Receipt</th></tr></thead>
+        <tbody role="rowgroup">
+          <tr role="row" class="group" style="--o:1"><th role="rowheader" scope="rowgroup" colspan="7" aria-colspan="7">November 2026</th></tr>
+          <tr role="row" data-kind="in" data-cat="contributions" data-year="2026" style="--o:10;--a:9;--s:1;--c:1;--p:7">
+            <td role="cell" id="r2026-009" data-label="Date" class="date"><time datetime="2026-11-21">Nov 21, 2026</time> <span class="rowid">2026-009</span></td>
+            <td role="cell" class="desc">Gift given online<span class="paid-note">Given online</span></td>
+            <td role="cell" data-label="Category">Contributions</td>
+            <td role="cell" data-label="Counterparty">Individual donor</td>
+            <td role="cell" data-label="Amount" class="num">$30.00</td>
+            <td role="cell" data-label="Balance" class="num bal">$380.00</td>
+            <td role="cell" data-label="Receipt"><span class="none">&ndash;</span></td>
           </tr>
-          <tr id="r2026-002">
-            <td data-label="Date" class="date"><time datetime="2026-11-18">Nov 18</time> <span class="rowid">2026-002</span></td>
-            <td class="desc">Articles of Incorporation filing fee<span class="paid-note">Paid directly by donor</span></td>
-            <td data-label="Category">Filing and registration fees</td>
-            <td data-label="Counterparty">Minnesota Secretary of State</td>
-            <td data-label="Amount" class="num">−$90.00</td>
-            <td data-label="Balance" class="num">$0.00</td>
-            <td data-label="Receipt"><a href="receipts/2026/2026-002.pdf" target="_blank" rel="noopener">Receipt<span class="visually-hidden"> for 2026-002</span></a></td>
+          <tr role="row" data-kind="in" data-cat="contributions" data-year="2026" style="--o:9;--a:3;--s:7;--c:2;--p:2">
+            <td role="cell" id="r2026-008" data-label="Date" class="date"><time datetime="2026-11-20">Nov 20, 2026</time> <span class="rowid">2026-008</span></td>
+            <td role="cell" class="desc">Gift given online<span class="paid-note">Given online</span></td>
+            <td role="cell" data-label="Category">Contributions</td>
+            <td role="cell" data-label="Counterparty">Donor</td>
+            <td role="cell" data-label="Amount" class="num">$250.00</td>
+            <td role="cell" data-label="Balance" class="num bal">$350.00</td>
+            <td role="cell" data-label="Receipt"><span class="none">&ndash;</span></td>
           </tr>
-          <tr id="r2026-003">
-            <td data-label="Date" class="date"><time datetime="2026-11-18">Nov 18</time> <span class="rowid">2026-003</span></td>
-            <td class="desc">Paid the domain registration for the org<span class="paid-note">Paid directly by donor</span></td>
-            <td data-label="Category">Contributions</td>
-            <td data-label="Counterparty">Donor</td>
-            <td data-label="Amount" class="num">$30.90</td>
-            <td data-label="Balance" class="num">$30.90</td>
-            <td data-label="Receipt"><span class="none">&ndash;</span></td>
+          <tr role="row" data-kind="in" data-cat="contributions" data-year="2026" style="--o:8;--a:4;--s:6;--c:3;--p:3">
+            <td role="cell" id="r2026-007" data-label="Date" class="date"><time datetime="2026-11-20">Nov 20, 2026</time> <span class="rowid">2026-007</span></td>
+            <td role="cell" class="desc">Opening deposit to the checking account, by check</td>
+            <td role="cell" data-label="Category">Contributions</td>
+            <td role="cell" data-label="Counterparty">Donor</td>
+            <td role="cell" data-label="Amount" class="num">$100.00</td>
+            <td role="cell" data-label="Balance" class="num bal">$100.00</td>
+            <td role="cell" data-label="Receipt"><a href="receipts/2026/2026-007.pdf" target="_blank" rel="noopener">Receipt<span class="visually-hidden"> for 2026-007</span></a></td>
           </tr>
-          <tr id="r2026-004">
-            <td data-label="Date" class="date"><time datetime="2026-11-18">Nov 18</time> <span class="rowid">2026-004</span></td>
-            <td class="desc">mercyworksoutreach.org domain, 3 years<span class="paid-note">Paid directly by donor</span></td>
-            <td data-label="Category">Website and domain</td>
-            <td data-label="Counterparty">Cloudflare</td>
-            <td data-label="Amount" class="num">−$30.90</td>
-            <td data-label="Balance" class="num">$0.00</td>
-            <td data-label="Receipt"><a href="receipts/2026/2026-004.pdf" target="_blank" rel="noopener">Receipt<span class="visually-hidden"> for 2026-004</span></a></td>
+          <tr role="row" data-kind="out" data-cat="filing-and-registration-fees" data-year="2026" style="--o:7;--a:1;--s:8;--c:7;--p:8">
+            <td role="cell" id="r2026-006" data-label="Date" class="date"><time datetime="2026-11-19">Nov 19, 2026</time> <span class="rowid">2026-006</span></td>
+            <td role="cell" class="desc">Form 1023-EZ user fee (paid through Pay.gov)<span class="paid-note">Paid directly by donor</span></td>
+            <td role="cell" data-label="Category">Filing and registration fees</td>
+            <td role="cell" data-label="Counterparty">Internal Revenue Service</td>
+            <td role="cell" data-label="Amount" class="num">−$275.00</td>
+            <td role="cell" data-label="Balance" class="num bal">$0.00</td>
+            <td role="cell" data-label="Receipt"><a href="receipts/2026/2026-006.pdf" target="_blank" rel="noopener">Receipt<span class="visually-hidden"> for 2026-006</span></a></td>
           </tr>
-          <tr id="r2026-005">
-            <td data-label="Date" class="date"><time datetime="2026-11-19">Nov 19</time> <span class="rowid">2026-005</span></td>
-            <td class="desc">Paid the IRS Form 1023-EZ user fee for the org<span class="paid-note">Paid directly by donor</span></td>
-            <td data-label="Category">Contributions</td>
-            <td data-label="Counterparty">Donor</td>
-            <td data-label="Amount" class="num">$275.00</td>
-            <td data-label="Balance" class="num">$275.00</td>
-            <td data-label="Receipt"><span class="none">&ndash;</span></td>
+          <tr role="row" data-kind="in" data-cat="contributions" data-year="2026" style="--o:6;--a:2;--s:9;--c:4;--p:4">
+            <td role="cell" id="r2026-005" data-label="Date" class="date"><time datetime="2026-11-19">Nov 19, 2026</time> <span class="rowid">2026-005</span></td>
+            <td role="cell" class="desc">Paid the IRS Form 1023-EZ user fee for the org<span class="paid-note">Paid directly by donor</span></td>
+            <td role="cell" data-label="Category">Contributions</td>
+            <td role="cell" data-label="Counterparty">Donor</td>
+            <td role="cell" data-label="Amount" class="num">$275.00</td>
+            <td role="cell" data-label="Balance" class="num bal">$275.00</td>
+            <td role="cell" data-label="Receipt"><span class="none">&ndash;</span></td>
           </tr>
-          <tr id="r2026-006">
-            <td data-label="Date" class="date"><time datetime="2026-11-19">Nov 19</time> <span class="rowid">2026-006</span></td>
-            <td class="desc">Form 1023-EZ user fee (paid through Pay.gov)<span class="paid-note">Paid directly by donor</span></td>
-            <td data-label="Category">Filing and registration fees</td>
-            <td data-label="Counterparty">Internal Revenue Service</td>
-            <td data-label="Amount" class="num">−$275.00</td>
-            <td data-label="Balance" class="num">$0.00</td>
-            <td data-label="Receipt"><a href="receipts/2026/2026-006.pdf" target="_blank" rel="noopener">Receipt<span class="visually-hidden"> for 2026-006</span></a></td>
+          <tr role="row" data-kind="out" data-cat="website-and-domain" data-year="2026" style="--o:5;--a:7;--s:2;--c:9;--p:1">
+            <td role="cell" id="r2026-004" data-label="Date" class="date"><time datetime="2026-11-18">Nov 18, 2026</time> <span class="rowid">2026-004</span></td>
+            <td role="cell" class="desc">mercyworksoutreach.org domain, 3 years<span class="paid-note">Paid directly by donor</span></td>
+            <td role="cell" data-label="Category">Website and domain</td>
+            <td role="cell" data-label="Counterparty">Cloudflare</td>
+            <td role="cell" data-label="Amount" class="num">−$30.90</td>
+            <td role="cell" data-label="Balance" class="num bal">$0.00</td>
+            <td role="cell" data-label="Receipt"><a href="receipts/2026/2026-004.pdf" target="_blank" rel="noopener">Receipt<span class="visually-hidden"> for 2026-004</span></a></td>
           </tr>
-          <tr id="r2026-007">
-            <td data-label="Date" class="date"><time datetime="2026-11-20">Nov 20</time> <span class="rowid">2026-007</span></td>
-            <td class="desc">Opening deposit to the checking account, by check</td>
-            <td data-label="Category">Contributions</td>
-            <td data-label="Counterparty">Donor</td>
-            <td data-label="Amount" class="num">$100.00</td>
-            <td data-label="Balance" class="num">$100.00</td>
-            <td data-label="Receipt"><a href="receipts/2026/2026-007.pdf" target="_blank" rel="noopener">Receipt<span class="visually-hidden"> for 2026-007</span></a></td>
+          <tr role="row" data-kind="in" data-cat="contributions" data-year="2026" style="--o:4;--a:8;--s:3;--c:5;--p:5">
+            <td role="cell" id="r2026-003" data-label="Date" class="date"><time datetime="2026-11-18">Nov 18, 2026</time> <span class="rowid">2026-003</span></td>
+            <td role="cell" class="desc">Paid the domain registration for the org<span class="paid-note">Paid directly by donor</span></td>
+            <td role="cell" data-label="Category">Contributions</td>
+            <td role="cell" data-label="Counterparty">Donor</td>
+            <td role="cell" data-label="Amount" class="num">$30.90</td>
+            <td role="cell" data-label="Balance" class="num bal">$30.90</td>
+            <td role="cell" data-label="Receipt"><span class="none">&ndash;</span></td>
           </tr>
-          <tr id="r2026-008">
-            <td data-label="Date" class="date"><time datetime="2026-11-20">Nov 20</time> <span class="rowid">2026-008</span></td>
-            <td class="desc">Gift given online<span class="paid-note">Given online</span></td>
-            <td data-label="Category">Contributions</td>
-            <td data-label="Counterparty">Donor</td>
-            <td data-label="Amount" class="num">$250.00</td>
-            <td data-label="Balance" class="num">$350.00</td>
-            <td data-label="Receipt"><span class="none">&ndash;</span></td>
+          <tr role="row" data-kind="out" data-cat="filing-and-registration-fees" data-year="2026" style="--o:3;--a:5;--s:4;--c:8;--p:9">
+            <td role="cell" id="r2026-002" data-label="Date" class="date"><time datetime="2026-11-18">Nov 18, 2026</time> <span class="rowid">2026-002</span></td>
+            <td role="cell" class="desc">Articles of Incorporation filing fee<span class="paid-note">Paid directly by donor</span></td>
+            <td role="cell" data-label="Category">Filing and registration fees</td>
+            <td role="cell" data-label="Counterparty">Minnesota Secretary of State</td>
+            <td role="cell" data-label="Amount" class="num">−$90.00</td>
+            <td role="cell" data-label="Balance" class="num bal">$0.00</td>
+            <td role="cell" data-label="Receipt"><a href="receipts/2026/2026-002.pdf" target="_blank" rel="noopener">Receipt<span class="visually-hidden"> for 2026-002</span></a></td>
           </tr>
-          <tr id="r2026-009">
-            <td data-label="Date" class="date"><time datetime="2026-11-21">Nov 21</time> <span class="rowid">2026-009</span></td>
-            <td class="desc">Gift given online<span class="paid-note">Given online</span></td>
-            <td data-label="Category">Contributions</td>
-            <td data-label="Counterparty">Individual donor</td>
-            <td data-label="Amount" class="num">$30.00</td>
-            <td data-label="Balance" class="num">$380.00</td>
-            <td data-label="Receipt"><span class="none">&ndash;</span></td>
+          <tr role="row" data-kind="in" data-cat="contributions" data-year="2026" style="--o:2;--a:6;--s:5;--c:6;--p:6">
+            <td role="cell" id="r2026-001" data-label="Date" class="date"><time datetime="2026-11-18">Nov 18, 2026</time> <span class="rowid">2026-001</span></td>
+            <td role="cell" class="desc">Paid the Articles of Incorporation filing fee for the org<span class="paid-note">Paid directly by donor</span></td>
+            <td role="cell" data-label="Category">Contributions</td>
+            <td role="cell" data-label="Counterparty">Donor</td>
+            <td role="cell" data-label="Amount" class="num">$90.00</td>
+            <td role="cell" data-label="Balance" class="num bal">$90.00</td>
+            <td role="cell" data-label="Receipt"><span class="none">&ndash;</span></td>
           </tr>
         </tbody>
       </table>
+      <p class="note ledger-help"><strong>Sorting and filtering.</strong> The balance column is the balance after each transaction, in date order, so it is hidden when the ledger is sorted another way. For totals of your own, <a href="general-ledger.csv">download the CSV</a>.</p>
       <p class="note"><strong>Paid directly by donor.</strong> A donor paid this bill with their own money and did not ask for it back. The gift and the expense are both recorded, so the balance rises and falls by the same amount.</p>
       <p class="note"><strong>Given online.</strong> Online gifts are collected by Zeffy, our donation platform, and paid out to the bank account later. A gift is recorded on the day it is given. Until the payout arrives it is part of the balance but not yet cash in the bank.</p>
     </main>

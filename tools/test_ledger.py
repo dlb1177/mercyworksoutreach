@@ -8,6 +8,7 @@ clean year (and remove.txt lists files to delete), and breaks exactly one rule.
 The folder name starts with the number of the rule it breaks.
 """
 
+import re
 import shutil
 import sys
 import tempfile
@@ -166,6 +167,16 @@ class LedgerTests(unittest.TestCase):
                              "\u2212$600.00", "$85.00"):
                 self.assertIn(expected, page)
             self.assertNotIn("<script", page)
+            # newest first, with the choices to sort and filter and the rules that go with them
+            self.assertLess(page.index('id="r2030-010"'), page.index('id="r2030-001"'))
+            for expected in ('name="sort" value="new" checked', 'name="show" value="out"', 'name="cat" value="food"',
+                             '.fin:has([name="cat"][value="food"]:checked) .ledger tr[data-cat]:not([data-cat="food"])',
+                             'data-kind="out" data-cat="food" data-year="2030"', 'type="reset"'):
+                self.assertIn(expected, page)
+            self.assertNotIn('name="year"', page)       # one year, so no choice of year
+            places = [int(n) for n in re.findall(r'data-year="2030" style="--o:(\d+);', page)]
+            self.assertEqual(10, len(places))
+            self.assertEqual(sorted(places, reverse=True), places)     # the page's order is the reverse of oldest first
             page = (root / "financials" / "donated-goods.html").read_text()
             for expected in ("Winter coats, used", "$96.00", "donated-goods/G2030-001.pdf", "Individual donor"):
                 self.assertIn(expected, page)

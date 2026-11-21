@@ -565,6 +565,105 @@ ul.plain li { margin: 0 0 0.6em; }
   .stack td.date time { margin-left: auto; }
 }
 
+/* General Ledger page: sorting and filtering, with no JavaScript.
+   The choices above the table are radio buttons. The rules below reorder and hide
+   rows to match whichever are chosen. tools/ledger.py writes the page newest first,
+   gives every row its place under each other order (--o oldest first, --a largest
+   amount, --s smallest amount, --c by category, --p by counterparty), and writes the
+   category and year filter rules into the page itself. A browser too old for :has()
+   shows no choices, only the ledger, newest first. */
+
+.ledger-controls, .ledger-help { display: none; }
+
+@supports selector(:has(*)) {
+  .ledger-controls {
+    display: block;
+    margin: 26px 0 12px;
+    padding: 16px 18px 12px;
+    background: var(--mist);
+    border-radius: 10px;
+    font-size: 0.86rem;
+    line-height: 1.4;
+  }
+  .choices { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }
+  .choices-label {
+    flex: 0 0 7.4em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+  .chip {
+    position: relative;
+    padding: 4px 12px 5px;
+    border: 1px solid var(--water-blue);
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--deep-blue);
+    cursor: pointer;
+  }
+  .chip input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; }
+  .chip:hover { border-color: var(--mercy-blue); }
+  .chip:has(input:checked) { background: var(--mercy-blue); border-color: var(--mercy-blue); color: var(--white); }
+  .chip:has(input:focus-visible) { outline: 2px solid var(--mercy-blue); outline-offset: 2px; }
+  .choices-reset { margin: 12px 0 0; }
+  .choices-reset button {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--mercy-blue);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    cursor: pointer;
+  }
+  .choices-reset button:hover { color: var(--deep-blue); }
+
+  /* Which order. --k is the place of a row; 0 for every row leaves the page's own order. */
+  .fin:has([name="sort"][value="old"]:checked) .ledger tbody tr { --k: var(--o); }
+  .fin:has([name="sort"][value="big"]:checked) .ledger tbody tr { --k: var(--a); }
+  .fin:has([name="sort"][value="small"]:checked) .ledger tbody tr { --k: var(--s); }
+  .fin:has([name="sort"][value="cat"]:checked) .ledger tbody tr { --k: var(--c); }
+  .fin:has([name="sort"][value="who"]:checked) .ledger tbody tr { --k: var(--p); }
+
+  /* What to show */
+  .fin:has([name="show"][value="in"]:checked) .ledger tr[data-kind]:not([data-kind="in"]),
+  .fin:has([name="show"][value="out"]:checked) .ledger tr[data-kind]:not([data-kind="out"]),
+  .fin:has([name="show"][value="transfer"]:checked) .ledger tr[data-kind]:not([data-kind="transfer"]) { display: none; }
+
+  /* Month headings belong to the whole ledger in date order, and a running balance to date order */
+  .fin:has(.ledger-controls input:not([value="new"], [value="old"], [value="all"]):checked) .ledger tr.group,
+  .fin:has([name="sort"]:not([value="new"], [value="old"]):checked) .ledger .bal { display: none; }
+  .ledger-help { display: block; }
+
+  /* A row reached by a link from another page (ledger.html#r2026-004) is tinted */
+  .ledger tr:has(:target) td { background: var(--mist); }
+
+  /* Rows of a table cannot be reordered, so on a wide screen the table is laid out as a grid... */
+  @media (min-width: 761px) {
+    .ledger {
+      display: grid;
+      grid-template-columns: max-content minmax(12em, 1.7fr) minmax(8em, 1fr) minmax(8em, 1fr) max-content max-content max-content;
+    }
+    .fin:has([name="sort"]:not([value="new"], [value="old"]):checked) .ledger {
+      grid-template-columns: max-content minmax(12em, 1.7fr) minmax(8em, 1fr) minmax(8em, 1fr) max-content max-content;
+    }
+    .ledger thead, .ledger tbody, .ledger tr { display: contents; }
+    .ledger th, .ledger td { order: var(--k, 0); }
+    .ledger thead th { order: -1000000; }
+    .ledger tr.group th { grid-column: 1 / -1; }
+  }
+  /* ...and on a narrow one, where each row is already a block, as a column of blocks */
+  @media (max-width: 760px) {
+    .ledger-controls { padding: 14px 14px 10px; }
+    .choices-label { flex-basis: 100%; }
+    .ledger { display: flex; flex-direction: column; }
+    .ledger tbody { display: contents; }
+    .ledger tr { order: var(--k, 0); }
+  }
+}
+
 /* Footer */
 
 .site-footer {

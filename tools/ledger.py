@@ -10,7 +10,7 @@ pages. It uses only the Python 3 standard library.
     python3 tools/ledger.py build            run check, then write
                                              financials/index.html     summary of the latest year
                                              financials/YYYY.html      summary of each year
-                                             financials/ledger.html    every transaction
+                                             financials/ledger.html    every transaction, newest first
                                              financials/donated-goods.html   every gift of goods
                                              inventory/index.html      what is on hand
                                              inventory/log.html        every stock movement
@@ -912,21 +912,84 @@ def render_summary(books, year, is_index):
     return HEAD.format(title=title, description=LEAD, canonical=canonical, page_class="") + "\n".join(o) + "\n" + FOOT
 
 
+LEDGER_SORTS = [("new", "Newest first"), ("old", "Oldest first"), ("big", "Largest amount"),
+                ("small", "Smallest amount"), ("cat", "Category, A to Z"), ("who", "Counterparty, A to Z")]
+LEDGER_KINDS = [("in", "Money received"), ("out", "Money spent"), ("transfer", "Transfers")]
+
+
+def slug(text):
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+
+
+def chips(o, label, name, options):
+    """One row of choices on the General Ledger page. The first option is the one chosen at the start."""
+    o.append('        <div class="choices" role="radiogroup" aria-labelledby="by-%s">' % name)
+    o.append('          <span class="choices-label" id="by-%s">%s</span>' % (name, esc(label)))
+    for i, (value, text) in enumerate(options):
+        o.append('          <label class="chip"><input type="radio" name="%s" value="%s"%s> %s</label>'
+                 % (name, esc(value), " checked" if i == 0 else "", esc(text)))
+    o.append('        </div>')
+
+
 def render_ledger(books):
-    """The General Ledger page: every transaction since inception, newest month first."""
+    """The General Ledger page: every transaction since inception, newest first.
+
+    A visitor can sort and filter it. There is no JavaScript: the choices are radio
+    buttons, and CSS (in style.css, plus one small <style> block written here for the
+    categories and years) reorders and hides rows. The page itself is always written
+    newest first, which is what a browser shows if it cannot do the rest.
+    """
     rows = books.rows
+    months = month_groups(rows)
+    place = {r["id"]: i for i, r in enumerate(rows)}          # date order, as in the file
+    newest_first = lambda r: -place[r["id"]]
+
+    # Where each row goes under each way of sorting. Ties keep the newer row first.
+    oldest = {}
+    n = 0
+    for ym in reversed(months):
+        n += 1
+        oldest[ym] = n
+        for r in rows:
+            if (r["d"].year, r["d"].month) == ym:
+                n += 1
+                oldest[r["id"]] = n
+    def rank(key):
+        return {r["id"]: i for i, r in enumerate(sorted(rows, key=lambda r: (key(r), newest_first(r))), start=1)}
+    by_amount = rank(lambda r: -abs(r["amt"]))
+    by_small = rank(lambda r: abs(r["amt"]))
+    by_category = rank(lambda r: r["category"].lower())
+    by_counterparty = rank(lambda r: r["counterparty"].lower())
+
+    kinds = [(k, text) for k, text in LEDGER_KINDS if any(books.kind(r) == k for r in rows)]
+    used = {r["category"] for r in rows}
+    categories = [c for c in books.categories if c in used]
+    years = sorted({r["d"].year for r in rows}, reverse=True)
+
     o = []
     w = o.append
     w('      <h1 class="title">General Ledger</h1>')
-    w('      <p class="fin-lead">Every transaction since Mercy Works Outreach began, newest month first.</p>')
+    w('      <p class="fin-lead">Every transaction since Mercy Works Outreach began, newest first.</p>')
     w('      <p class="fin-status"><a href="./">Back to the summary</a> &middot; <a href="general-ledger.csv">Download as CSV</a></p>')
     w('')
-    w('      <table class="fin-table ledger stack">')
-    w('        <thead><tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col">Category</th><th scope="col">Counterparty</th><th scope="col" class="num">Amount</th><th scope="col" class="num">Balance</th><th scope="col">Receipt</th></tr></thead>')
-    for ym in sorted({(r["d"].year, r["d"].month) for r in rows}, reverse=True):
-        w('        <tbody>')
-        w('          <tr class="group"><th scope="rowgroup" colspan="7">%s %d</th></tr>' % (MONTHS[ym[1] - 1], ym[0]))
-        for r in rows:
+    if rows:
+        w('      <form class="ledger-controls" aria-label="Sort and filter the ledger">')
+        chips(o, "Sort by", "sort", LEDGER_SORTS)
+        if len(kinds) > 1:
+            chips(o, "Show", "show", [("all", "Everything")] + kinds)
+        if len(categories) > 1:
+            chips(o, "Category", "cat", [("all", "All categories")] + [(slug(c), c) for c in categories])
+        if len(years) > 1:
+            chips(o, "Year", "year", [("all", "All years")] + [(str(y), str(y)) for y in years])
+        w('        <p class="choices-reset"><button type="reset">Back to everything, newest first</button></p>')
+        w('      </form>')
+        w('')
+    w('      <table class="fin-table ledger stack" role="table">')
+    w('        <thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col">Date</th><th role="columnheader" scope="col">Description</th><th role="columnheader" scope="col">Category</th><th role="columnheader" scope="col">Counterparty</th><th role="columnheader" scope="col" class="num">Amount</th><th role="columnheader" scope="col" class="num bal">Balance</th><th role="columnheader" scope="col">Receipt</th></tr></thead>')
+    for ym in months:
+        w('        <tbody role="rowgroup">')
+        w('          <tr role="row" class="group" style="--o:%d"><th role="rowheader" scope="rowgroup" colspan="7" aria-colspan="7">%s %d</th></tr>' % (oldest[ym], MONTHS[ym[1] - 1], ym[0]))
+        for r in reversed(rows):
             if (r["d"].year, r["d"].month) != ym:
                 continue
             note = ""
@@ -940,27 +1003,40 @@ def render_ledger(books):
                 receipt = '<a href="%s" target="_blank" rel="noopener">Receipt<span class="visually-hidden"> for %s</span></a>' % (esc(r["receipt"]), esc(r["id"]))
             else:
                 receipt = '<span class="none">&ndash;</span>'
-            w('          <tr id="r%s">' % esc(r["id"]))
-            w('            <td data-label="Date" class="date"><time datetime="%s">%s %d</time> <span class="rowid">%s</span></td>' % (esc(r["date"]), MONTHS[r["d"].month - 1][:3], r["d"].day, esc(r["id"])))
-            w('            <td class="desc">%s%s</td>' % (esc(r["description"]), note))
-            w('            <td data-label="Category">%s</td>' % esc(r["category"]))
-            w('            <td data-label="Counterparty">%s</td>' % esc(r["counterparty"]))
-            w('            <td data-label="Amount" class="num">%s</td>' % money(r["amt"]))
-            w('            <td data-label="Balance" class="num">%s</td>' % money(r["bal"]))
-            w('            <td data-label="Receipt">%s</td>' % receipt)
+            w('          <tr role="row" data-kind="%s" data-cat="%s" data-year="%d" style="--o:%d;--a:%d;--s:%d;--c:%d;--p:%d">'
+              % (esc(books.kind(r)), slug(r["category"]), r["d"].year, oldest[r["id"]],
+                 by_amount[r["id"]], by_small[r["id"]], by_category[r["id"]], by_counterparty[r["id"]]))
+            w('            <td role="cell" id="r%s" data-label="Date" class="date"><time datetime="%s">%s %d, %d</time> <span class="rowid">%s</span></td>' % (esc(r["id"]), esc(r["date"]), MONTHS[r["d"].month - 1][:3], r["d"].day, r["d"].year, esc(r["id"])))
+            w('            <td role="cell" class="desc">%s%s</td>' % (esc(r["description"]), note))
+            w('            <td role="cell" data-label="Category">%s</td>' % esc(r["category"]))
+            w('            <td role="cell" data-label="Counterparty">%s</td>' % esc(r["counterparty"]))
+            w('            <td role="cell" data-label="Amount" class="num">%s</td>' % money(r["amt"]))
+            w('            <td role="cell" data-label="Balance" class="num bal">%s</td>' % money(r["bal"]))
+            w('            <td role="cell" data-label="Receipt">%s</td>' % receipt)
             w('          </tr>')
         w('        </tbody>')
     w('      </table>')
     if not rows:
         w('      <p class="note">No transactions have been recorded yet.</p>')
+    else:
+        w('      <p class="note ledger-help"><strong>Sorting and filtering.</strong> The balance column is the balance after each transaction, in date order, so it is hidden when the ledger is sorted another way. For totals of your own, <a href="general-ledger.csv">download the CSV</a>.</p>')
     if any(r["id"] in books.pending_receipts for r in rows):
         w('      <p class="note"><strong>Receipts marked Pending.</strong> These receipts are being prepared for publication, with card numbers and personal details removed. Each will be linked here.</p>')
     if any(r["method"] == "paid-directly" for r in rows):
         w('      <p class="note"><strong>Paid directly by donor.</strong> A donor paid this bill with their own money and did not ask for it back. The gift and the expense are both recorded, so the balance rises and falls by the same amount.</p>')
     if any(r["method"] == "zeffy" for r in rows):
         w('      <p class="note"><strong>Given online.</strong> Online gifts are collected by Zeffy, our donation platform, and paid out to the bank account later. A gift is recorded on the day it is given. Until the payout arrives it is part of the balance but not yet cash in the bank.</p>')
+
+    # The rules that depend on what is in the ledger: one per category and one per year.
+    hide = '.fin:has([name="%s"][value="%s"]:checked) .ledger tr[data-%s]:not([data-%s="%s"]) { display: none; }'
+    rules = [hide % ("cat", slug(c), "cat", "cat", slug(c)) for c in categories if len(categories) > 1]
+    rules += [hide % ("year", y, "year", "year", y) for y in years if len(years) > 1]
+    style = ""
+    if rules:
+        style = "  <style>\n    /* Written by tools/ledger.py: the category and year filters. The rest is in style.css. */\n    @supports selector(:has(*)) {\n      %s\n    }\n  </style>\n" % "\n      ".join(rules)
     description = "Every transaction of Mercy Works Outreach since it began, each expense with its receipt."
-    return HEAD.format(title="General Ledger", description=description, canonical="financials/ledger.html", page_class=" page-wide") + "\n".join(o) + "\n" + FOOT
+    head = HEAD.format(title="General Ledger", description=description, canonical="financials/ledger.html", page_class=" page-wide")
+    return head.replace("</head>", style + "</head>") + "\n".join(o) + "\n" + FOOT
 
 
 def month_groups(rows):
