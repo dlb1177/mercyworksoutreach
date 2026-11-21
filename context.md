@@ -161,6 +161,8 @@ Built Nov 20, 2026 from Dylan's "Ledger & Accounting Spec (for Claude Code)", th
 - **One cumulative general ledger (Dylan, Nov 20, 2026).** `financials/general-ledger.csv` holds every transaction since inception; it is not broken into a file per year, as the spec first had it. Ids are still `YYYY-NNN`, counting up from 001 within each calendar year, and the page still summarizes one year at a time.
 - **The balance moves on every row (Dylan, Nov 20, 2026).** A paid-directly gift raises the balance and its expense lowers it again, so each pair nets to zero. The spec first had paid-directly rows leave the balance unchanged. The bank reconciliation adds up the `bank` rows only, so it is not affected.
 - **No names in the public files (Dylan, Nov 20, 2026).** A gift a director pays directly is shown as "Donor". Any other mention of a director or officer, such as a payment to one, is shown as "Director". Other donors are "Individual donor", "Foundation", "Church" or "Government" unless they opt in. The script fails if a director's name appears in a public CSV or page, and receipts are redacted to match.
+- **Online gifts come through Zeffy and are a payout receivable until they reach the bank (Dylan, Nov 21, 2026).** A gift given online is entered on the day it is given, as a Contributions row with method `zeffy`. It is part of the balance but not yet cash in the bank. When the bank statement shows Zeffy's payout, a pair of `Transfers` rows on the posting date moves it from Zeffy to the bank (out of Zeffy, method `zeffy`, negative; into the bank, method `bank`, positive, `ref` to the first). So the ledger's balance is all funds: cash in the bank plus what Zeffy has not paid out. `Transfers` (kind `transfer`) was added to the category list for this; it is neither money in nor money out and is left out of the totals. The page shows "Cash in the bank" from the bank rows alone, with a line under it for what is on its way.
+- **Ids are permanent and rows stay in date order (Nov 21, 2026).** A row gets the next unused number for its year when it is entered and keeps it. A row entered late goes in at its date, so ids do not always run in order down the file, and the balances after it are worked out again. Nothing can be entered into a closed month. Use `ledger.add_rows()` (or the Zeffy importer, which calls it) rather than appending by hand.
 - In-kind goods stay out of the cash ledger, in their own log (the gift log, `financials/donated-goods.csv`), valued when given. Like the general ledger it is one file since inception, and each line has an id (`G2026-001`) and may name a redacted supporting document. Salaries and fundraising are both shown on the page and both expected to read $0.00.
 - **A stock log, built like the money ledger (Dylan, Nov 20, 2026).** `inventory/stock-log.csv` records every movement of stock: received, distributed or adjustment, with a running on-hand count for each item. Everything received traces to a gift-log line or to a purchase in the general ledger; everything distributed traces to an outreach in the distribution log. Items are counted in units, from the short fixed list in `inventory/items.csv`. Never publish where stock is stored or who received what.
 - Goods bought personally before the organization existed and then handed over are a gift of goods on the handover date, not a paid-directly pair. Donated goods count with cash toward the 990-N gross receipts and Attorney General warnings.
@@ -187,10 +189,12 @@ inventory/index.html, log.html   Inventory (on hand by item) and Stock Log; writ
 impact/distribution-log.csv      one row per outreach: date, area, volunteers, people_served_estimate, items
                                  (area is a general neighborhood; never names or photos of people served)
 documents/volunteer/distribution-log.pdf   the fillable form volunteers complete after each outreach
-tools/ledger.py                  check, build, summary, support
-tools/test_ledger.py, tools/fixtures/   tests, with one made-up clean ledger and broken fixtures for every rule
+tools/ledger.py                  check, build, summary, support; add_rows() enters rows
+tools/zeffy.py                   brings a Zeffy export into the books: import, status, payout, match
+tools/test_ledger.py, tools/test_zeffy.py, tools/fixtures/   tests, with one made-up clean ledger and
+                                 broken fixtures for every rule
 ```
-**Files (private, git-ignored): `Books/`** holds original statements (`statements/YYYY-MM.pdf`, `-initialed.pdf`), original receipts (`receipts/<id>.pdf`), `donors.csv` (who gave what, and `public_name_ok`), and `acknowledgments/`. Dylan backs it up separately. The script fails if anything under `Books/`, `Document_Inbox/` or `Formation_Docs/` is tracked.
+**Files (private, git-ignored): `Books/`** holds original statements (`statements/YYYY-MM.pdf`, `-initialed.pdf`), original receipts (`receipts/<id>.pdf`), `donors.csv` (who gave what, and `public_name_ok`), `zeffy-log.csv` (every Zeffy payment seen, with its donor, payout date and the ledger rows it became), `zeffy/` (the exports themselves), and `acknowledgments/`. Dylan backs it up separately. The script fails if anything under `Books/`, `Document_Inbox/` or `Formation_Docs/` is tracked.
 
 **Commands** (run from the repo root)
 ```
@@ -199,7 +203,11 @@ python3 tools/ledger.py build       check, then write the pages (refuses if chec
 python3 tools/ledger.py build --receipts-pending    as build, but a receipt not yet published shows as "Pending"
 python3 tools/ledger.py summary     year-to-date totals, with the Attorney General and 990-N warnings
 python3 tools/ledger.py support     public support percentage from Books/donors.csv; prints only
-python3 -m unittest tools/test_ledger.py
+python3 tools/zeffy.py import <export.xlsx>     enter the new online gifts from a Zeffy export, then file it in Books/zeffy/
+python3 tools/zeffy.py status       what Zeffy still owes, and anything that needs a person
+python3 tools/zeffy.py payout YYYY-MM-DD [--posted YYYY-MM-DD]    a payout is on the bank statement: clear it
+python3 tools/zeffy.py match "<key>" <ledger ids>   tie a hand-entered Zeffy payment to rows already in the ledger
+python3 -m unittest tools/test_ledger.py tools/test_zeffy.py
 ```
 **The pages (Dylan, Nov 20, 2026)**
 - The Financial Ledger page (`/financials/`) is a summary: the year at a glance, totals by category, a link to the General Ledger, the monthly bank check, donated goods and downloads. The transactions are on their own page, `ledger.html`, so the summary stays short.
@@ -209,12 +217,19 @@ python3 -m unittest tools/test_ledger.py
 - **Never link or mention the GitHub history on the site.** The spec's "Every change to these books" link was removed at Dylan's request.
 
 **Rules to remember**
-- Positive is money in, negative is money out. `method` is `bank` (on the statement) or `paid-directly` (someone paid the org's bill with their own money). A paid-directly gift is two rows on the same date: a Contributions row, then the expense with `ref` set to it.
+- Positive is money in, negative is money out. `method` is `bank` (on the statement), `paid-directly` (someone paid the org's bill with their own money) or `zeffy` (given online, not yet paid out). A paid-directly gift is two rows on the same date: a Contributions row, then the expense with `ref` set to it.
 - Every spending row needs a redacted receipt at `receipts/YYYY/<id>.pdf`. `approval` is required on any payment over $500 and any payment to a director or officer (counterparty "Director"). Keep the `INSIDERS` list in the script current when the board changes; it is what the name check uses.
 - Closed months are append-only. Fix a mistake with a row that reverses it (`ref` to the wrong row, description starting "Reverses") plus a correct row. A balance that doesn't tie is found and fixed, never forced with a plug row.
 - Redaction removes the text, it does not cover it. Statements: remove full account and routing numbers, donor names in deposit lines and home addresses; keep the last 4 of the account, dates, amounts, balances and the president's initials. Receipts: remove the payer's name, card numbers except the last 4, personal addresses, email addresses, phone numbers and loyalty numbers; a vendor's own address and email stay. Open every redacted file before committing it. `.tools/redact.swift` does this (`ALLOW_AT=1` when a vendor's email address stays). A phone scan carries hidden camera data even when nothing on it needs blacking out, so flatten it too (pass `rect:1:0,0,0,0`). A money-in row may carry a receipt as well, such as a bank deposit receipt.
 - Commit messages say what changed, e.g. "Close 2026-12: 14 rows, ties to statement $1,240.17".
 - The page's tax wording follows the formation rule above: no 501(c)(3) or deductibility claim until the determination letter arrives.
+
+**When Dylan drops a Zeffy export in the inbox (Dylan, Nov 21, 2026)**
+1. Run `python3 tools/zeffy.py import "Document_Inbox/<file>.xlsx"`. It compares the export with `Books/zeffy-log.csv`, enters each new online gift in the ledger and in `Books/donors.csv`, records any new payout dates, and moves the export to `Books/zeffy/`. Running it twice on the same data enters nothing twice.
+2. Read its report. Lines marked ATTENTION need a person: a refund, a failed payment, a gift from an organization (it needs a public label), or a payment Dylan entered into Zeffy by hand that is not yet matched to the ledger.
+3. Payments entered into Zeffy by hand (cheque, cash, in kind) have no payout date and never pass through Zeffy. They are not entered from the export; they reach the books from the deposit slip or receipt. The importer matches them to existing ledger rows when it can; otherwise use `match`.
+4. `check`, `build`, look at the pages, commit and push. A new gift is public only as "Donor" (a director) or "Individual donor", with its date and amount. Names, emails and addresses stay in `Books/`.
+5. At the monthly close, for each Zeffy deposit on the bank statement run `python3 tools/zeffy.py payout <payout date> --posted <bank posting date>` (the importer's report lists the payouts to look for), then reconcile as usual.
 
 **The Distribution Log form and the stock log (Dylan, Nov 20, 2026)**
 - `documents/volunteer/distribution-log.pdf` is a one-page fillable form, linked in Volunteer Resources. It is deliberately generic and lists no stock items, so it never changes when the inventory does: date, area, volunteers, people served, 13 rows of item, quantity and notes, and a notes box. Volunteers fill one in after each outreach and Dylan passes it back.
@@ -227,9 +242,12 @@ python3 -m unittest tools/test_ledger.py
 
 **Year-end and reporting:** treasurer's report at each board meeting (`summary`); donor acknowledgments by January 31; close December at the January meeting (the general ledger and the other logs simply continue); Form 990-N by May 15 while gross receipts are normally $50,000 or less; register with the Minnesota Attorney General within 30 days of passing $25,000 in a year's contributions (the script warns from $20,000); Minnesota Secretary of State renewal by December 31, 2027, then yearly.
 
-**Where things stand (Nov 20, 2026)**
+**Where things stand (Nov 21, 2026)**
 - The ledger holds the six opening rows (three paid-directly pairs, $395.90 in and out, balance back to $0.00). Their three receipts are redacted and published, and `check` passes.
 - The bank account was opened Nov 20, 2026. The first bank row is the $100.00 opening deposit by check (2026-007), entered from the teller's deposit receipt, so cash in the bank is $100.00. No statement has arrived yet, so no month has been closed. When the November statement comes, confirm that row's posting date against it (the deposit was made at 4:03 p.m. on a Friday) before closing the month.
+- The first Zeffy export was imported Nov 21, 2026: one new online gift, $250.00 given Nov 20 (2026-008), payout still upcoming, so the payout receivable is $250.00 and the balance is $350.00. The two payments Dylan had entered into Zeffy by hand (the $395.90 formation costs and the $100.00 cheque) were matched to rows already in the ledger.
+- The financial statement sent to the Attorney General on Nov 21 ran through Nov 20 and shows contributions of $1,080.90. It does not include that $250.00 online gift, which was given the evening of Nov 20 and had not been paid out.
+- The Zeffy donation form is live, but the Support page still says gifts can't be accepted yet and does not link to it. Dylan has not asked for that to change.
 - That opening deposit was a director's own gift, so the public row says "Donor"; the private record in `Books/donors.csv` names the donor.
 - The gift log holds its first four lines (Nov 20, 2026): 100 hand sanitizers, 100 emergency blankets, 200 hand-warmer 2-packs and 100 winter sets, $585.00 at the price the donor paid before sales tax, with the redacted invoice. The stock log received all 500 units the same day. Nothing has been distributed yet, so the distribution log is empty.
 - Still owed by people, not the script: one acknowledgment letter for the three opening gifts, signed by the president, filed in `Books/acknowledgments/2026/`. A budget file for actual-versus-budget reports is not built.

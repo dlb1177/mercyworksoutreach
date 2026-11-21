@@ -24,16 +24,23 @@ pages. It uses only the Python 3 standard library.
 
 What check verifies (the numbers are the rule numbers printed with each problem):
   1  Header and format   exact columns in order; ISO dates; two-decimal amounts, never 0
-  2  Ids                 YYYY-NNN, where YYYY is the year of the row's date and NNN
-                         counts up from 001 within that year, with no gaps or repeats
+  2  Ids                 YYYY-NNN, where YYYY is the year of the row's date. An id is
+                         given once, when the row is entered, and never changes or is
+                         reused; within a year the numbers run 001 to n with no gaps
   3  Dates               never earlier than the row above
   4  Categories, signs   category exists; "in" is positive and "out" negative, except on
                          a correction (a row with a ref whose description starts "Reverses")
   5  Running balance     every row's balance is the balance above plus its amount,
                          starting from 0.00. A paid-directly gift and its expense move
-                         it up and back down, so each pair leaves it unchanged
+                         it up and back down, so each pair leaves it unchanged. The
+                         balance is all funds: cash in the bank plus online gifts
+                         that Zeffy has not paid out yet
   6  Pairs               every paid-directly expense refs a paid-directly Contributions
-                         row of the same date and opposite amount, and the reverse
+                         row of the same date and opposite amount, and the reverse.
+                         A payout from Zeffy is a pair of Transfers rows on one date:
+                         the amount leaving Zeffy (method zeffy, negative) and the same
+                         amount reaching the bank (method bank, positive, ref to the
+                         first). Zeffy can never have paid out more than was given
   7  Receipts            every spending row has receipts/YYYY/<id>.pdf and the file
                          exists; every file in receipts/ belongs to exactly one row
   8  Approvals           filled on any payment over $500.00 and any payment to a
@@ -49,6 +56,17 @@ What check verifies (the numbers are the rule numbers printed with each problem)
   13 Stock links         goods received trace to a donated-goods line or a purchase in
                          the ledger, and add up to the quantity donated; goods
                          distributed trace to an outreach in the distribution log
+
+The method column says where the money moved:
+  bank            on the bank statement
+  paid-directly   someone paid the organization's bill with their own money
+  zeffy           through Zeffy, the online donation platform. A gift is recorded when
+                  it is given; it is a payout receivable until Zeffy pays it out to the
+                  bank. tools/zeffy.py enters these rows from a Zeffy export
+
+Rows are kept in date order. A row entered late goes in at its date (add_rows below),
+keeps the id it was given, and the balances after it are worked out again. Nothing can
+be entered into a month that has been closed.
 
 The other books, each one file since inception:
   financials/donated-goods.csv   gifts of goods (not cash), valued when given
@@ -78,6 +96,7 @@ APPROVAL_OVER = Decimal("500.00")
 WARN_CONTRIBUTIONS = Decimal("20000.00")   # MN Attorney General registration is at $25,000
 WARN_GROSS_RECEIPTS = Decimal("40000.00")  # Form 990-N limit is normally $50,000
 ZERO = Decimal("0.00")
+METHODS = ("bank", "paid-directly", "zeffy")
 
 LEDGER = "financials/general-ledger.csv"
 LEDGER_COLS = ["id", "date", "category", "counterparty", "description", "amount",
@@ -217,10 +236,10 @@ class Books:
         rows = self.read_table("financials/categories.csv", CATEGORY_COLS) or []
         for r in rows:
             where = "financials/categories.csv line %d" % r["_line"]
-            if r["kind"] not in ("in", "out"):
-                self.problem(1, where, 'The kind "%s" is not "in" or "out".' % r["kind"], "Use in or out.")
+            if r["kind"] not in ("in", "out", "transfer"):
+                self.problem(1, where, 'The kind "%s" is not "in", "out" or "transfer".' % r["kind"], "Use in, out or transfer.")
                 continue
-            allowed = ["n/a"] if r["kind"] == "in" else FUNCTIONS
+            allowed = FUNCTIONS if r["kind"] == "out" else ["n/a"]
             if r["form_990_function"] not in allowed:
                 self.problem(1, where, 'The function "%s" is not allowed for kind "%s".' % (r["form_990_function"], r["kind"]),
                              "Use one of: " + ", ".join(allowed) + ".")
@@ -365,6 +384,7 @@ class Books:
         rows = self.rows
         by_id = {}
         count = {}                      # year -> rows so far in that year
+        numbered = []                   # (year, number, row) for every well-formed id
         prev_date, prev_balance, prev_year = None, ZERO, None
         for r in rows:
             where = r["_where"]
@@ -378,28 +398,33 @@ class Books:
                 self.problem(1, where, "The amount is 0.", "Remove the row, or enter the real amount.")
             if r["bal"] is None:
                 self.problem(1, where, 'The balance "%s" is not a number with two decimals.' % r["balance"], "Write it like 123.45.")
-            if r["method"] not in ("bank", "paid-directly"):
-                self.problem(1, where, 'The method "%s" is not bank or paid-directly.' % r["method"], "Use bank or paid-directly.")
+            if r["method"] not in METHODS:
+                self.problem(1, where, 'The method "%s" is not bank, paid-directly or zeffy.' % r["method"], "Use bank, paid-directly or zeffy.")
             if not r["counterparty"]:
                 self.problem(1, where, "The counterparty is blank.", "Name the vendor, or use a donor label such as Donor.")
             if not r["description"] or len(r["description"]) >= 80:
                 self.problem(1, where, "The description is blank or 80 characters or longer.", "Write one plain line under 80 characters.")
 
-            # Rule 2: ids. The year comes from the row's date, and the number counts up within the year.
+            # Rule 2: ids. The year comes from the row's date. The number is the order of
+            # entry within the year, so it need not run in order down the file.
             year = r["d"].year if r["d"] is not None else prev_year
             if year is not None:
                 count[year] = count.get(year, 0) + 1
-                expected = "%d-%03d" % (year, count[year])
-                if r["id"] != expected:
-                    self.problem(2, where, "The id should be %s (the year of the date, then a number that counts up with no gaps or repeats)." % expected, "Change the id to %s." % expected)
                 prev_year = year
+                m = re.match(r"^(\d{4})-(\d{3})$", r["id"])
+                if not m or int(m.group(1)) != year or int(m.group(2)) == 0:
+                    self.problem(2, where, "The id should be %d-NNN: the year of the row's date, then a three-digit number." % year, "Give the row the next unused number for %d." % year)
+                elif r["id"] in by_id:
+                    self.problem(2, where, "The id %s is used by more than one row." % r["id"], "Give this row the next unused number for %d." % year)
+                else:
+                    numbered.append((year, int(m.group(2)), r))
             if r["id"] and r["id"] not in by_id:
                 by_id[r["id"]] = r
 
             # Rule 3: dates
             if r["d"] is not None:
                 if prev_date is not None and r["d"] < prev_date:
-                    self.problem(3, where, "The date %s is earlier than the row above it." % r["date"], "Put the rows in date order and renumber the ids.")
+                    self.problem(3, where, "The date %s is earlier than the row above it." % r["date"], "Move the row up to its place in date order, keep its id, and work out the balances again.")
                 prev_date = r["d"]
 
             # Rule 5: running balance. Every row moves it, bank or paid-directly.
@@ -409,6 +434,10 @@ class Books:
                     self.problem(5, where, "The balance is %s but should be %s (the balance above plus this amount)." % (r["balance"], want), "Change the balance to %s, or correct the amount." % want)
             if r["bal"] is not None:
                 prev_balance = r["bal"]   # carry on from the stated balance, so one mistake is reported once
+
+        for year, number, r in numbered:
+            if number > count[year]:
+                self.problem(2, r["_where"], "There are %d rows dated %d, so their ids must use every number from 001 to %03d; this one is higher." % (count[year], year, count[year]), "Give the row the unused number in that range.")
 
         for r in rows:
             where = r["_where"]
@@ -470,6 +499,34 @@ class Books:
                     self.problem(6, where, "A paid-directly contribution must be matched by exactly one paid-directly expense row; this one has %d." % n, "Add the expense row for what the donor paid, with ref set to %s." % r["id"])
             else:
                 self.problem(6, where, "A paid-directly row must be a Contributions row or an expense.", "Use method bank, or change the category.")
+
+        # Rule 6, continued: gifts through Zeffy and their payouts to the bank
+        paid_to = {}
+        for r in rows:
+            if self.kind(r) == "transfer" and r["method"] == "bank" and r["ref"]:
+                paid_to.setdefault(r["ref"], []).append(r)
+        owed = ZERO                     # the payout receivable: given through Zeffy, not yet paid out
+        for r in rows:
+            where = r["_where"]
+            if self.kind(r) == "transfer" and not self.is_reversal(r) and r["amt"] is not None:
+                if r["method"] == "zeffy":
+                    n = len(paid_to.get(r["id"], []))
+                    if r["amt"] > 0 or n != 1:
+                        self.problem(6, where, "A payout leaving Zeffy must be negative and matched by exactly one Transfers row reaching the bank; this one has %d." % n, "Add the bank row for the same amount on the same date, with ref set to %s." % r["id"])
+                elif r["method"] == "bank":
+                    t = by_id.get(r["ref"])
+                    if (t is None or self.kind(t) != "transfer" or t["method"] != "zeffy" or t["date"] != r["date"]
+                            or t["amt"] is None or t["amt"] != -r["amt"] or r["amt"] < 0):
+                        self.problem(6, where, "A payout reaching the bank must be positive, with a ref to the Transfers row leaving Zeffy on the same date for the same amount.", "Enter the pair together: the amount leaving Zeffy, then the same amount reaching the bank.")
+                else:
+                    self.problem(6, where, "A Transfers row must have method zeffy or bank.", "Change the method, or the category.")
+            if r["method"] == "zeffy" and r["amt"] is not None:
+                if r["category"] in self.categories and self.kind(r) == "out":
+                    self.problem(6, where, "Nothing is spent through Zeffy.", "Use method bank or paid-directly for spending.")
+                owed += r["amt"]
+                if owed < 0:
+                    self.problem(6, where, "This would mean Zeffy has paid out %s more than was given through it." % -owed, "Find the online gift that has not been entered, or correct the payout amount.")
+                    owed = ZERO
 
     def check_orphan_receipts(self):
         base = self.fin / "receipts"
@@ -594,6 +651,8 @@ class Books:
         return {"goods": goods, "goods_value": goods_value,
                 "by_cat": by_cat, "received": received, "spent": spent, "by_fn": by_fn,
                 "cash": self.bank_balance(month_end(year, 12)),
+                "in_transit": sum((r["amt"] for r in self.rows if r["method"] == "zeffy" and r["amt"] is not None
+                                   and r["d"] is not None and r["d"].year <= year), ZERO),
                 "share": (by_fn["Program"] * 100 / spent) if spent > 0 else None}
 
     def add_warnings(self):
@@ -623,6 +682,67 @@ class Books:
 
 def run_check(root, tracked=None):
     return Books(root, tracked).run()
+
+
+def add_rows(root, new_rows):
+    """Enter rows in the general ledger and return the ids they were given.
+
+    Each new row is a dict with date, category, counterparty, description, amount
+    and method, and optionally receipt, ref and approval. receipt "auto" becomes
+    receipts/YYYY/<id>.pdf, and ref "@0" means the id given to the first row of
+    this batch ("@1" the second, and so on).
+
+    A row goes in after the last existing row with the same or an earlier date, so
+    the file stays in date order. It gets the next unused number for its year, and
+    every balance is worked out again. The existing balances must already be right,
+    and nothing can be entered into a month that has been closed.
+    """
+    root = Path(root)
+    path = root / LEDGER
+    with open(path, newline="", encoding="utf-8") as f:
+        raw = list(csv.reader(f))
+    if not raw or raw[0] != LEDGER_COLS:
+        raise ValueError("%s does not have the expected header" % LEDGER)
+    rows = [dict(zip(LEDGER_COLS, r)) for r in raw[1:]]
+    balance = ZERO
+    for r in rows:
+        balance += Decimal(r["amount"])
+        if Decimal(r["balance"]) != balance:
+            raise ValueError("The balance on row %s is wrong, so nothing was entered. Run check first." % r["id"])
+    closed = ""
+    recs = root / "financials" / "reconciliations.csv"
+    if recs.is_file():
+        with open(recs, newline="", encoding="utf-8") as f:
+            closed = max([r["month"] for r in csv.DictReader(f)] or [""])
+    ids = []
+    for new in new_rows:
+        d = parse_date(new["date"])
+        if d is None or parse_money(new["amount"]) is None:
+            raise ValueError("A new row needs a date written YYYY-MM-DD and an amount with two decimals.")
+        if new["date"][:7] <= closed:
+            raise ValueError("%s is closed, so a row dated %s cannot be entered. Correct it with a reversing row instead." % (closed, new["date"]))
+        used = [int(r["id"][5:]) for r in rows if r["id"].startswith("%d-" % d.year)]
+        row = {c: new.get(c, "") for c in LEDGER_COLS}
+        row["id"] = "%d-%03d" % (d.year, max(used or [0]) + 1)
+        if row["receipt"] == "auto":
+            row["receipt"] = "receipts/%d/%s.pdf" % (d.year, row["id"])
+        at = len(rows)
+        while at > 0 and rows[at - 1]["date"] > new["date"]:
+            at -= 1
+        rows.insert(at, row)
+        ids.append(row["id"])
+    for row in rows:
+        if row["ref"].startswith("@"):
+            row["ref"] = ids[int(row["ref"][1:])]
+    balance = ZERO
+    for r in rows:
+        balance += Decimal(r["amount"])
+        r["balance"] = str(balance)
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f, lineterminator="\n")
+        w.writerow(LEDGER_COLS)
+        w.writerows([[r[c] for c in LEDGER_COLS] for r in rows])
+    return ids
 
 
 # ---------- the pages ----------
@@ -722,6 +842,8 @@ def render_summary(books, year, is_index):
                          ("Paid in salaries", money(ZERO)), ("Spent on fundraising", money(t["by_fn"]["Fundraising"]))):
         w('        <div><dt>%s</dt><dd>%s</dd></div>' % (label, value))
     w('      </dl>')
+    if t["in_transit"] != 0:
+        w('      <p class="note">Besides the cash in the bank, %s given online is on its way to the bank account.</p>' % money(t["in_transit"]))
 
     w('')
     w('      <h2 id="categories">Totals by category</h2>')
@@ -807,7 +929,11 @@ def render_ledger(books):
         for r in rows:
             if (r["d"].year, r["d"].month) != ym:
                 continue
-            note = '<span class="paid-note">Paid directly by donor</span>' if r["method"] == "paid-directly" else ""
+            note = ""
+            if r["method"] == "paid-directly":
+                note = '<span class="paid-note">Paid directly by donor</span>'
+            elif r["method"] == "zeffy" and books.kind(r) != "transfer":
+                note = '<span class="paid-note">Given online</span>'
             if r["receipt"] and r["id"] in books.pending_receipts:
                 receipt = '<span class="pending">Pending</span>'
             elif r["receipt"]:
@@ -831,6 +957,8 @@ def render_ledger(books):
         w('      <p class="note"><strong>Receipts marked Pending.</strong> These receipts are being prepared for publication, with card numbers and personal details removed. Each will be linked here.</p>')
     if any(r["method"] == "paid-directly" for r in rows):
         w('      <p class="note"><strong>Paid directly by donor.</strong> A donor paid this bill with their own money and did not ask for it back. The gift and the expense are both recorded, so the balance rises and falls by the same amount.</p>')
+    if any(r["method"] == "zeffy" for r in rows):
+        w('      <p class="note"><strong>Given online.</strong> Online gifts are collected by Zeffy, our donation platform, and paid out to the bank account later. A gift is recorded on the day it is given. Until the payout arrives it is part of the balance but not yet cash in the bank.</p>')
     description = "Every transaction of Mercy Works Outreach since it began, each expense with its receipt."
     return HEAD.format(title="General Ledger", description=description, canonical="financials/ledger.html", page_class=" page-wide") + "\n".join(o) + "\n" + FOOT
 
@@ -1050,6 +1178,7 @@ def cmd_summary(root, year):
     print("  Spent: %s  (Program %s, Management and general %s, Fundraising %s)" % tuple(money(v) for v in (t["spent"], t["by_fn"]["Program"], t["by_fn"]["Management and general"], t["by_fn"]["Fundraising"])))
     print("  Share spent on programs: %s" % ("n/a" if t["share"] is None else "%.1f%%" % t["share"]))
     print("  Cash in the bank: %s" % money(t["cash"]))
+    print("  Online gifts not yet paid out by Zeffy (payout receivable): %s" % money(t["in_transit"]))
     print("  Contributions year to date, cash and goods: %s  (Attorney General registration at $25,000)" % money(t["by_cat"].get("Contributions", ZERO) + t["goods_value"]))
     print("  Form 990-N: gross receipts must normally be $50,000 or less; now %s" % money(t["received"] + t["goods_value"]))
     if books.on_hand:
