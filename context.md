@@ -31,7 +31,7 @@ python3 tools/ledger.py summary                                  the books at a 
 ```
 Without `Books/`, `check` also prints one warning that donor names could not be checked against opt-ins. That is expected.
 
-**Where the work is done (since Nov 21, 2026).** Dylan works with a cloud session attached to this repo, which commits and pushes for him. His Mac's copy of the folder, with the private folders above, can be reached from that session only while the Claude desktop app is open on the Mac. Private records stay on the Mac (his decision). The hourly Zeffy sync (section 6) is a scheduled task that needs none of them.
+**Where the work is done (since Nov 21, 2026).** Dylan works with a cloud session attached to this repo, which commits and pushes for him. His Mac's copy of the folder, with the private folders above, can be reached from that session only while the Claude desktop app is open on the Mac. Private records stay on the Mac (his decision). The daily Zeffy sync (section 6) is a scheduled task that needs none of them.
 
 **After every change:** update this file if a fact, rule or status changed; commit with a short, clear message; push to `main`. GitHub Pages deploys by itself (section 7).
 
@@ -240,7 +240,7 @@ financials/reconciliations.csv    one row per closed month: month, statement_end
                                   president_reviewed_on, statement_file
 financials/receipts/YYYY/<id>.pdf     redacted receipt, named by ledger id
 financials/statements/YYYY-MM.pdf     redacted bank statement initialed by the president (none yet)
-financials/zeffy-log.csv          one line per Zeffy payment the hourly sync has seen (section 6); never edit by hand
+financials/zeffy-log.csv          one line per Zeffy payment the daily sync has seen (section 6); never edit by hand
 financials/donated-goods.csv      the gift log: id (G2026-001), date, description, quantity, estimated_value,
                                   valuation_basis, donor_type, document
 financials/donated-goods/<id>.pdf     redacted support for a gift, named by its first line's id
@@ -336,7 +336,7 @@ python3 -m unittest tools/test_ledger.py tools/test_zeffy.py
 Close each month within 15 days of the statement date, even a quiet month; the reconciliation is the proof the books are right.
 1. Dylan provides the bank statement and every receipt for the month.
 2. Enter one row per statement line, with category, counterparty and description (use `add_rows`).
-3. For each Zeffy deposit on the statement, clear the payout with `zeffy.py payout`, giving the deposit's amount with `--amount` and its posting date with `--posted` (section 6). Online gifts themselves are already in the ledger from the hourly sync.
+3. For each Zeffy deposit on the statement, clear the payout with `zeffy.py payout`, giving the deposit's amount with `--amount` and its posting date with `--posted` (section 6). Online gifts themselves are already in the ledger from the daily sync.
 4. Donors are recorded in Zeffy, not here. Check that every gift on the statement that did not come through the online form is entered in Zeffy by hand. The public row uses a generic label.
 5. Publish redacted receipts as `financials/receipts/YYYY/<id>.pdf`.
 6. The president reviews and initials the statement. Its redacted copy goes to `financials/statements/YYYY-MM.pdf`.
@@ -355,7 +355,7 @@ Close each month within 15 days of the statement date, even a quiet month; the r
 - Public support test (one-third of support from the public over five years, each household counted up to 2%): `support` prints it from the private donor record. It reads about 2% while one donor has given everything, which is expected this early.
 
 ### Where the books stand (Nov 21, 2026)
-- Online gifts are entered by the hourly sync, so this snapshot goes out of date; `ledger.py summary` and `zeffy.py status` are always current.
+- Online gifts are entered by the daily sync, so this snapshot goes out of date; `ledger.py summary` and `zeffy.py status` are always current.
 - **General ledger: 8 rows.** Six opening rows (three paid-directly pairs for the $395.90 of formation fees), the $100.00 opening deposit by check (2026-007), and a $250.00 gift given online (2026-008, method `zeffy`). Received $745.90, spent $395.90, balance $350.00: **cash in the bank $100.00, payout receivable $250.00.** All four receipts are published.
 - **No month has been closed.** No bank statement has arrived. When the November statement comes, confirm the posting date of the $100.00 deposit against it (it was made at 4:03 p.m. on Friday, Nov 20) before closing.
 - **Gift log: 4 lines**, $585.00 of goods given Nov 20, 2026, with the redacted invoice. **Stock: 500 units on hand** (100 hand sanitizers, 100 emergency blankets, 200 hand-warmer 2-packs, 100 winter sets). Nothing has been given out, so the distribution log is empty.
@@ -367,14 +367,14 @@ Close each month within 15 days of the statement date, even a quiet month; the r
 
 Zeffy is the online donation platform **and the organization's donor record** (Dylan, Nov 21, 2026). The names, email addresses and home addresses of donors live in Zeffy and nowhere in this repo. Dylan also enters gifts that did not come through the online form (cheque, cash, in kind) into Zeffy by hand, so it holds every gift.
 
-**A scheduled task reads Zeffy once an hour and enters what is new,** with no one watching and whether or not Dylan's Mac is on. On Nov 21, 2026 it replaced the hand export and the private log that used to live in `Books/`. Why: Zeffy already holds the donor details, so the books only need facts that are public anyway, and a run that needs nothing private can run anywhere.
+**A scheduled task reads Zeffy once a day and enters what is new,** with no one watching and whether or not Dylan's Mac is on. It runs at 3:56 PM Central; Dylan starts a run by hand from the scheduled task when he wants one sooner. It ran once an hour at first; Dylan changed it to once a day on Nov 21, 2026, because that is often enough. Nothing else about the run changed, and the command it runs is still called `hourly`. On Nov 21, 2026 it replaced the hand export and the private log that used to live in `Books/`. Why: Zeffy already holds the donor details, so the books only need facts that are public anyway, and a run that needs nothing private can run anywhere.
 
 ### How a gift moves through the books
-1. **Given.** The hourly run enters it in the ledger on the day it was given (the date in the organization's time zone, America/Chicago), as a Contributions row with method `zeffy`, description "Gift given online". It is now a **payout receivable**: part of the balance, not yet cash in the bank.
-2. **Paid out.** When Zeffy shows a payout date for the gift, the hourly run records the date in the log and reports which payout to look for on the bank statement. It enters nothing in the ledger.
-3. **Cleared.** When the bank statement shows the deposit, **a person** runs `payout`, which enters a pair of `Transfers` rows on the bank's posting date: the amount leaving Zeffy (method `zeffy`, negative), then the same amount reaching the bank (method `bank`, positive, `ref` to the first). This step is never done by the hourly run, so the date is the bank's and the monthly reconciliation stays right.
+1. **Given.** The daily run enters it in the ledger on the day it was given (the date in the organization's time zone, America/Chicago), as a Contributions row with method `zeffy`, description "Gift given online". It is now a **payout receivable**: part of the balance, not yet cash in the bank.
+2. **Paid out.** When Zeffy shows a payout date for the gift, the daily run records the date in the log and reports which payout to look for on the bank statement. It enters nothing in the ledger.
+3. **Cleared.** When the bank statement shows the deposit, **a person** runs `payout`, which enters a pair of `Transfers` rows on the bank's posting date: the amount leaving Zeffy (method `zeffy`, negative), then the same amount reaching the bank (method `bank`, positive, `ref` to the first). This step is never done by the daily run, so the date is the bank's and the monthly reconciliation stays right.
 
-### The hourly run, step by step
+### The daily run, step by step
 The scheduled task's own instructions point here. A session doing the run follows these steps exactly and does nothing else.
 
 1. Work in a fresh clone of `main`. Read `CLAUDE.md` and this section.
@@ -407,7 +407,7 @@ The scheduled task's own instructions point here. A session doing the run follow
 
 ### Commands
 ```
-python3 tools/zeffy.py hourly <feed.json>     the whole hourly run (step 4 above); never commits or pushes
+python3 tools/zeffy.py hourly <feed.json>     the whole daily run (step 4 above); never commits or pushes
 python3 tools/zeffy.py sync <feed.json>       only enter what is new in a feed
 python3 tools/zeffy.py status                 what Zeffy still owes, and anything waiting on a person
 python3 tools/zeffy.py payout YYYY-MM-DD [--posted YYYY-MM-DD] [--amount 0.00]
@@ -421,10 +421,10 @@ python3 tools/zeffy.py enter <fingerprint> "<label>"       enter a waiting onlin
 ### What the sync does and does not do
 - **It never enters a gift twice.** `financials/zeffy-log.csv` has one line per Zeffy payment it has seen. If the ledger has Zeffy rows the log does not know about, the sync stops and enters nothing.
 - The public row says only "Donor" (the giver is a director) or "Individual donor", with the date and amount.
-- **Payments Dylan entered into Zeffy by hand** (cheque, cash, in kind) never pass through Zeffy. They are **not** entered from the feed; they reach the books from the deposit slip or receipt. The sync ties each to an existing ledger row when the amount and date make it unambiguous, and tries again every hour, so one that is waiting is tied by itself once its row exists. `match` ties one by hand.
+- **Payments Dylan entered into Zeffy by hand** (cheque, cash, in kind) never pass through Zeffy. They are **not** entered from the feed; they reach the books from the deposit slip or receipt. The sync ties each to an existing ledger row when the amount and date make it unambiguous, and tries again at every run, so one that is waiting is tied by itself once its row exists. `match` ties one by hand.
 - **Left for a person, reported once with "ATTENTION" and then listed by `status`:** refunds, failed and disputed payments, a gift from an organization (it needs a public label: `enter`), and a gift dated in a closed month. A payment still processing is not entered or logged until it succeeds.
 - Zeffy charges the organization no fees, so a payout equals the sum of the gifts in it.
-- A refund or dispute on a payment more than 90 days old is outside the hourly window. Run a sync over a longer period by hand if one is suspected.
+- A refund or dispute on a payment more than 90 days old is outside the daily run's window. Run a sync over a longer period by hand if one is suspected.
 
 ### The public log
 `financials/zeffy-log.csv`: `fingerprint, date, amount, kind (online | manual), method, status, refund, payout_date, ledger_ids, cleared_ids, waiting_on (deposit | label | person), first_seen`. The fingerprint is a one-way scramble of Zeffy's payment id, in letters only; it cannot be turned back into the id and identifies no one. The file is public like everything else here and is scanned by rule 10. Never edit it by hand; `match` and `enter` are the way to change it.
@@ -442,7 +442,7 @@ One online gift ($250.00, Nov 20) is entered and not yet paid out; Zeffy pays ou
 ## 7. Hosting and deploy
 
 - **Repo:** `dlb1177/mercyworksoutreach` on GitHub, public.
-- **Host:** GitHub Pages, from the `main` branch, root folder. `.nojekyll` tells GitHub to serve the files as they are. There is no build step and there are no GitHub Actions. One thing pushes to `main` with no one watching: the hourly Zeffy sync, a scheduled task in Dylan's Claude account (section 6).
+- **Host:** GitHub Pages, from the `main` branch, root folder. `.nojekyll` tells GitHub to serve the files as they are. There is no build step and there are no GitHub Actions. One thing pushes to `main` with no one watching: the daily Zeffy sync, a scheduled task in Dylan's Claude account (section 6).
 - **Custom domain:** `mercyworksoutreach.org`, registered at Cloudflare, connected through the `CNAME` file in the repo root. "Enforce HTTPS" is on; GitHub renews the certificate.
 - **DNS at Cloudflare:** four A records for `@` to `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`, and a CNAME for `www` to `dlb1177.github.io`. **They must stay "DNS only" (grey cloud), not proxied,** or GitHub cannot issue the certificate.
 - **To deploy:** commit and push to `main`. The site is live in about a minute.
@@ -483,13 +483,13 @@ One online gift ($250.00, Nov 20) is entered and not yet paid out; Zeffy pays ou
 - **Tenet 1 on the site** no longer mentions fear or safety, though its title is "Fearless without being careless". JM deleted the sentence; Dylan was asked whether that was intended and has not said.
 - **The home page's opening statement** is 1.35rem on desktop (his choice) and 1.42rem on phones. Offered to align; no answer.
 - **Whether donated goods count toward the Form 990-N gross receipts figure.** The script assumes they do. He has not confirmed.
-- **Telling donors their gift is listed.** With the hourly sync, a gift appears in the public ledger within the hour, by date and amount and without a name. With few donors, someone who knows a person gave that day can see the amount. The Support page says so since Nov 21, 2026. The Zeffy form itself does not; adding a line there was suggested and he has not decided.
+- **Telling donors their gift is listed.** With the daily sync, a gift appears in the public ledger within a day, by date and amount and without a name. With few donors, someone who knows a person gave that day can see the amount. The Support page says so since Nov 21, 2026. The Zeffy form itself does not; adding a line there was suggested and he has not decided.
 - **A budget file** for actual-versus-budget reports (the spec raised it for 2027). Not built.
 - **Inventory ideas he heard but did not choose:** a "loaded minus returned" tally per outreach; a monthly stock count shown like the monthly bank check; driving the Support page's "items we need" list from target stock levels.
 
 ### Waiting on something
 - **IRS determination letter** for the 1023-EZ filed Nov 19, 2026.
-- **The $250.00 Zeffy payout,** not yet paid out (Zeffy estimated Nov 23, 2026). It is the first real payout: when it happens, check by hand that the hourly run recorded its date in `financials/zeffy-log.csv` (the way Zeffy reports a payout date through the connector had not been seen when the sync was built). Clear it with `payout` when it appears on a bank statement.
+- **The $250.00 Zeffy payout,** not yet paid out (Zeffy estimated Nov 23, 2026). It is the first real payout: when it happens, check by hand that the daily run recorded its date in `financials/zeffy-log.csv` (the way Zeffy reports a payout date through the connector had not been seen when the sync was built). Clear it with `payout` when it appears on a bank statement.
 - **The donor record after Nov 21, 2026.** `ledger.py support` (the public support test) and the donor opt-in check still read `Books/donors.csv`, which is no longer updated. When the test or the $250 acknowledgment letters are next needed, take the donors from Zeffy, and rework `support` to do the same.
 - **The November bank statement,** to close the first month.
 - **Bylaws and the conflict-of-interest policy:** drafted, not adopted. When adopted and signed, publish them (the Info page has a Bylaws placeholder) and list the adopting action on the Board Actions page.
@@ -505,5 +505,5 @@ Impact Updates; Newsletters; Orientation Video for New Volunteers; What a Volunt
 - The tagline is a trial and may change.
 - The email forwarding to a second director was set up by Dylan in Cloudflare and has never been verified from this side.
 - `tools/mac/` scripts need macOS; `tools/ledger.py`, `tools/zeffy.py` and the tests run anywhere with Python 3.9 or later and git.
-- The hourly sync commits to `main` at any time. Pull before starting work in another copy, and expect `git pull --rebase origin main` before a push now and then.
+- The daily sync commits to `main` at about 3:56 PM Central, and whenever Dylan starts a run by hand. Pull before starting work in another copy, and expect `git pull --rebase origin main` before a push now and then.
 - The brand kit's own CSS file starts with a Google Fonts `@import`. It is not used and must not be.

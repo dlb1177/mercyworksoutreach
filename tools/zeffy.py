@@ -2,11 +2,12 @@
 """Mercy Works Outreach: keep the books in step with Zeffy.
 
 Zeffy is the online donation platform and the organization's record of who gave.
-Once an hour a scheduled session reads Zeffy, writes down a few facts about each
+Once a day a scheduled session reads Zeffy, writes down a few facts about each
 payment that are not private (the "feed"), and hands them to this script. The
-script enters what is new. It uses only the Python 3 standard library.
+script enters what is new. It uses only the Python 3 standard library. The run was
+once an hour until Nov 21, 2026; the command and the names below kept the word hourly.
 
-    python3 tools/zeffy.py hourly <feed.json>    the whole hourly run: a practice push, tests,
+    python3 tools/zeffy.py hourly <feed.json>    the whole scheduled run: a practice push, tests,
                                                  sync, check, build, a last look at what
                                                  changed; it deletes the feed when done
     python3 tools/zeffy.py sync <feed.json>      only enter what is new in the feed

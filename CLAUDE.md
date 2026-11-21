@@ -28,9 +28,9 @@ After any change to a CSV under `financials/`, `inventory/` or `impact/`: `check
 
 `Books/` (private accounting records and donor names), `Formation_Docs/` (unredacted originals), `Document_Inbox/` (where documents arrive) and the brand kit exist only on Dylan's Mac and are git-ignored. Without `Books/`, `check` prints one warning about donor names. That is expected. Nothing else needs it.
 
-## The hourly Zeffy sync
+## The daily Zeffy sync
 
-A scheduled task reads Zeffy once an hour, enters new online gifts and pushes to `main` by itself. If you are that run, follow `context.md` section 6, "The hourly run, step by step", exactly and do nothing else. Otherwise: pull before you start, never enter an online gift by hand, and never edit `financials/zeffy-log.csv` by hand.
+A scheduled task reads Zeffy once a day, enters new online gifts and pushes to `main` by itself. If you are that run, follow `context.md` section 6, "The daily run, step by step", exactly and do nothing else. Otherwise: pull before you start, never enter an online gift by hand, and never edit `financials/zeffy-log.csv` by hand.
 
 The PDF redaction scripts in `tools/mac/` need macOS. Elsewhere, use another tool that truly removes content and verify the same way (`context.md` section 4).
 

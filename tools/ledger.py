@@ -62,7 +62,7 @@ The method column says where the money moved:
   paid-directly   someone paid the organization's bill with their own money
   zeffy           through Zeffy, the online donation platform. A gift is recorded when
                   it is given; it is a payout receivable until Zeffy pays it out to the
-                  bank. tools/zeffy.py enters these rows from Zeffy once an hour
+                  bank. tools/zeffy.py enters these rows from Zeffy once a day
 
 Rows are kept in date order. A row entered late goes in at its date (add_rows below),
 keeps the id it was given, and the balances after it are worked out again. Nothing can
