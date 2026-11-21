@@ -98,7 +98,7 @@ In priority order, most important first. The site lists them in this order. The 
 ### Rules
 - **Plain HTML and CSS only.** No frameworks, no build step, no npm, no static-site generator. Every page is a hand-editable `.html` file. Why: tenet 3, simple over complex. **One exception:** `tools/ledger.py` writes the pages under `financials/` and `inventory/`, and that output is committed, so GitHub Pages still serves plain static files. Never edit those generated pages by hand (each says so in a comment at the top).
 - **No JavaScript** unless a feature truly cannot work without it. There is none today.
-- **No tracking, analytics, cookies, ads, pop-ups, or third-party scripts, fonts or embeds.** A plain link to another site is fine. This is why the fonts are self-hosted and the map is a static image.
+- **No tracking, analytics, cookies, ads, pop-ups, or third-party scripts, fonts or embeds.** A plain link to another site is fine. This is why the fonts are self-hosted and the map is a static image. **One exception, at Dylan's request (Nov 21, 2026):** Zeffy's giving form opens inside a box on the Support page, and only when the visitor chooses to open it (see Support below). Nothing from another website loads on any page by itself.
 - **Free hosting only:** GitHub Pages. No paid services.
 - **Honest copy:** short, factual, warm. No marketing language and nothing that is not true yet.
 - **Accessible and fast:** semantic HTML, good contrast, works on phones, light-only (no dark mode). Check a change at a desktop width and at about 390 px.
@@ -116,6 +116,7 @@ In priority order, most important first. The site lists them in this order. The 
 /info/index.html            Info: the hub page that links to everything else
 /contact/index.html         Contact, with contact/map.jpg
 /support/index.html         Support
+/support/give.html          Not a page of its own: what the giving box on Support shows before the form is opened
 /board/index.html           Current Board Leadership           (opened from Info)
 /board-actions/index.html   Board Actions and Meeting Minutes  (opened from Info)
 /tax-documents/index.html   Tax Documents                      (opened from Info)
@@ -135,7 +136,7 @@ In priority order, most important first. The site lists them in this order. The 
 
 **Tagline:** "Called to Love. Sent to Serve." under the logo on every page. JM proposed it as a trial, so it may change.
 
-**Which links open in a new tab (Dylan, Nov 19, 2026):** links to documents (PDFs) and to other websites carry `target="_blank" rel="noopener"`. Links to other pages of this site, the menu, the logo and `mailto:` links stay in the same tab.
+**Which links open in a new tab (Dylan, Nov 19, 2026):** links to documents (PDFs) and to other websites carry `target="_blank" rel="noopener"`. Links to other pages of this site, the menu, the logo and `mailto:` links stay in the same tab. The one deliberate exception is the button in `support/give.html`, which has no target so that Zeffy's form opens inside the giving box.
 
 **Placeholders** are plain text marked "Coming" (`<span class="pending">` with `<span class="meta">Coming</span>`), never dead links. When the thing exists, turn the placeholder into a link.
 
@@ -158,7 +159,12 @@ No visible page heading (a visually hidden `<h1>`); it opens with the "New and s
 Email and mailing address only, with a sentence that there is no phone number and that both go to a shared office. The map is a static image made once from OpenStreetMap tiles with a pin at the office, so no map service loads on the site. Keep the "© OpenStreetMap contributors" credit under it. Never embed Google Maps or any live map; the plain link to Google Maps is fine.
 
 #### Support
-Everything is "coming soon": a panel saying gifts can't be accepted yet, a "Non-Monetary Donations" list to come, and a placeholder for a video for donors. **No donate button** until Dylan asks for one (the ledger spec says not before the bank account is open and the determination letter has arrived). When real ways to give are added, follow the tax-status rule. See section 9: the Zeffy form is live but this page does not link to it yet.
+Rewritten Nov 21, 2026, when Dylan asked for the page to send people to Zeffy and to embed the form. In order:
+- An opening paragraph in the words of tenets 3 and 4: run by volunteers, no salaries, nothing spent on fundraising or advertising, and what gifts pay for (the same list of essentials as tenet 3 on the home page).
+- **Give Online.** A solid blue button, "Give on our Zeffy page", to the organization's page on Zeffy (`https://www.zeffy.com/en-US/organizations/mercy-works-outreach`), in a new tab. The organization page is used, not one campaign's form, so the button stays right when campaigns change.
+- **The giving box.** An `<iframe>` that first shows our own `support/give.html` (a title, one sentence and a button). The button there opens Zeffy's embedded form inside the same box (`https://www.zeffy.com/embed/donation-form/support-outreach-supply-costs`, the address from the campaign's Share dialog, "Embedded form"). This is how the form is on the page without any script and without anything loading from zeffy.com until a visitor asks for it. **Do not paste Zeffy's own embed code:** it loads a script from zeffy.com on every visit. **Do not set the box to open the form by itself** unless Dylan asks; that would load Zeffy for every visitor. A test in Chrome showed that `loading="lazy"` or a closed `<details>` does not hold a frame back, so those are not substitutes. If the campaign is replaced, change the address in `give.html`. The box is 640 px tall (`.give-frame` in `style.css`); the form scrolls inside it.
+- **Four notes under the box:** Zeffy may suggest a tip (optional, does not come to us, can be set to $0); tax status (applied, waiting, cannot say a gift is tax-deductible; links to Tax Documents); every gift is in the public ledger by date and amount and a donor is named only if they ask; questions to the info@ address. **The tax note follows the tax-status rule. Change it only when the determination letter arrives.**
+- "Non-Monetary Donations" (list to come) and a placeholder for a video for donors are unchanged.
 
 #### Current Board Leadership
 Kept very basic: one sentence, then one list of the directors with no separate officers section. Each name is in the heading face (EB Garamond Medium, Deep Blue) with a title under it in the tagline's face (EB Garamond Regular, Slate): the officer's role, or "Director". Names and roles only.
@@ -447,13 +453,13 @@ One online gift ($250.00, Nov 20) is entered and not yet paid out; Zeffy pays ou
 4. **Never name a director or officer in the financial files or pages.** Use "Donor" or "Director".
 5. **Never publish a redaction that only covers text.** Remove it, and verify.
 6. **Never publish an unsigned document as executed.**
-7. **Never add** tracking, analytics, cookies, third-party scripts, fonts or embeds (including Google Fonts and Google Maps), a framework, or a build step beyond `tools/ledger.py`.
+7. **Never add** tracking, analytics, cookies, third-party scripts, fonts or embeds (including Google Fonts and Google Maps), a framework, or a build step beyond `tools/ledger.py`. The only embed is the giving box on Support, which loads Zeffy only when a visitor opens it (section 3).
 8. **Never edit the generated pages** under `financials/` and `inventory/` by hand.
 9. **Never link to or mention the GitHub history on the site.**
 10. **Never add blue stripes resembling the Missionaries of Charity sari border, never use Mother Teresa's image, and never pair the logo with her name.**
 11. **Never edit or delete a ledger row in a closed month, reuse an id, or force a balance with a plug row.**
 12. **Never enter an online gift by hand, and never bring back the export import.** Online gifts are entered only by `tools/zeffy.py`, which checks the log first so no gift is entered twice. **Never write a donor's name, email address or home address to any file,** in the repo or out of it; they stay in Zeffy (section 6).
-13. **Never add a donate button, a ledger category, or a menu item** without Dylan asking.
+13. **Never add a donate button, a ledger category, or a menu item** without Dylan asking. (He asked for the giving button and box on Support on Nov 21, 2026. Do not add giving buttons to other pages.)
 14. **Never publish where stock is stored.**
 15. **Never rewrite git history or force-push** without Dylan's explicit say-so (see section 9).
 16. **Never put private details in this file or in `CLAUDE.md`.** Both are public.
@@ -463,14 +469,14 @@ One online gift ($250.00, Nov 20) is entered and not yet paid out; Zeffy pays ou
 ## 9. In progress and undecided
 
 ### Needs a decision from Dylan
-- **The Support page says gifts can't be accepted yet, but the Zeffy donation form is live.** He has not said whether to link to it. Any change must follow the tax-status rule.
+- **The words on the Zeffy form differ from the site.** The campaign description in Zeffy says "ministry in Minneapolis" (the site says rooted in the Catholic faith, in the Twin Cities), lists food last (the site lists it first), says the only other costs are "the minimum administrative fees the law requires" (the site, after JM's question, says the essentials such as fees, insurance and the website), and says gifts made now "would be deductible" if the IRS approves (the site says only that it cannot say). It can only be edited in the Zeffy dashboard. He was told Nov 21, 2026.
 - **The financial statement sent to the Attorney General** ran through Nov 20, 2026 and shows contributions of $1,080.90. The ledger now also shows a $250.00 online gift dated the evening of Nov 20, which was not in it. It does not affect the exemption. He was told and has not replied.
 - **A director's name is in the repo's public git history.** The first version of the ledger, live for about half an hour on Nov 20, 2026, named the donor on the opening rows. Removing it means rewriting history; he was told and has not asked for it.
 - **The published minutes** name one person who is not a director and give a director's background. He was told and has not asked for a change.
 - **Tenet 1 on the site** no longer mentions fear or safety, though its title is "Fearless without being careless". JM deleted the sentence; Dylan was asked whether that was intended and has not said.
 - **The home page's opening statement** is 1.35rem on desktop (his choice) and 1.42rem on phones. Offered to align; no answer.
 - **Whether donated goods count toward the Form 990-N gross receipts figure.** The script assumes they do. He has not confirmed.
-- **Telling donors their gift is listed.** With the hourly sync, a gift appears in the public ledger within the hour, by date and amount and without a name. With few donors, someone who knows a person gave that day can see the amount. A line on the Zeffy form saying so was suggested Nov 21, 2026; he has not decided.
+- **Telling donors their gift is listed.** With the hourly sync, a gift appears in the public ledger within the hour, by date and amount and without a name. With few donors, someone who knows a person gave that day can see the amount. The Support page says so since Nov 21, 2026. The Zeffy form itself does not; adding a line there was suggested and he has not decided.
 - **A budget file** for actual-versus-budget reports (the spec raised it for 2027). Not built.
 - **Inventory ideas he heard but did not choose:** a "loaded minus returned" tally per outreach; a monthly stock count shown like the monthly bank check; driving the Support page's "items we need" list from target stock levels.
 
@@ -482,11 +488,12 @@ One online gift ($250.00, Nov 20) is entered and not yet paid out; Zeffy pays ou
 - **Bylaws and the conflict-of-interest policy:** drafted, not adopted. When adopted and signed, publish them (the Info page has a Bylaws placeholder) and list the adopting action on the Board Actions page.
 - **Minnesota sales tax exemption** and **insurance quotes:** not started.
 - **An acknowledgment letter** to the director who gave, covering the formation gifts, the cheque, the online gift and the goods, signed by the president.
+- **The giving box on Support has not been seen working by the session that built it.** Zeffy's bot check stopped the session's browser, so only the page around the form was checked. Dylan was asked on Nov 21, 2026 to open the form on a computer and a phone and to say whether 640 px is tall enough.
 - **The Distribution Log form** has been filled and checked on a Mac only. Dylan was asked to try it in Adobe Reader and on a phone.
 - **The first filled Distribution Log form.** No outreach has been recorded yet.
 
 ### Placeholders on the site, to fill when the thing exists
-Impact Updates; Newsletters; Orientation Video for New Volunteers; What a Volunteer Day Looks Like; Participant Waiver; the organization's own volunteer sign-up and schedule (to replace the legacy SignUpGenius links and their note); Quarterly Financial Reports; Bylaws; Guiding Principles; Organization Policies; Annual Tax Returns; the Non-Monetary Donations list and the donor video on the Support page. An optional `/about/` page with a longer statement of the tenets was once planned; do not build it unless asked.
+Impact Updates; Newsletters; Orientation Video for New Volunteers; What a Volunteer Day Looks Like; Participant Waiver; the organization's own volunteer sign-up and schedule (to replace the legacy SignUpGenius links and their note); Quarterly Financial Reports; Bylaws; Guiding Principles; Organization Policies; Annual Tax Returns; the Non-Monetary Donations list and the donor video on the Support page (giving online is live there). An optional `/about/` page with a longer statement of the tenets was once planned; do not build it unless asked.
 
 ### Small things a new session might trip on
 - The tagline is a trial and may change.
