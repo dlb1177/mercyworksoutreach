@@ -571,7 +571,9 @@ ul.plain li { margin: 0 0 0.6em; }
    gives every row its place under each other order (--o oldest first, --a largest
    amount, --s smallest amount, --c by category, --p by counterparty), and writes the
    category and year filter rules into the page itself. A browser too old for :has()
-   shows no choices, only the ledger, newest first. */
+   shows no choices, only the ledger, newest first.
+   These rules apply only to a table with the class "sortable" (the General Ledger).
+   The other tables that share the class "ledger" stay ordinary tables. */
 
 .ledger-controls, .ledger-help { display: none; }
 
@@ -621,46 +623,46 @@ ul.plain li { margin: 0 0 0.6em; }
   .choices-reset button:hover { color: var(--deep-blue); }
 
   /* Which order. --k is the place of a row; 0 for every row leaves the page's own order. */
-  .fin:has([name="sort"][value="old"]:checked) .ledger tbody tr { --k: var(--o); }
-  .fin:has([name="sort"][value="big"]:checked) .ledger tbody tr { --k: var(--a); }
-  .fin:has([name="sort"][value="small"]:checked) .ledger tbody tr { --k: var(--s); }
-  .fin:has([name="sort"][value="cat"]:checked) .ledger tbody tr { --k: var(--c); }
-  .fin:has([name="sort"][value="who"]:checked) .ledger tbody tr { --k: var(--p); }
+  .fin:has([name="sort"][value="old"]:checked) .sortable tbody tr { --k: var(--o); }
+  .fin:has([name="sort"][value="big"]:checked) .sortable tbody tr { --k: var(--a); }
+  .fin:has([name="sort"][value="small"]:checked) .sortable tbody tr { --k: var(--s); }
+  .fin:has([name="sort"][value="cat"]:checked) .sortable tbody tr { --k: var(--c); }
+  .fin:has([name="sort"][value="who"]:checked) .sortable tbody tr { --k: var(--p); }
 
   /* What to show */
-  .fin:has([name="show"][value="in"]:checked) .ledger tr[data-kind]:not([data-kind="in"]),
-  .fin:has([name="show"][value="out"]:checked) .ledger tr[data-kind]:not([data-kind="out"]),
-  .fin:has([name="show"][value="transfer"]:checked) .ledger tr[data-kind]:not([data-kind="transfer"]) { display: none; }
+  .fin:has([name="show"][value="in"]:checked) .sortable tr[data-kind]:not([data-kind="in"]),
+  .fin:has([name="show"][value="out"]:checked) .sortable tr[data-kind]:not([data-kind="out"]),
+  .fin:has([name="show"][value="transfer"]:checked) .sortable tr[data-kind]:not([data-kind="transfer"]) { display: none; }
 
   /* Month headings belong to the whole ledger in date order, and a running balance to date order */
-  .fin:has(.ledger-controls input:not([value="new"], [value="old"], [value="all"]):checked) .ledger tr.group,
-  .fin:has([name="sort"]:not([value="new"], [value="old"]):checked) .ledger .bal { display: none; }
+  .fin:has(.ledger-controls input:not([value="new"], [value="old"], [value="all"]):checked) .sortable tr.group,
+  .fin:has([name="sort"]:not([value="new"], [value="old"]):checked) .sortable .bal { display: none; }
   .ledger-help { display: block; }
 
   /* A row reached by a link from another page (ledger.html#r2026-004) is tinted */
-  .ledger tr:has(:target) td { background: var(--mist); }
+  .sortable tr:has(:target) td { background: var(--mist); }
 
   /* Rows of a table cannot be reordered, so on a wide screen the table is laid out as a grid... */
   @media (min-width: 761px) {
-    .ledger {
+    .sortable {
       display: grid;
       grid-template-columns: max-content minmax(12em, 1.7fr) minmax(8em, 1fr) minmax(8em, 1fr) max-content max-content max-content;
     }
-    .fin:has([name="sort"]:not([value="new"], [value="old"]):checked) .ledger {
+    .fin:has([name="sort"]:not([value="new"], [value="old"]):checked) .sortable {
       grid-template-columns: max-content minmax(12em, 1.7fr) minmax(8em, 1fr) minmax(8em, 1fr) max-content max-content;
     }
-    .ledger thead, .ledger tbody, .ledger tr { display: contents; }
-    .ledger th, .ledger td { order: var(--k, 0); }
-    .ledger thead th { order: -1000000; }
-    .ledger tr.group th { grid-column: 1 / -1; }
+    .sortable thead, .sortable tbody, .sortable tr { display: contents; }
+    .sortable th, .sortable td { order: var(--k, 0); }
+    .sortable thead th { order: -1000000; }
+    .sortable tr.group th { grid-column: 1 / -1; }
   }
   /* ...and on a narrow one, where each row is already a block, as a column of blocks */
   @media (max-width: 760px) {
     .ledger-controls { padding: 14px 14px 10px; }
     .choices-label { flex-basis: 100%; }
-    .ledger { display: flex; flex-direction: column; }
-    .ledger tbody { display: contents; }
-    .ledger tr { order: var(--k, 0); }
+    .sortable { display: flex; flex-direction: column; }
+    .sortable tbody { display: contents; }
+    .sortable tr { order: var(--k, 0); }
   }
 }
 

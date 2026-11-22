@@ -25,7 +25,7 @@ Read this before making any change to this repo. It is written so that a session
 
 **First commands** (all from the repo root; Python 3 standard library only, nothing to install):
 ```
-python3 -m unittest tools/test_ledger.py tools/test_zeffy.py    24 tests, should all pass
+python3 -m unittest tools/test_ledger.py tools/test_zeffy.py    25 tests, should all pass
 python3 tools/ledger.py check                                    should print "check passed"
 python3 tools/ledger.py summary                                  the books at a glance
 ```
@@ -245,7 +245,7 @@ financials/donated-goods.csv      the gift log: id (G2026-001), date, descriptio
                                   valuation_basis, donor_type, document
 financials/donated-goods/<id>.pdf     redacted support for a gift, named by its first line's id
 inventory/items.csv               item, unit, category
-inventory/stock-log.csv           id (S2026-001), date, item, type (received | distributed | adjustment),
+inventory/stock-log.csv           id (S2026-001), date, item, type (received | distributed | packed | adjustment),
                                   quantity, on_hand, ref, note
 impact/distribution-log.csv       one row per outreach: date, area, volunteers, people_served_estimate, items
                                   (area is a general neighborhood, never an exact place; never names or photos)
@@ -256,8 +256,8 @@ financials/index.html             Financial Ledger: summary of the latest year
 financials/YYYY.html              the same summary for each year
 financials/ledger.html            General Ledger: every transaction, newest first, with choices to sort and filter
 financials/donated-goods.html     Donated Goods: every gift of goods
-inventory/index.html              Inventory: received, given out and on hand for each item
-inventory/log.html                Stock Log: every movement
+inventory/index.html              Inventory: added, given out and on hand for each item that can be given out
+inventory/log.html                Stock Log: the movements of those items
 ```
 Always read and write the CSV files with Python's `csv` module (some text contains commas).
 
@@ -295,7 +295,7 @@ python3 tools/ledger.py support     public support percentage; reads Books/donor
 | 10 | Privacy: no email addresses, phone numbers, runs of 9 or more digits, or directors' names in the public CSVs and generated pages; a donor is named only if opted in |
 | 11 | Nothing under `Books/`, `Document_Inbox/` or `Formation_Docs/` is tracked by git, and `.gitignore` lists all three |
 | 12 | Stock log: ids, dates, items and types valid; received positive, distributed negative; each on-hand count adds up and never goes below zero; an adjustment has a note |
-| 13 | Stock links: goods received trace to a gift or a ledger purchase and add up to the quantity given; goods distributed trace to an outreach on that date |
+| 13 | Stock links: goods received trace to a gift or a ledger purchase and add up to the quantity given; goods distributed trace to an outreach on that date; goods packed point to the row for the packs they went into |
 
 Warnings (printed, do not fail): contributions over $20,000 in a year (Attorney General registration is required within 30 days of passing $25,000); gross receipts over $40,000 (Form 990-N is for $50,000 or less); any Fundraising row; `Books/donors.csv` not on this machine.
 
@@ -322,14 +322,19 @@ python3 -m unittest tools/test_ledger.py tools/test_zeffy.py
   - Sorting moves rows on the screen only. A screen reader still reads them newest first, whatever sort is chosen; the filters do apply to it. Checked on the live page Nov 21, 2026.
   - The id that other pages link to (`ledger.html#r2026-004`) is on the row's date cell, not the row, so the link still scrolls there.
   - **What CSS cannot do:** search by words, totals of what is shown, or a message when nothing matches. Those would need JavaScript; the CSV download is there for anyone who wants their own totals. Do not add a script for them unless Dylan asks.
+  - The rules apply only to the table with the class `sortable`. They were first written for `.ledger`, a class the Stock Log and Donated Goods tables share, which put the Stock Log's columns out of line on wide screens from the evening of Nov 21 until it was caught and fixed on Nov 22, 2026. Give a new table the class `sortable` only if `tools/ledger.py` also writes the choices and the row places for it.
   - Checked in Chrome at desktop and phone widths (every sort and filter, by a script that reads where each row lands). Not checked in Safari or Firefox by the session that built it; Dylan was asked to try it on his iPhone.
   - The Donated Goods and Stock Log pages still list the newest month first with the oldest row first inside each month. He asked only for the General Ledger.
 
 ### The Distribution Log form, and stock
 - The form is one page, fillable, and deliberately generic: it lists no stock items, so it never changes when the inventory does. Volunteers fill one in after each outreach and Dylan passes it on.
-- **When a filled form arrives:** add one row to `impact/distribution-log.csv`; add one `distributed` row to the stock log for each item on the form that is a stock item (match the volunteer's wording to `inventory/items.csv`; ask Dylan if a match is unclear). Things that are not stock items, such as sandwiches made that morning, go only in the distribution log's `items` text. Then `check` and `build`. The filled form itself is not published.
+- **Stock is given out as packages (Dylan, Nov 22, 2026).** He packed everything on hand into Winter Comfort Care Packages and wants the site to show packages, not loose items, because it is easier and it scales. From now on an outreach records **the number of packages given out**, as one line, and not the things inside them.
+- **When a filled form arrives:** add one row to `impact/distribution-log.csv`; add one `distributed` row to the stock log for each item on the form that is a stock item, which today means one row for `Winter Comfort Care Package` with the number given out (match the volunteer's wording to `inventory/items.csv`; ask Dylan if a match is unclear). Things that are not stock items, such as sandwiches made that morning, go only in the distribution log's `items` text. Then `check` and `build`. The filled form itself is not published.
 - **When goods arrive:** a gift gets one gift-log line per kind of item and a `received` row in the stock log; a purchase gets its ledger row and a `received` row pointing to it. Add a new kind of item to `inventory/items.csv` first.
 - A count that differs from the book is an `adjustment` row with a note. Never edit old rows to make a count fit.
+- **Packing loose goods into packages.** Add the package to `inventory/items.csv` if it is new. In the stock log, on the day of packing, add one `packed` row for the packages made (positive quantity, ref blank, the note saying what goes in each) and under it one `packed` row for each item used (negative quantity, ref set to the id of the row for the packages). Nothing already in the log is changed or removed, so every package still traces back through its contents to the gift or purchase (rule 13). If the same packages are made again later from new goods, do the same again.
+- **What the pages list.** The Inventory and Stock Log pages list only what can be given out or has been: an item whose whole stock went into packages, or that has never moved, is left off both pages, and so are its rows. Dylan asked that the site not show the loose items or the packing. A row for packages made shows as "Packed", with a link to where its contents came from (Donated goods, purchases, or both); its note is not shown. **The downloadable `stock-log.csv` and the Donated Goods page are not trimmed:** the file is the full record, and Donated Goods is the record of what was given, item by item, with its value and invoice. Dylan was told this on Nov 22, 2026.
+- The Inventory page's first number column is "Added" (received plus packed), so that Added less Given out, plus any adjustment, is On hand.
 - The form is made by `tools/mac/make-distribution-form.py`: Chromium prints the page to PDF, then the script appends a standard PDF form (AcroForm) in plain Python. Set the `CHROME` environment variable to a Chromium binary; only its last, optional checking step needs a Mac.
 
 ### Monthly close
@@ -358,7 +363,7 @@ Close each month within 15 days of the statement date, even a quiet month; the r
 - Online gifts are entered by the daily sync, so this snapshot goes out of date; `ledger.py summary` and `zeffy.py status` are always current.
 - **General ledger: 8 rows.** Six opening rows (three paid-directly pairs for the $395.90 of formation fees), the $100.00 opening deposit by check (2026-007), and a $250.00 gift given online (2026-008, method `zeffy`). Received $745.90, spent $395.90, balance $350.00: **cash in the bank $100.00, payout receivable $250.00.** All four receipts are published.
 - **No month has been closed.** No bank statement has arrived. When the November statement comes, confirm the posting date of the $100.00 deposit against it (it was made at 4:03 p.m. on Friday, Nov 20) before closing.
-- **Gift log: 4 lines**, $585.00 of goods given Nov 20, 2026, with the redacted invoice. **Stock: 500 units on hand** (100 hand sanitizers, 100 emergency blankets, 200 hand-warmer 2-packs, 100 winter sets). Nothing has been given out, so the distribution log is empty.
+- **Gift log: 4 lines**, $585.00 of goods given Nov 20, 2026, with the redacted invoice. **Stock: 100 Winter Comfort Care Packages on hand,** packed on Nov 22, 2026 from everything that was in stock (100 hand sanitizers, 100 emergency blankets, 100 winter sets and 200 hand-warmer 2-packs: one of each in a package, and two of the hand warmers). No loose items are left. Nothing has been given out, so the distribution log is empty.
 - Every gift so far, cash and goods, came from one director.
 
 ---
@@ -496,7 +501,8 @@ One online gift ($250.00, Nov 20) is entered and not yet paid out; Zeffy pays ou
 - **Minnesota sales tax exemption** and **insurance quotes:** not started.
 - **An acknowledgment letter** to the director who gave, covering the formation gifts, the cheque, the online gift and the goods, signed by the president.
 - **The Distribution Log form** has been filled and checked on a Mac only. Dylan was asked to try it in Adobe Reader and on a phone.
-- **The first filled Distribution Log form.** No outreach has been recorded yet.
+- **The first filled Distribution Log form.** No outreach has been recorded yet. It should come back with one line for packages given out.
+- **The date the packages were made** was entered as Nov 22, 2026, the day Dylan said they were done. He was asked to say if it was another day.
 
 ### Placeholders on the site, to fill when the thing exists
 Impact Updates; Newsletters; Orientation Video for New Volunteers; What a Volunteer Day Looks Like; Participant Waiver; the organization's own volunteer sign-up and schedule (to replace the legacy SignUpGenius links and their note); Quarterly Financial Reports; Bylaws; Guiding Principles; Organization Policies; Annual Tax Returns; the Non-Monetary Donations list and the donor video on the Support page (giving online is live there). An optional `/about/` page with a longer statement of the tenets was once planned; do not build it unless asked.

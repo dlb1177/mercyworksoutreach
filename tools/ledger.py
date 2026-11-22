@@ -55,7 +55,16 @@ What check verifies (the numbers are the rule numbers printed with each problem)
                          above plus its quantity, and never below zero
   13 Stock links         goods received trace to a donated-goods line or a purchase in
                          the ledger, and add up to the quantity donated; goods
-                         distributed trace to an outreach in the distribution log
+                         distributed trace to an outreach in the distribution log;
+                         goods packed point to the row for the packs they went into
+
+Packing. When loose goods are packed into packages (say, care packages), the stock log
+gets one "packed" row for the packages made (a positive quantity, no ref) and, under
+it, one "packed" row for each item used (a negative quantity, ref set to the id of the
+row for the packages). Nothing is deleted: the goods are still traced from the gift
+or purchase, through the pack, to the outreach. The Inventory and Stock Log pages
+list only what can be given out, so an item whose whole stock went into packages is
+no longer listed there; the stock log file keeps every row.
 
 The method column says where the money moved:
   bank            on the bank statement
@@ -111,7 +120,8 @@ ITEMS = "inventory/items.csv"
 ITEM_COLS = ["item", "unit", "category"]
 STOCK = "inventory/stock-log.csv"
 STOCK_COLS = ["id", "date", "item", "type", "quantity", "on_hand", "ref", "note"]
-STOCK_TYPES = {"received": "Received", "distributed": "Given out", "adjustment": "Adjustment"}
+STOCK_TYPES = {"received": "Received", "distributed": "Given out", "packed": "Packed", "adjustment": "Adjustment"}
+NO_MOVES = {"received": 0, "distributed": 0, "packed": 0, "adjustment": 0}
 FUNCTIONS = ["Program", "Management and general", "Fundraising"]
 
 MONEY = re.compile(r"^-?\d+\.\d{2}$")
@@ -169,7 +179,8 @@ class Books:
         self.items = {}                 # item -> (unit, category), in file order
         self.stock = []                 # stock movements, in file order
         self.on_hand = {}               # item -> units on hand now
-        self.moved = {}                 # item -> {"received": n, "distributed": n, "adjustment": n}
+        self.moved = {}                 # item -> {"received": n, "distributed": n, "packed": n, "adjustment": n}
+        self.packs = {}                 # id of a row for packs made -> that row; its "_parts" are the rows for the goods used
         self.pending_receipts = set()   # ids whose receipt file is not there yet
 
     def problem(self, rule, where, message, fix, code=""):
@@ -325,7 +336,7 @@ class Books:
                 self.problem(12, where, 'The item "%s" is not in inventory/items.csv.' % r["item"], "Use an item from inventory/items.csv, spelled exactly, or add the item there first.")
                 continue
             if r["type"] not in STOCK_TYPES:
-                self.problem(12, where, 'The type "%s" is not received, distributed or adjustment.' % r["type"], "Use received, distributed or adjustment.")
+                self.problem(12, where, 'The type "%s" is not received, distributed, packed or adjustment.' % r["type"], "Use received, distributed, packed or adjustment.")
                 continue
             if qty is None or qty == 0 or have is None:
                 self.problem(12, where, "The quantity and on_hand must be whole numbers, and the quantity cannot be 0.", "Write whole numbers of units, such as 100 or -20.")
@@ -338,7 +349,7 @@ class Books:
             elif have < 0:
                 self.problem(12, where, "The on_hand would go below zero.", "More was given out than was on hand. Find the missing receipt of stock, or correct the count.")
             self.on_hand[r["item"]] = have
-            totals = self.moved.setdefault(r["item"], {"received": 0, "distributed": 0, "adjustment": 0})
+            totals = self.moved.setdefault(r["item"], dict(NO_MOVES))
             totals[r["type"]] += qty
             if r["type"] == "adjustment" and not r["note"]:
                 self.problem(12, where, "An adjustment needs a note saying why.", "Fill note, such as \"Count on 2027-01-31 found 3 fewer\".")
@@ -354,8 +365,22 @@ class Books:
             elif r["type"] == "distributed":
                 if r["ref"] != r["date"] or r["date"] not in self.outreach:
                     self.problem(13, where, "Goods given out must point to an outreach on the same date in the distribution log.", "Add the outreach to impact/distribution-log.csv and set ref to its date.")
+            elif r["type"] == "packed" and qty > 0:
+                r["_parts"] = []
+                self.packs[r["id"]] = r
+                if r["ref"]:
+                    self.problem(13, where, "A row for packs made has no ref.", "Leave ref blank. The rows for the goods used point to this row.")
+            elif r["type"] == "packed":
+                made = self.packs.get(r["ref"])
+                if made is None or made["date"] != r["date"]:
+                    self.problem(13, where, "Goods packed must point to the row for the packs they went into, entered above them on the same date.", "Set ref to the id of the packed row with the positive quantity.")
+                else:
+                    made["_parts"].append(r)
             elif r["ref"]:
                 self.problem(13, where, "An adjustment has no ref.", "Leave ref blank and explain the adjustment in note.")
+        for made in self.packs.values():
+            if not made["_parts"]:
+                self.problem(13, made["_where"], "Packs were made but no goods went into them.", "Under this row, add a packed row with a negative quantity for each item used, with ref set to %s." % made["id"])
         for gid, got in received_for.items():
             g = self.goods_by_id[gid]
             if g["quantity"].isdigit() and int(g["quantity"]) != got:
@@ -372,6 +397,15 @@ class Books:
     @staticmethod
     def is_reversal(row):
         return bool(row["ref"]) and row["description"].startswith("Reverses")
+
+    def listed(self, item):
+        """Whether the Inventory and Stock Log pages list this item.
+
+        They list what can be given out or has been. An item that has never moved, or
+        whose whole stock went into packs, is left off; the stock log file keeps it.
+        """
+        m = self.moved.get(item)
+        return bool(m) and bool(m["received"] + m["packed"] or m["distributed"] or m["adjustment"])
 
     def is_spending(self, row):
         """A money-out row: negative, in an "out" category."""
@@ -984,7 +1018,7 @@ def render_ledger(books):
         w('        <p class="choices-reset"><button type="reset">Back to everything, newest first</button></p>')
         w('      </form>')
         w('')
-    w('      <table class="fin-table ledger stack" role="table">')
+    w('      <table class="fin-table ledger stack sortable" role="table">')
     w('        <thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col">Date</th><th role="columnheader" scope="col">Description</th><th role="columnheader" scope="col">Category</th><th role="columnheader" scope="col">Counterparty</th><th role="columnheader" scope="col" class="num">Amount</th><th role="columnheader" scope="col" class="num bal">Balance</th><th role="columnheader" scope="col">Receipt</th></tr></thead>')
     for ym in months:
         w('        <tbody role="rowgroup">')
@@ -1028,7 +1062,7 @@ def render_ledger(books):
         w('      <p class="note"><strong>Given online.</strong> Online gifts are collected by Zeffy, our donation platform, and paid out to the bank account later. A gift is recorded on the day it is given. Until the payout arrives it is part of the balance but not yet cash in the bank.</p>')
 
     # The rules that depend on what is in the ledger: one per category and one per year.
-    hide = '.fin:has([name="%s"][value="%s"]:checked) .ledger tr[data-%s]:not([data-%s="%s"]) { display: none; }'
+    hide = '.fin:has([name="%s"][value="%s"]:checked) .sortable tr[data-%s]:not([data-%s="%s"]) { display: none; }'
     rules = [hide % ("cat", slug(c), "cat", "cat", slug(c)) for c in categories if len(categories) > 1]
     rules += [hide % ("year", y, "year", "year", y) for y in years if len(years) > 1]
     style = ""
@@ -1096,25 +1130,27 @@ def render_inventory(books):
     w('      <p class="fin-lead">What Mercy Works Outreach has on hand to give out, and what has already gone out.</p>')
     if books.stock:
         w('      <p class="fin-status">As of %s.</p>' % long_date(books.stock[-1]["d"]))
-    adjusted = any(m["adjustment"] for m in books.moved.values())
+    adjusted = any(m["adjustment"] for item, m in books.moved.items() if books.listed(item))
     w('')
     w('      <table class="fin-table totals">')
-    w('        <thead><tr><th scope="col">Item</th><th scope="col" class="num">Received</th><th scope="col" class="num">Given out</th>%s<th scope="col" class="num">On hand</th></tr></thead>' % ('<th scope="col" class="num">Adjusted</th>' if adjusted else ''))
+    w('        <thead><tr><th scope="col">Item</th><th scope="col" class="num">Added</th><th scope="col" class="num">Given out</th>%s<th scope="col" class="num">On hand</th></tr></thead>' % ('<th scope="col" class="num">Adjusted</th>' if adjusted else ''))
     w('        <tbody>')
-    for item, (unit, _category) in books.items.items():
-        m = books.moved.get(item, {"received": 0, "distributed": 0, "adjustment": 0})
+    listed = [item for item in books.items if books.listed(item)]
+    for item in listed:
+        unit = books.items[item][0]
+        m = books.moved[item]
         adj = '<td class="num">%s</td>' % signed(m["adjustment"]) if adjusted else ''
         w('          <tr><td>%s <span class="rowid">%s</span></td><td class="num">%s</td><td class="num">%s</td>%s<td class="num"><strong>%s</strong></td></tr>' % (
-            esc(item), esc(unit), "{:,}".format(m["received"]), "{:,}".format(-m["distributed"]), adj, "{:,}".format(books.on_hand.get(item, 0))))
+            esc(item), esc(unit), "{:,}".format(m["received"] + m["packed"]), "{:,}".format(-m["distributed"]), adj, "{:,}".format(books.on_hand.get(item, 0))))
     w('        </tbody>')
     w('      </table>')
-    if not books.items:
+    if not listed:
         w('      <p class="note">Nothing is in stock yet.</p>')
 
-    n = len(books.stock)
+    n = len([r for r in books.stock if books.listed(r["item"])])
     w('')
-    w('      <h2 id="log">Every movement</h2>')
-    w('      <p>The stock log lists everything that has come in and gone out. Goods come in as <a href="../financials/donated-goods.html">donated goods</a> or as purchases in the <a href="../financials/ledger.html">general ledger</a>, and go out at each outreach.</p>')
+    w('      <h2 id="log">Stock log</h2>')
+    w('      <p>The stock log lists what has been added to stock and what has gone out. Goods come in as <a href="../financials/donated-goods.html">donated goods</a> or as purchases in the <a href="../financials/ledger.html">general ledger</a>, and go out at each outreach.</p>')
     w('      <ul class="rows">')
     w('        <li><a href="log.html">Stock Log</a> <span class="meta">%d %s</span></li>' % (n, "entry" if n == 1 else "entries"))
     w('      </ul>')
@@ -1132,13 +1168,13 @@ def signed(n):
 
 
 def render_stock_log(books):
-    """The Stock Log page: every movement of stock, newest month first."""
-    rows = books.stock
+    """The Stock Log page: the movements of every listed item, newest month first."""
+    rows = [r for r in books.stock if books.listed(r["item"])]
     ledger_ids = {r["id"] for r in books.rows}
     o = []
     w = o.append
     w('      <h1 class="title">Stock Log</h1>')
-    w('      <p class="fin-lead">Everything that has come into stock and gone out, newest month first.</p>')
+    w('      <p class="fin-lead">What has been added to stock and what has gone out, newest month first.</p>')
     w('      <p class="fin-status"><a href="./">Back to the inventory</a> &middot; <a href="stock-log.csv">Download as CSV</a></p>')
     w('')
     w('      <table class="fin-table ledger stack">')
@@ -1155,9 +1191,21 @@ def render_stock_log(books):
                 where = '<a href="../financials/ledger.html#r%s">Purchase</a>' % esc(r["ref"])
             elif r["type"] == "distributed":
                 where = "Outreach: %s" % esc(books.outreach[r["date"]]["area"])
+            elif r["type"] == "packed" and r["qty"] > 0:
+                # where the goods in the packs came from
+                used = {p["item"] for p in r["_parts"]}
+                refs = {x["ref"] for x in books.stock if x["type"] == "received" and x["item"] in used}
+                came = []
+                if refs & set(books.goods_by_id):
+                    came.append('<a href="../financials/donated-goods.html">Donated goods</a>')
+                if refs & ledger_ids:
+                    came.append('<a href="../financials/ledger.html">%s</a>' % ("purchases" if came else "Purchases"))
+                where = " and ".join(came)
+            elif r["type"] == "packed":
+                where = "Packed into: %s" % esc(books.packs[r["ref"]]["item"])
             else:
                 where = ""
-            note = '<span class="paid-note">%s</span>' % esc(r["note"]) if r["note"] else ""
+            note = '<span class="paid-note">%s</span>' % esc(r["note"]) if r["note"] and r["type"] != "packed" else ""
             w('          <tr id="s%s">' % esc(r["id"]))
             w('            ' + date_cell(r))
             w('            <td class="desc">%s</td>' % esc(r["item"]))
@@ -1170,7 +1218,7 @@ def render_stock_log(books):
     w('      </table>')
     if not rows:
         w('      <p class="note">Nothing has moved yet.</p>')
-    description = "Every movement of Mercy Works Outreach stock: what came in, what went out, and what is on hand."
+    description = "Mercy Works Outreach stock: what came in, what went out, and what is on hand."
     return HEAD.format(title="Stock Log", description=description, canonical="inventory/log.html", page_class=" page-wide") + "\n".join(o) + "\n" + FOOT
 
 
@@ -1258,7 +1306,7 @@ def cmd_summary(root, year):
     print("  Contributions year to date, cash and goods: %s  (Attorney General registration at $25,000)" % money(t["by_cat"].get("Contributions", ZERO) + t["goods_value"]))
     print("  Form 990-N: gross receipts must normally be $50,000 or less; now %s" % money(t["received"] + t["goods_value"]))
     if books.on_hand:
-        print("  On hand: " + "; ".join("%s %d" % (k, v) for k, v in books.on_hand.items()))
+        print("  On hand: " + ("; ".join("%s %d" % (k, v) for k, v in books.on_hand.items() if v) or "nothing"))
     print()
     print_report(books, books.problems)
     if not books.problems and not books.warnings:

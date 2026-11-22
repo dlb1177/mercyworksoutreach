@@ -73,7 +73,7 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual("0.00", str(t["by_fn"]["Fundraising"]))
         self.assertEqual("96.00", str(t["goods_value"]))
         self.assertEqual({"Blanket": 5, "Winter coat": 7}, books.on_hand)
-        self.assertEqual({"received": 10, "distributed": -4, "adjustment": -1}, books.moved["Blanket"])
+        self.assertEqual({"received": 10, "distributed": -4, "packed": 0, "adjustment": -1}, books.moved["Blanket"])
 
     # ---- one or more broken fixtures for each rule ----
 
@@ -170,7 +170,7 @@ class LedgerTests(unittest.TestCase):
             # newest first, with the choices to sort and filter and the rules that go with them
             self.assertLess(page.index('id="r2030-010"'), page.index('id="r2030-001"'))
             for expected in ('name="sort" value="new" checked', 'name="show" value="out"', 'name="cat" value="food"',
-                             '.fin:has([name="cat"][value="food"]:checked) .ledger tr[data-cat]:not([data-cat="food"])',
+                             '.fin:has([name="cat"][value="food"]:checked) .sortable tr[data-cat]:not([data-cat="food"])',
                              'data-kind="out" data-cat="food" data-year="2030"', 'type="reset"'):
                 self.assertIn(expected, page)
             self.assertNotIn('name="year"', page)       # one year, so no choice of year
@@ -191,6 +191,37 @@ class LedgerTests(unittest.TestCase):
             # the pages it wrote pass the privacy scan too
             again = ledger.run_check(root)
             self.assertEqual([], [str(p) for p in again.problems])
+        finally:
+            ledger.run_check = lambda r, tracked=None: ledger.Books(r, tracked).run()
+
+    def test_goods_packed_into_packages_leave_the_pages_but_not_the_log(self):
+        root = self.repo()
+        items = root / "inventory" / "items.csv"
+        items.write_text(items.read_text() + "Socks,pairs,Clothing and blankets\nComfort pack,packs,Clothing and blankets\n")
+        log = root / "inventory" / "stock-log.csv"
+        log.write_text(log.read_text() +
+                       "S2030-006,2030-03-02,Socks,received,5,5,2030-004,\n"
+                       "S2030-007,2030-03-03,Comfort pack,packed,5,5,,One pair of socks and one coat in each\n"
+                       "S2030-008,2030-03-03,Socks,packed,-5,0,S2030-007,\n"
+                       "S2030-009,2030-03-03,Winter coat,packed,-5,2,S2030-007,\n")
+        ledger.run_check = lambda r, tracked=None: ledger.Books(r, CLEAN_TRACKED).run()
+        try:
+            books, blocking, written = ledger.build(root)
+            self.assertEqual([], [str(p) for p in blocking])
+            self.assertEqual({"Blanket": 5, "Winter coat": 2, "Socks": 0, "Comfort pack": 5}, books.on_hand)
+            page = (root / "inventory" / "index.html").read_text()
+            self.assertIn("<td>Comfort pack <span", page)
+            self.assertIn(">Added</th>", page)
+            self.assertNotIn("Socks", page)                     # all of it went into packs
+            self.assertIn("<td>Winter coat <span", page)        # some is still loose, and some was given out
+            self.assertIn("7 entries", page)                    # the two rows for socks are not counted
+            page = (root / "inventory" / "log.html").read_text()
+            self.assertNotIn("Socks", page)
+            self.assertNotIn("One pair of socks", page)
+            for expected in ("Packed", "Packed into: Comfort pack", "\u22125", "+5",
+                             '<a href="../financials/donated-goods.html">Donated goods</a> and <a href="../financials/ledger.html">purchases</a>'):
+                self.assertIn(expected, page)
+            self.assertIn("Socks", log.read_text())              # the file keeps every row
         finally:
             ledger.run_check = lambda r, tracked=None: ledger.Books(r, tracked).run()
 

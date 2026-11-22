@@ -15,7 +15,7 @@ Dylan Brown, CPA, is the founder and treasurer. He is not a web developer. Expla
 Run from the repo root. Python 3 standard library only; nothing to install.
 
 ```
-python3 -m unittest tools/test_ledger.py tools/test_zeffy.py   all tests (24)
+python3 -m unittest tools/test_ledger.py tools/test_zeffy.py   all tests (25)
 python3 tools/ledger.py check      check the books against all 13 rules; writes nothing
 python3 tools/ledger.py build      check, then rewrite the pages under financials/ and inventory/
 python3 tools/ledger.py summary    the books at a glance
@@ -46,6 +46,7 @@ The PDF redaction scripts in `tools/mac/` need macOS. Elsewhere, use another too
 - Publish only signed documents as executed. Check the signatures yourself.
 - Never link to or mention the GitHub history on the site.
 - Never edit a ledger row in a closed month, reuse an id, or force a balance. Enter rows with `ledger.add_rows()`.
+- Never change or remove a row of the stock log. Stock is given out as packages: packing and giving out are new rows (`context.md` section 5).
 - Never add a donate button, a ledger category or a menu item unless Dylan asks.
 - Never rewrite git history or force-push unless Dylan asks.
 - The full list is `context.md` section 8.
