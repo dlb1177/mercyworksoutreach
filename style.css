@@ -425,72 +425,10 @@ h2.label::before { display: none; }
   color: var(--slate);
 }
 
-/* Support page: the winter care kit appeal, in a Mist panel. The photo's own background
-   is Mist too, so it sits in the panel without an edge. */
+/* Support page. It is a wide page so the two campaigns can sit side by side;
+   the text keeps the width it has on every other page. */
 
-.kit {
-  margin: 0 0 40px;
-  padding: 38px 30px 26px;
-  background: var(--mist);
-  border-radius: 10px;
-  text-align: center;
-}
-.kit h2 {
-  margin: 0 auto;
-  max-width: 14em;
-  font-size: 2.5rem;
-  line-height: 1.12;
-  text-wrap: balance;
-}
-.kit h2::before { display: none; }
-.kit .hi { color: var(--mercy-blue); }
-.kit img { display: block; width: 100%; max-width: 560px; height: auto; margin: 26px auto 18px; }
-.kit-contents { margin: 0; font-size: 0.95rem; color: var(--slate); }
-.kit-goal {
-  margin: 20px 0 0;
-  font-family: var(--font-heading);
-  font-size: 1.5rem;
-  font-weight: 500;
-  line-height: 1.25;
-  color: var(--deep-blue);
-}
-.kit-progress {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 16px;
-  margin: 16px 0 0;
-  font-size: 0.86rem;
-  color: var(--slate);
-}
-.kit-progress-label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--mercy-blue);
-}
-.kit-bar { flex: 1 1 12em; height: 12px; border-radius: 999px; background: var(--white); overflow: hidden; }
-.kit-bar span { display: block; height: 100%; border-radius: 999px; background: var(--mercy-blue); }
-.kit-basis {
-  margin: 22px 0 0;
-  padding-top: 18px;
-  border-top: 1px solid var(--hairline);
-  font-size: 0.86rem;
-  line-height: 1.55;
-  color: var(--slate);
-  text-align: left;
-}
-
-@media (max-width: 600px) {
-  .kit { padding: 28px 18px 20px; }
-  .kit h2 { font-size: 1.95rem; }
-  .kit-goal { font-size: 1.3rem; }
-  .kit-bar { order: 3; flex-basis: 100%; }
-}
-
-/* Support page: giving online */
+.support > p { max-width: 636px; }
 
 .button {
   display: inline-block;
@@ -503,24 +441,62 @@ h2.label::before { display: none; }
 }
 .button:hover { background: var(--deep-blue); color: var(--white); }
 
-.give-action { margin: 24px 0 34px; }
-
-/* The box that holds Zeffy's giving form */
-.give-frame {
-  height: 640px;
-  background: var(--mist);
+/* One card for each campaign on Zeffy */
+.campaigns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin: 34px 0 30px;
+}
+.campaign {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--hairline);
   border-radius: 10px;
   overflow: hidden;
+  background: var(--white);
 }
-.give-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+.campaign-banner { display: block; width: 100%; height: auto; }
+.campaign-body { flex: 1 0 auto; padding: 24px 24px 4px; }
+.campaign h2 { margin: 0 0 12px; font-size: 1.6rem; line-height: 1.2; text-wrap: balance; }
+.campaign h2::before { display: none; }
+.campaign-basis { font-size: 0.86rem; line-height: 1.55; color: var(--slate); }
+/* Zeffy's own progress bar and giving form, in plain frames */
+.campaign-meter { height: 120px; margin: 0 12px; }
+.campaign-meter iframe, .give-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+.give-frame {
+  height: 640px;
+  margin: 0 12px;
+  background: var(--mist);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.campaign-link { margin: 0; padding: 14px 24px 18px; font-size: 0.9rem; text-align: center; }
 
-.give-notes { margin: 30px 0 0; padding: 0; list-style: none; }
+.give-all { margin: 0 0 12px; text-align: center; }
+.give-all p { margin: 0 0 14px; }
+.give-all .note { margin-top: 18px; }
+
+/* Under the campaigns: what to know before giving, and the other ways to help */
+.support-more { display: grid; grid-template-columns: 1fr 1fr; gap: 0 56px; align-items: start; }
+.support-more h2 { margin-top: 56px; }
+
+.give-notes { margin: 0; padding: 0; list-style: none; }
 .give-notes li {
   padding: 16px 0;
   border-bottom: 1px solid var(--hairline);
 }
 .give-notes li:first-child { border-top: 1px solid var(--hairline); }
 .give-notes strong { color: var(--deep-blue); }
+
+@media (max-width: 860px) {
+  .campaigns { grid-template-columns: 1fr; max-width: 560px; margin-left: auto; margin-right: auto; }
+  .support-more { grid-template-columns: 1fr; max-width: 636px; }
+}
+@media (max-width: 480px) {
+  .campaign-body { padding: 20px 18px 2px; }
+  .campaign-meter, .give-frame { margin: 0 6px; }
+}
 
 /* Financial Ledger page. Its HTML is written by tools/ledger.py. */
 

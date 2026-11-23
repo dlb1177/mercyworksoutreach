@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Support — Mercy Works Outreach</title>
-  <meta name="description" content="Ways to support Mercy Works Outreach, a volunteer-run ministry in the Twin Cities, including giving online.">
+  <meta name="description" content="Give to Mercy Works Outreach, a volunteer-run ministry in the Twin Cities: winter care kits for neighbors on the street, or help us launch.">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-  <div class="page">
+  <div class="page page-wide">
 
     <header class="masthead">
       <p class="logo"><a href="../"><img src="../logo.svg" alt="Mercy Works Outreach" width="230" height="217"></a></p>
@@ -30,57 +30,85 @@
       </nav>
     </header>
 
-    <main>
+    <main class="support">
       <h1 class="title">Support</h1>
 
-      <!-- The winter care kit appeal. The numbers here are typed by hand: when more kits are
-           packed, change "10% there", the bar's width, the count in the last line and the
-           date. The cost of a kit and the count come from the books (Donated Goods, Inventory). -->
-      <section class="kit" aria-labelledby="kit-title">
-        <h2 id="kit-title">Every <span class="hi">$5.85</span> gift buys one winter care kit.</h2>
-        <img src="winter-care-kit.jpg" width="1400" height="1144" alt="What is in a winter care kit, laid out side by side: two packs of hand warmers, a knit hat, a pair of gloves, a fleece scarf, an emergency thermal blanket and a small bottle of hand sanitizer.">
-        <p class="kit-contents">Hat &middot; gloves &middot; scarf &middot; hand warmers &middot; thermal blanket &middot; hand sanitizer</p>
-        <p class="kit-goal">Our goal: distribute <span class="hi">1,000 kits</span> to people in need this winter.</p>
-        <p class="kit-progress">
-          <span class="kit-progress-label">10% there</span>
-          <span class="kit-bar" aria-hidden="true"><span style="width: 10%"></span></span>
-          <span class="kit-progress-date">As of November 23, 2026</span>
-        </p>
-        <p class="kit-basis">100 kits are packed and ready to go out; our <a href="../inventory/">inventory</a> lists them as Winter Comfort Care Packages. $5.85 is what each one cost: $585.00 of goods for 100 kits, listed item by item under <a href="../financials/donated-goods.html">Donated Goods</a>.</p>
-      </section>
+      <p>Mercy Works Outreach is run entirely by volunteers. We pay no salaries and spend nothing on fundraising or advertising. We take gifts online through Zeffy, a donation platform that charges us no fees, so all of your gift reaches us. There are two campaigns you can give to.</p>
 
-      <p>Mercy Works Outreach is run entirely by volunteers. We pay no salaries and spend nothing on fundraising or advertising. Gifts pay for the food, clothing, blankets and hygiene items we hand out, and for the few essentials of running the ministry, such as the fees the law requires, insurance and the small cost of this website.</p>
+      <!-- The two campaigns, as they are on our Zeffy page. In each card the progress bar and the
+           giving form are Zeffy's own, shown in plain frames with no script, so the amounts raised
+           are always Zeffy's. The frame addresses come from each campaign's Share dialog in Zeffy
+           ("Thermometer" and "Embedded form"). The banners are our own copies of the campaign
+           banners. When a campaign is added, changed or closed in Zeffy, change its card here. -->
+      <div class="campaigns">
 
-      <h2 id="give">Give Online</h2>
-      <p>We take gifts online through Zeffy, a donation platform that charges us no fees, so all of your gift reaches us.</p>
-      <p class="give-action"><a class="button" href="https://www.zeffy.com/en-US/organizations/mercy-works-outreach" target="_blank" rel="noopener">Give on our Zeffy page</a></p>
+        <article class="campaign" aria-labelledby="campaign-kits">
+          <img class="campaign-banner" src="winter-kit-banner.jpg" width="1200" height="1200" alt="Every $5.85 gift buys one winter care kit. A kit laid out: two packs of hand warmers, a knit hat, a pair of gloves, a fleece scarf, an emergency thermal blanket and a small bottle of hand sanitizer. Our goal: distribute 1,000 kits to people in need this winter.">
+          <div class="campaign-body">
+            <h2 id="campaign-kits">Give 1,000 Winter Comfort Packages</h2>
+            <p>$5.85 puts a winter care kit in a neighbor&rsquo;s hands. This winter our goal is to hand out 1,000 kits, one person at a time, to neighbors living on the street. Gifts to this campaign buy winter care kits.</p>
+            <p class="campaign-basis">The first 100 are packed and in our <a href="../inventory/">inventory</a>. What they cost is listed under <a href="../financials/donated-goods.html">Donated Goods</a>.</p>
+          </div>
+          <div class="campaign-meter">
+            <iframe src="https://www.zeffy.com/embed/thermometer/give-1000-winter-comfort-packages" title="How much the winter care kit campaign has raised, provided by Zeffy" loading="lazy"></iframe>
+          </div>
+          <div class="give-frame">
+            <iframe src="https://www.zeffy.com/embed/donation-form/give-1000-winter-comfort-packages" title="Giving form for the winter care kit campaign, provided by Zeffy" allow="payment *" allowpaymentrequest loading="lazy"></iframe>
+          </div>
+          <p class="campaign-link"><a href="https://www.zeffy.com/donation-form/give-1000-winter-comfort-packages" target="_blank" rel="noopener">Open this campaign on Zeffy</a></p>
+        </article>
 
-      <p>Or give here, without leaving this site:</p>
-      <!-- Zeffy's giving form, shown in a plain frame with no script. The address comes from
-           the campaign's Share dialog in Zeffy ("Embedded form"). If the campaign changes,
-           change the address here. -->
-      <div class="give-frame">
-        <iframe src="https://www.zeffy.com/embed/donation-form/support-outreach-supply-costs" title="Donation form provided by Zeffy" allow="payment *" allowpaymentrequest></iframe>
+        <article class="campaign" aria-labelledby="campaign-launch">
+          <img class="campaign-banner" src="launch-banner.png" width="1200" height="1200" alt="Now launching: Mercy Works Outreach. Clothing, blankets, hygiene items, food. Minneapolis, Minnesota.">
+          <div class="campaign-body">
+            <h2 id="campaign-launch">Help Launch Mercy Works Outreach</h2>
+            <p>Your gift helps us launch. Gifts to this campaign pay for the food, clothing, blankets and hygiene items we hand out, and for the few essentials of running the ministry, such as the fees the law requires, insurance and the small cost of this website.</p>
+          </div>
+          <div class="campaign-meter">
+            <iframe src="https://www.zeffy.com/embed/thermometer/support-outreach-supply-costs" title="How much the launch campaign has raised, provided by Zeffy" loading="lazy"></iframe>
+          </div>
+          <div class="give-frame">
+            <iframe src="https://www.zeffy.com/embed/donation-form/support-outreach-supply-costs" title="Giving form for the launch campaign, provided by Zeffy" allow="payment *" allowpaymentrequest loading="lazy"></iframe>
+          </div>
+          <p class="campaign-link"><a href="https://www.zeffy.com/donation-form/support-outreach-supply-costs" target="_blank" rel="noopener">Open this campaign on Zeffy</a></p>
+        </article>
+
       </div>
-      <p class="note">The form above is provided by Zeffy and loads from zeffy.com.</p>
 
-      <ul class="give-notes">
-        <li><strong>Zeffy may suggest a tip.</strong> At checkout, Zeffy suggests an optional contribution to Zeffy itself. It does not come to us, and you can change it to $0.</li>
-        <li><strong>Tax status.</strong> We have applied to the IRS for recognition as a tax-exempt charity and are waiting for its decision. Until the IRS decides, we cannot tell you that a gift is tax-deductible. Our filings are on the <a href="../tax-documents/">Tax Documents</a> page.</li>
-        <li><strong>Your gift is public; your name is not.</strong> Every gift appears in our <a href="../financials/">public ledger</a> by date and amount. A donor is named only if they ask to be.</li>
-        <li><strong>Questions?</strong> Write to <a href="mailto:info@mercyworksoutreach.org">info@mercyworksoutreach.org</a>.</li>
-      </ul>
+      <div class="give-all">
+        <p>Rather give on Zeffy itself? Both campaigns are on our page there.</p>
+        <p><a class="button" href="https://www.zeffy.com/en-US/organizations/mercy-works-outreach" target="_blank" rel="noopener">Go to our Zeffy page</a></p>
+        <p class="note">The progress bars and giving forms above are provided by Zeffy and load from zeffy.com.</p>
+      </div>
 
-      <h2 id="goods">Non-Monetary Donations</h2>
-      <p>A list of the items we need is coming soon.</p>
+      <div class="support-more">
+        <section>
+          <h2 id="before">Before You Give</h2>
+          <ul class="give-notes">
+            <li><strong>Zeffy may suggest a tip.</strong> At checkout, Zeffy suggests an optional contribution to Zeffy itself. It does not come to us, and you can change it to $0.</li>
+            <li><strong>Tax status.</strong> We have applied to the IRS for recognition as a tax-exempt charity and are waiting for its decision. Until the IRS decides, we cannot tell you that a gift is tax-deductible. Our filings are on the <a href="../tax-documents/">Tax Documents</a> page.</li>
+            <li><strong>Your gift is public; your name is not.</strong> Every gift appears in our <a href="../financials/">public ledger</a> by date and amount. A donor is named only if they ask to be.</li>
+            <li><strong>Questions?</strong> Write to <a href="mailto:info@mercyworksoutreach.org">info@mercyworksoutreach.org</a>.</li>
+          </ul>
+        </section>
+        <section>
+          <h2 id="other">Other Ways to Help</h2>
+          <ul class="give-notes">
+            <li><strong>Volunteer.</strong> Join us on an outreach night. Write to <a href="mailto:info@mercyworksoutreach.org">info@mercyworksoutreach.org</a>.</li>
+            <li><strong>Share.</strong> Send this page to someone who would care.</li>
+            <li><strong>Pray.</strong> For the people we meet and for the volunteers who serve them.</li>
+            <li id="goods"><strong>Give goods.</strong> A list of the items we need is coming soon.</li>
+          </ul>
 
-      <h2 id="video">For Our Donors</h2>
-      <div class="video-placeholder" role="img" aria-label="Video coming soon">
-        <svg viewBox="0 0 48 48" width="52" height="52" aria-hidden="true" focusable="false">
-          <circle cx="24" cy="24" r="23" fill="#2A5599"/>
-          <path d="M19.5 15.5 33 24l-13.5 8.5Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
-        </svg>
-        <p>Video coming soon</p>
+          <h2 id="video">For Our Donors</h2>
+          <div class="video-placeholder" role="img" aria-label="Video coming soon">
+            <svg viewBox="0 0 48 48" width="52" height="52" aria-hidden="true" focusable="false">
+              <circle cx="24" cy="24" r="23" fill="#2A5599"/>
+              <path d="M19.5 15.5 33 24l-13.5 8.5Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+            <p>Video coming soon</p>
+          </div>
+        </section>
       </div>
     </main>
 
