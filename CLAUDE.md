@@ -46,7 +46,7 @@ The PDF redaction scripts in `tools/mac/` need macOS. Elsewhere, use another too
 - Publish only signed documents as executed. Check the signatures yourself.
 - Never link to or mention the GitHub history on the site.
 - Never edit a ledger row in a closed month, reuse an id, or force a balance. Enter rows with `ledger.add_rows()`.
-- Never change or remove a row of the stock log. Stock is given out as packages: packing and giving out are new rows (`context.md` section 5).
+- Never change or remove a row of the stock log unless Dylan asks. Stock is given out as kits: packing and giving out are new rows (`context.md` section 5).
 - Never add a donate button, a ledger category or a menu item unless Dylan asks.
 - Never rewrite git history or force-push unless Dylan asks.
 - The full list is `context.md` section 8.
