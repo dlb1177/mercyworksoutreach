@@ -2,4 +2,5 @@ fingerprint,date,amount,kind,method,status,refund,payout_date,ledger_ids,cleared
 ghfhfmfhcnigiknikfib,2026-11-20,250.00,online,card,succeeded,0.00,,2026-008,,,2026-11-21
 mjdindpimoiofhhhdpfc,2026-11-20,100.00,manual,cheque,succeeded,0.00,,2026-007,,,2026-11-21
 pbkckkkoobjmdkhoiabj,2026-11-20,395.90,manual,inKind,succeeded,0.00,,2026-001 2026-003 2026-005,,,2026-11-21
+kjbcgpmmfomiaenloljo,2026-11-20,585.00,manual,inKind,succeeded,0.00,,,,deposit,2026-11-23
 pjhcboocmlcicaealgim,2026-11-21,30.00,online,card,succeeded,0.00,,2026-009,,,2026-11-21
