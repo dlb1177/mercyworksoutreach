@@ -39,13 +39,26 @@
            giving form are Zeffy's own, shown in plain frames with no script, so the amounts raised
            are always Zeffy's. The frame addresses come from each campaign's Share dialog in Zeffy
            ("Thermometer" and "Embedded form"). The banners are our own copies of the campaign
-           banners. When a campaign is added, changed or closed in Zeffy, change its card here. -->
+           banners. When a campaign is added, changed or closed in Zeffy, change its card here.
+           On a phone each card starts as one small row. Tapping the row ticks the hidden box
+           above it, and the style sheet then shows the rest of the card. On a wide screen the
+           row is not shown and the cards are always open. There is no script. -->
       <div class="campaigns">
 
         <article class="campaign" aria-labelledby="campaign-kits">
+          <input type="checkbox" id="open-kits" class="campaign-toggle">
+          <label for="open-kits" class="campaign-row">
+            <img src="winter-kit-banner.jpg" alt="" width="64" height="64">
+            <span class="campaign-row-text">
+              <span class="campaign-row-title">Give 1,000 Winter Care Kits</span>
+              <span class="campaign-row-teaser">$5.85 puts a winter care kit in a neighbor&rsquo;s hands.</span>
+            </span>
+            <span class="campaign-row-open" aria-hidden="true"><span class="when-closed">Give</span><span class="when-open">Close</span></span>
+          </label>
+          <div class="campaign-full">
           <img class="campaign-banner" src="winter-kit-banner.jpg" width="1200" height="1200" alt="Every $5.85 gift buys one winter care kit. A kit laid out: two packs of hand warmers, a knit hat, a pair of gloves, a fleece scarf, an emergency thermal blanket and a small bottle of hand sanitizer. Our goal: distribute 1,000 kits to people in need this winter.">
           <div class="campaign-body">
-            <h2 id="campaign-kits">Give 1,000 Winter Comfort Packages</h2>
+            <h2 id="campaign-kits">Give 1,000 Winter Care Kits</h2>
             <p>$5.85 puts a winter care kit in a neighbor&rsquo;s hands. This winter our goal is to hand out 1,000 kits, one person at a time, to neighbors living on the street. Gifts to this campaign buy winter care kits.</p>
             <p class="campaign-basis">The first 100 are packed and in our <a href="../inventory/">inventory</a>. What they cost is listed under <a href="../financials/donated-goods.html">Donated Goods</a>.</p>
           </div>
@@ -56,9 +69,20 @@
             <iframe src="https://www.zeffy.com/embed/donation-form/give-1000-winter-comfort-packages" title="Giving form for the winter care kit campaign, provided by Zeffy" allow="payment *" allowpaymentrequest loading="lazy"></iframe>
           </div>
           <p class="campaign-link"><a href="https://www.zeffy.com/donation-form/give-1000-winter-comfort-packages" target="_blank" rel="noopener">Open this campaign on Zeffy</a></p>
+          </div>
         </article>
 
         <article class="campaign" aria-labelledby="campaign-launch">
+          <input type="checkbox" id="open-launch" class="campaign-toggle">
+          <label for="open-launch" class="campaign-row">
+            <img src="launch-banner.png" alt="" width="64" height="64">
+            <span class="campaign-row-text">
+              <span class="campaign-row-title">Help Launch Mercy Works Outreach</span>
+              <span class="campaign-row-teaser">Your gift helps us launch.</span>
+            </span>
+            <span class="campaign-row-open" aria-hidden="true"><span class="when-closed">Give</span><span class="when-open">Close</span></span>
+          </label>
+          <div class="campaign-full">
           <img class="campaign-banner" src="launch-banner.png" width="1200" height="1200" alt="Now launching: Mercy Works Outreach. Clothing, blankets, hygiene items, food. Minneapolis, Minnesota.">
           <div class="campaign-body">
             <h2 id="campaign-launch">Help Launch Mercy Works Outreach</h2>
@@ -71,6 +95,7 @@
             <iframe src="https://www.zeffy.com/embed/donation-form/support-outreach-supply-costs" title="Giving form for the launch campaign, provided by Zeffy" allow="payment *" allowpaymentrequest loading="lazy"></iframe>
           </div>
           <p class="campaign-link"><a href="https://www.zeffy.com/donation-form/support-outreach-supply-costs" target="_blank" rel="noopener">Open this campaign on Zeffy</a></p>
+          </div>
         </article>
 
       </div>
