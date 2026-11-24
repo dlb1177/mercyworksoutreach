@@ -1245,7 +1245,7 @@ def cmd_check(root):
     if books.problems:
         print("\ncheck FAILED: %d problem%s." % (len(books.problems), "" if len(books.problems) == 1 else "s"))
         return 1
-    print("check passed: %d ledger rows (%s), %d donated-goods lines, %d stock movements." % (
+    print("check passed: %d ledger rows (%s), %d donated-goods lines, %d inventory log rows." % (
         len(books.rows), ", ".join("%d in %d" % (len(books.year_rows(y)), y) for y in books.years), len(books.goods), len(books.stock)))
     return 0
 
