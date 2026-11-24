@@ -154,7 +154,7 @@ class LedgerTests(unittest.TestCase):
             _, blocking, written = ledger.build(root)
             self.assertEqual([], [str(p) for p in blocking])
             self.assertEqual(["financials/2030.html", "financials/donated-goods.html", "financials/index.html",
-                              "financials/ledger.html", "inventory/index.html", "inventory/log.html"], written)
+                              "financials/ledger.html", "inventory/index.html"], written)
             page = (root / "financials" / "index.html").read_text()
             for expected in ("$1,125.05", "$695.00", "$430.05", "13.7%", "statements/2030-02.pdf",
                              'href="ledger.html"', "10 transactions", 'href="general-ledger.csv"',
@@ -184,7 +184,10 @@ class LedgerTests(unittest.TestCase):
             self.assertIn("<td>Blanket <span", page)
             self.assertIn("<strong>5</strong>", page)
             self.assertIn("<strong>7</strong>", page)
-            page = (root / "inventory" / "log.html").read_text()
+            # the inventory log is on the same page, under the totals
+            self.assertLess(page.index('id="on-hand"'), page.index('id="log"'))
+            self.assertIn('href="inventory-log.csv"', page)
+            self.assertFalse((root / "inventory" / "log.html").exists())
             for expected in ("Outreach: North Loop", "donated-goods.html#gG2030-001", "ledger.html#r2030-004",
                              "One blanket found damaged", "\u22125", "+12"):
                 self.assertIn(expected, page)
@@ -198,7 +201,7 @@ class LedgerTests(unittest.TestCase):
         root = self.repo()
         items = root / "inventory" / "items.csv"
         items.write_text(items.read_text() + "Socks,pairs,Clothing and blankets\nComfort pack,packs,Clothing and blankets\n")
-        log = root / "inventory" / "stock-log.csv"
+        log = root / "inventory" / "inventory-log.csv"
         log.write_text(log.read_text() +
                        "S2030-006,2030-03-02,Socks,received,5,5,2030-004,\n"
                        "S2030-007,2030-03-03,Comfort pack,packed,5,5,,One pair of socks and one coat in each\n"
@@ -214,9 +217,7 @@ class LedgerTests(unittest.TestCase):
             self.assertIn(">Added</th>", page)
             self.assertNotIn("Socks", page)                     # all of it went into packs
             self.assertIn("<td>Winter coat <span", page)        # some is still loose, and some was given out
-            self.assertIn("7 entries", page)                    # the two rows for socks are not counted
-            page = (root / "inventory" / "log.html").read_text()
-            self.assertNotIn("Socks", page)
+            self.assertEqual(7, page.count('<tr id="sS2030-'))    # the two rows for socks are not in the log on the page
             self.assertNotIn("One pair of socks", page)
             for expected in ("Packed", "Packed into: Comfort pack", "\u22125", "+5",
                              '<a href="../financials/donated-goods.html">Donated goods</a> and <a href="../financials/ledger.html">purchases</a>'):

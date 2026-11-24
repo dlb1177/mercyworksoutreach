@@ -12,9 +12,8 @@ pages. It uses only the Python 3 standard library.
                                              financials/YYYY.html      summary of each year
                                              financials/ledger.html    every transaction, newest first
                                              financials/donated-goods.html   every gift of goods
-                                             inventory/index.html      what is on hand
-                                             inventory/log.html        every stock movement
-    python3 tools/ledger.py build --receipts-pending
+                                             inventory/index.html      what is on hand, and the inventory log
+                                                 python3 tools/ledger.py build --receipts-pending
                                              the same, but a receipt that has not been
                                              published yet shows as "Pending" on the page
                                              instead of stopping the build
@@ -50,21 +49,21 @@ What check verifies (the numbers are the rule numbers printed with each problem)
                          directors' names in the public files; a donor is named only
                          if they opted in
   11 Git hygiene         nothing under Books/, Document_Inbox/ or Formation_Docs/ is tracked
-  12 Stock log           ids, dates and items are valid; received is positive and
+  12 Inventory log       ids, dates and items are valid; received is positive and
                          distributed negative; each row's on_hand is that item's on_hand
                          above plus its quantity, and never below zero
-  13 Stock links         goods received trace to a donated-goods line or a purchase in
+  13 Inventory links     goods received trace to a donated-goods line or a purchase in
                          the ledger, and add up to the quantity donated; goods
                          distributed trace to an outreach in the distribution log;
                          goods packed point to the row for the packs they went into
 
-Packing. When loose goods are packed into packages (say, care packages), the stock log
+Packing. When loose goods are packed into packages (say, care packages), the inventory log
 gets one "packed" row for the packages made (a positive quantity, no ref) and, under
 it, one "packed" row for each item used (a negative quantity, ref set to the id of the
 row for the packages). Nothing is deleted: the goods are still traced from the gift
-or purchase, through the pack, to the outreach. The Inventory and Stock Log pages
-list only what can be given out, so an item whose whole stock went into packages is
-no longer listed there; the stock log file keeps every row.
+or purchase, through the pack, to the outreach. The Inventory page lists only what
+can be given out, so an item whose whole stock went into packages is no longer
+listed there; the inventory log file keeps every row.
 
 The method column says where the money moved:
   bank            on the bank statement
@@ -81,7 +80,7 @@ The other books, each one file since inception:
   financials/donated-goods.csv   gifts of goods (not cash), valued when given
   impact/distribution-log.csv    one row per outreach
   inventory/items.csv            the items we stock
-  inventory/stock-log.csv        every movement of stock in and out
+  inventory/inventory-log.csv    the inventory log: every time something was added or given out
 """
 
 import csv
@@ -118,7 +117,7 @@ DISTRIBUTIONS = "impact/distribution-log.csv"
 IMPACT_COLS = ["date", "area", "volunteers", "people_served_estimate", "items"]
 ITEMS = "inventory/items.csv"
 ITEM_COLS = ["item", "unit", "category"]
-STOCK = "inventory/stock-log.csv"
+STOCK = "inventory/inventory-log.csv"
 STOCK_COLS = ["id", "date", "item", "type", "quantity", "on_hand", "ref", "note"]
 STOCK_TYPES = {"received": "Received", "distributed": "Given out", "packed": "Packed", "adjustment": "Adjustment"}
 NO_MOVES = {"received": 0, "distributed": 0, "packed": 0, "adjustment": 0}
@@ -320,7 +319,7 @@ class Books:
             qty = r["qty"] = int(r["quantity"]) if re.match(r"^-?\d+$", r["quantity"]) else None
             have = int(r["on_hand"]) if re.match(r"^-?\d+$", r["on_hand"]) else None
 
-            # Rule 12: the stock log's own arithmetic
+            # Rule 12: the inventory log's own arithmetic
             if r["d"] is None:
                 self.problem(12, where, 'The date "%s" is not a real date written YYYY-MM-DD.' % r["date"], "Use YYYY-MM-DD.")
             else:
@@ -384,7 +383,7 @@ class Books:
         for gid, got in received_for.items():
             g = self.goods_by_id[gid]
             if g["quantity"].isdigit() and int(g["quantity"]) != got:
-                self.problem(13, g["_where"], "The gift is %s units but the stock log received %d from it." % (g["quantity"], got), "Make the stock log's received rows for %s add up to %s." % (gid, g["quantity"]))
+                self.problem(13, g["_where"], "The gift is %s units but the inventory log received %d from it." % (g["quantity"], got), "Make the inventory log's received rows for %s add up to %s." % (gid, g["quantity"]))
 
     # ---------- the ledger rules ----------
 
@@ -399,10 +398,10 @@ class Books:
         return bool(row["ref"]) and row["description"].startswith("Reverses")
 
     def listed(self, item):
-        """Whether the Inventory and Stock Log pages list this item.
+        """Whether the Inventory page lists this item.
 
         They list what can be given out or has been. An item that has never moved, or
-        whose whole stock went into packs, is left off; the stock log file keeps it.
+        whose whole stock went into packs, is left off; the inventory log file keeps it.
         """
         m = self.moved.get(item)
         return bool(m) and bool(m["received"] + m["packed"] or m["distributed"] or m["adjustment"])
@@ -1123,19 +1122,26 @@ def render_goods(books):
 
 
 def render_inventory(books):
-    """The Inventory page: what is on hand, item by item."""
+    """The Inventory page: what is on hand, and under it the inventory log.
+
+    One page on purpose. The table at the top is the totals; the inventory log under it
+    is every time something was added or given out, which is what the totals add up from.
+    """
+    listed = [item for item in books.items if books.listed(item)]
+    rows = [r for r in books.stock if books.listed(r["item"])]
+    ledger_ids = {r["id"] for r in books.rows}
+    adjusted = any(books.moved[item]["adjustment"] for item in listed)
     o = []
     w = o.append
     w('      <h1 class="title">Inventory</h1>')
     w('      <p class="fin-lead">What Mercy Works Outreach has on hand to give out, and what has already gone out.</p>')
     if books.stock:
-        w('      <p class="fin-status">As of %s.</p>' % long_date(books.stock[-1]["d"]))
-    adjusted = any(m["adjustment"] for item, m in books.moved.items() if books.listed(item))
+        w('      <p class="fin-status">As of %s &middot; <a href="inventory-log.csv">Download the inventory log as CSV</a></p>' % long_date(books.stock[-1]["d"]))
     w('')
+    w('      <h2 id="on-hand">On hand</h2>')
     w('      <table class="fin-table totals">')
     w('        <thead><tr><th scope="col">Item</th><th scope="col" class="num">Added</th><th scope="col" class="num">Given out</th>%s<th scope="col" class="num">On hand</th></tr></thead>' % ('<th scope="col" class="num">Adjusted</th>' if adjusted else ''))
     w('        <tbody>')
-    listed = [item for item in books.items if books.listed(item)]
     for item in listed:
         unit = books.items[item][0]
         m = books.moved[item]
@@ -1145,40 +1151,13 @@ def render_inventory(books):
     w('        </tbody>')
     w('      </table>')
     if not listed:
-        w('      <p class="note">Nothing is in stock yet.</p>')
+        w('      <p class="note">Nothing is in inventory yet.</p>')
 
-    n = len([r for r in books.stock if books.listed(r["item"])])
     w('')
-    w('      <h2 id="log">Stock log</h2>')
-    w('      <p>The stock log lists what has been added to stock and what has gone out. Goods come in as <a href="../financials/donated-goods.html">donated goods</a> or as purchases in the <a href="../financials/ledger.html">general ledger</a>, and go out at each outreach.</p>')
-    w('      <ul class="rows">')
-    w('        <li><a href="log.html">Stock Log</a> <span class="meta">%d %s</span></li>' % (n, "entry" if n == 1 else "entries"))
-    w('      </ul>')
-    w('')
-    w('      <h2 id="downloads">Downloads</h2>')
-    w('      <ul class="rows">')
-    w('        <li><a href="stock-log.csv">Stock Log</a> <span class="meta">CSV</span></li>')
-    w('      </ul>')
-    description = "What Mercy Works Outreach has on hand to give out, and what has already gone out."
-    return HEAD.format(title="Inventory", description=description, canonical="inventory/", page_class="") + "\n".join(o) + "\n" + FOOT
-
-
-def signed(n):
-    return "0" if n == 0 else ("+" if n > 0 else "\u2212") + "{:,}".format(abs(n))
-
-
-def render_stock_log(books):
-    """The Stock Log page: the movements of every listed item, newest month first."""
-    rows = [r for r in books.stock if books.listed(r["item"])]
-    ledger_ids = {r["id"] for r in books.rows}
-    o = []
-    w = o.append
-    w('      <h1 class="title">Stock Log</h1>')
-    w('      <p class="fin-lead">What has been added to stock and what has gone out, newest month first.</p>')
-    w('      <p class="fin-status"><a href="./">Back to the inventory</a> &middot; <a href="stock-log.csv">Download as CSV</a></p>')
-    w('')
+    w('      <h2 id="log">Inventory log</h2>')
+    w('      <p>Every time something was added to the inventory or given out, newest month first. The numbers above are added up from these lines. Goods come in as <a href="../financials/donated-goods.html">donated goods</a> or as purchases in the <a href="../financials/ledger.html">general ledger</a>, and go out at each outreach.</p>')
     w('      <table class="fin-table ledger stack">')
-    w('        <thead><tr><th scope="col">Date</th><th scope="col">Item</th><th scope="col">Movement</th><th scope="col" class="num">Quantity</th><th scope="col" class="num">On hand</th><th scope="col">Source or destination</th></tr></thead>')
+    w('        <thead><tr><th scope="col">Date</th><th scope="col">Item</th><th scope="col">What happened</th><th scope="col" class="num">Quantity</th><th scope="col" class="num">On hand after</th><th scope="col">From or to</th></tr></thead>')
     for ym in month_groups(rows):
         w('        <tbody>')
         w('          <tr class="group"><th scope="rowgroup" colspan="6">%s %d</th></tr>' % (MONTHS[ym[1] - 1], ym[0]))
@@ -1209,17 +1188,21 @@ def render_stock_log(books):
             w('          <tr id="s%s">' % esc(r["id"]))
             w('            ' + date_cell(r))
             w('            <td class="desc">%s</td>' % esc(r["item"]))
-            w('            <td data-label="Movement">%s</td>' % STOCK_TYPES[r["type"]])
+            w('            <td data-label="What happened">%s</td>' % STOCK_TYPES[r["type"]])
             w('            <td data-label="Quantity" class="num">%s</td>' % signed(r["qty"]))
-            w('            <td data-label="On hand" class="num">%s</td>' % "{:,}".format(int(r["on_hand"])))
-            w('            <td data-label="Source or destination">%s%s</td>' % (where or ('<span class="none">&ndash;</span>' if not note else ""), note))
+            w('            <td data-label="On hand after" class="num">%s</td>' % "{:,}".format(int(r["on_hand"])))
+            w('            <td data-label="From or to">%s%s</td>' % (where or ('<span class="none">&ndash;</span>' if not note else ""), note))
             w('          </tr>')
         w('        </tbody>')
     w('      </table>')
     if not rows:
-        w('      <p class="note">Nothing has moved yet.</p>')
-    description = "Mercy Works Outreach stock: what came in, what went out, and what is on hand."
-    return HEAD.format(title="Stock Log", description=description, canonical="inventory/log.html", page_class=" page-wide") + "\n".join(o) + "\n" + FOOT
+        w('      <p class="note">Nothing has been added or given out yet.</p>')
+    description = "What Mercy Works Outreach has on hand to give out, what has already gone out, and the log of every time something was added or given out."
+    return HEAD.format(title="Inventory", description=description, canonical="inventory/", page_class=" page-wide") + "\n".join(o) + "\n" + FOOT
+
+
+def signed(n):
+    return "0" if n == 0 else ("+" if n > 0 else "\u2212") + "{:,}".format(abs(n))
 
 
 def build(root, receipts_pending=False):
@@ -1234,8 +1217,7 @@ def build(root, receipts_pending=False):
     pages = {"financials/index.html": render_summary(books, max(books.years), True),
              "financials/ledger.html": render_ledger(books),
              "financials/donated-goods.html": render_goods(books),
-             "inventory/index.html": render_inventory(books),
-             "inventory/log.html": render_stock_log(books)}
+             "inventory/index.html": render_inventory(books)}
     for year in books.years:
         pages["financials/%d.html" % year] = render_summary(books, year, False)
     before = len(books.problems)

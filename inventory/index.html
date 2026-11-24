@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Inventory — Mercy Works Outreach</title>
-  <meta name="description" content="What Mercy Works Outreach has on hand to give out, and what has already gone out.">
+  <meta name="description" content="What Mercy Works Outreach has on hand to give out, what has already gone out, and the log of every time something was added or given out.">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -20,7 +20,7 @@
 <body>
   <!-- This page is written by tools/ledger.py from the CSV files in the repo.
        Do not edit it by hand: change the CSV, then run python3 tools/ledger.py build -->
-  <div class="page">
+  <div class="page page-wide">
 
     <header class="masthead">
       <p class="logo"><a href="../"><img src="../logo.svg" alt="Mercy Works Outreach" width="230" height="217"></a></p>
@@ -36,8 +36,9 @@
     <main class="fin">
       <h1 class="title">Inventory</h1>
       <p class="fin-lead">What Mercy Works Outreach has on hand to give out, and what has already gone out.</p>
-      <p class="fin-status">As of November 22, 2026.</p>
+      <p class="fin-status">As of November 22, 2026 &middot; <a href="inventory-log.csv">Download the inventory log as CSV</a></p>
 
+      <h2 id="on-hand">On hand</h2>
       <table class="fin-table totals">
         <thead><tr><th scope="col">Item</th><th scope="col" class="num">Added</th><th scope="col" class="num">Given out</th><th scope="col" class="num">On hand</th></tr></thead>
         <tbody>
@@ -45,16 +46,22 @@
         </tbody>
       </table>
 
-      <h2 id="log">Stock log</h2>
-      <p>The stock log lists what has been added to stock and what has gone out. Goods come in as <a href="../financials/donated-goods.html">donated goods</a> or as purchases in the <a href="../financials/ledger.html">general ledger</a>, and go out at each outreach.</p>
-      <ul class="rows">
-        <li><a href="log.html">Stock Log</a> <span class="meta">1 entry</span></li>
-      </ul>
-
-      <h2 id="downloads">Downloads</h2>
-      <ul class="rows">
-        <li><a href="stock-log.csv">Stock Log</a> <span class="meta">CSV</span></li>
-      </ul>
+      <h2 id="log">Inventory log</h2>
+      <p>Every time something was added to the inventory or given out, newest month first. The numbers above are added up from these lines. Goods come in as <a href="../financials/donated-goods.html">donated goods</a> or as purchases in the <a href="../financials/ledger.html">general ledger</a>, and go out at each outreach.</p>
+      <table class="fin-table ledger stack">
+        <thead><tr><th scope="col">Date</th><th scope="col">Item</th><th scope="col">What happened</th><th scope="col" class="num">Quantity</th><th scope="col" class="num">On hand after</th><th scope="col">From or to</th></tr></thead>
+        <tbody>
+          <tr class="group"><th scope="rowgroup" colspan="6">November 2026</th></tr>
+          <tr id="sS2026-005">
+            <td data-label="Date" class="date"><time datetime="2026-11-22">Nov 22</time> <span class="rowid">S2026-005</span></td>
+            <td class="desc">Winter Care Kit</td>
+            <td data-label="What happened">Packed</td>
+            <td data-label="Quantity" class="num">+100</td>
+            <td data-label="On hand after" class="num">100</td>
+            <td data-label="From or to"><a href="../financials/donated-goods.html">Donated goods</a></td>
+          </tr>
+        </tbody>
+      </table>
     </main>
 
   </div>
