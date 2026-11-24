@@ -403,28 +403,67 @@ h2.label::before { display: none; }
 }
 .button:hover { background: var(--deep-blue); color: var(--white); }
 
-/* One card for each campaign on Zeffy */
+/* One card for each campaign on Zeffy. Each card is one small row until it is opened.
+   The row is a label for a hidden checkbox at the top of the card; when the box is
+   ticked, the rest of the card is shown. There is no script. */
 .campaigns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 28px;
+  align-items: start;
+  gap: 20px 28px;
   margin: 34px 0 30px;
 }
 .campaign {
   position: relative;
-  display: flex;
-  flex-direction: column;
   border: 1px solid var(--hairline);
   border-radius: 10px;
   overflow: hidden;
   background: var(--white);
 }
-/* The small row a card shrinks to on a phone (see the narrow-screen rules below) */
-.campaign-toggle, .campaign-row { display: none; }
-.campaign-full { flex: 1 0 auto; display: flex; flex-direction: column; }
+.campaign-toggle { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; opacity: 0; }
+.campaign-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 94px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+.campaign-row:hover { background: var(--mist); }
+.campaign-row img { flex: none; width: 64px; height: 64px; border-radius: 6px; }
+.campaign-row-text { flex: 1 1 auto; min-width: 0; }
+.campaign-row-title {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 1.22rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--deep-blue);
+}
+.campaign-row-teaser { display: block; margin-top: 3px; font-size: 0.84rem; line-height: 1.35; color: var(--slate); }
+.campaign-row-open {
+  flex: none;
+  padding: 6px 14px 7px;
+  border: 1px solid var(--mercy-blue);
+  border-radius: 999px;
+  background: var(--mercy-blue);
+  color: var(--white);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+.campaign-row-open .when-open { display: none; }
+.campaign-toggle:focus-visible + .campaign-row { outline: 2px solid var(--mercy-blue); outline-offset: -3px; border-radius: 10px; }
+
+.campaign-full { display: none; }
+.campaign-toggle:checked ~ .campaign-full { display: block; border-top: 1px solid var(--hairline); }
+.campaign-toggle:checked + .campaign-row .campaign-row-open { background: var(--white); color: var(--mercy-blue); }
+.campaign-toggle:checked + .campaign-row .when-closed { display: none; }
+.campaign-toggle:checked + .campaign-row .when-open { display: inline; }
+
 .campaign-banner { display: block; width: 100%; height: auto; }
-.campaign-body { flex: 1 0 auto; padding: 24px 24px 4px; }
-.campaign h2 { margin: 0 0 12px; font-size: 1.6rem; line-height: 1.2; text-wrap: balance; }
+.campaign-body { padding: 20px 24px 4px; }
+/* The row already shows the title, so the heading in the card is for screen readers only */
+.campaign h2 { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .campaign h2::before { display: none; }
 .campaign-basis { font-size: 0.86rem; line-height: 1.55; color: var(--slate); }
 /* Zeffy's own progress bar and giving form, in plain frames */
@@ -458,49 +497,6 @@ h2.label::before { display: none; }
 @media (max-width: 860px) {
   .campaigns { grid-template-columns: 1fr; gap: 14px; max-width: 560px; margin-left: auto; margin-right: auto; }
   .support-more { grid-template-columns: 1fr; max-width: 636px; }
-
-  /* Each campaign is one small row until it is tapped. The row is a label for a hidden
-     checkbox; when the box is ticked the rest of the card is shown. */
-  .campaign-toggle { display: block; position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; opacity: 0; }
-  .campaign-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px 14px;
-    cursor: pointer;
-  }
-  .campaign-row img { flex: none; width: 64px; height: 64px; border-radius: 6px; }
-  .campaign-row-text { flex: 1 1 auto; min-width: 0; }
-  .campaign-row-title {
-    display: block;
-    font-family: var(--font-heading);
-    font-size: 1.22rem;
-    font-weight: 500;
-    line-height: 1.2;
-    color: var(--deep-blue);
-  }
-  .campaign-row-teaser { display: block; margin-top: 3px; font-size: 0.84rem; line-height: 1.35; color: var(--slate); }
-  .campaign-row-open {
-    flex: none;
-    padding: 6px 14px 7px;
-    border: 1px solid var(--mercy-blue);
-    border-radius: 999px;
-    background: var(--mercy-blue);
-    color: var(--white);
-    font-size: 0.84rem;
-    font-weight: 600;
-  }
-  .campaign-row-open .when-open { display: none; }
-  .campaign-toggle:focus-visible + .campaign-row { outline: 2px solid var(--mercy-blue); outline-offset: -3px; border-radius: 10px; }
-
-  .campaign-full { display: none; }
-  .campaign-toggle:checked ~ .campaign-full { display: block; border-top: 1px solid var(--hairline); }
-  .campaign-toggle:checked + .campaign-row .campaign-row-open { background: var(--white); color: var(--mercy-blue); }
-  .campaign-toggle:checked + .campaign-row .when-closed { display: none; }
-  .campaign-toggle:checked + .campaign-row .when-open { display: inline; }
-  /* The row already shows the title */
-  .campaign-full h2 { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .campaign-body { padding-top: 20px; }
 }
 @media (max-width: 480px) {
   .campaign-body { padding: 20px 18px 2px; }
