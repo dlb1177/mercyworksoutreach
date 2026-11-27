@@ -124,7 +124,7 @@ In priority order, most important first. The site lists them in this order. The 
 /links/index.html           Only forwards the old /links/ address to /info/
 /documents/index.html       Only forwards the old /documents/ address to /info/
 /documents/                 Published PDFs: articles-of-incorporation.pdf, board-actions/, tax/, volunteer/
-/impact/distribution-log.csv   One row per outreach (no page yet)
+/impact/distribution-log.csv   One row per outreach (no page of its own yet; each outreach shows on the Inventory page beside the kits given out)
 /style.css                  The one stylesheet shared by every page
 /logo.svg, /fonts/, favicons, site.webmanifest, open-graph-share-image-1200x630.png
 /tools/                     ledger.py, zeffy.py, their tests and fixtures, and mac/ (helper scripts)
@@ -369,7 +369,8 @@ Close each month within 15 days of the statement date, even a quiet month; the r
 - Online gifts are entered by the daily sync, so this snapshot goes out of date; `ledger.py summary` and `zeffy.py status` are always current.
 - **General ledger: 8 rows.** Six opening rows (three paid-directly pairs for the $395.90 of formation fees), the $100.00 opening deposit by check (2026-007), and a $250.00 gift given online (2026-008, method `zeffy`). Received $745.90, spent $395.90, balance $350.00: **cash in the bank $100.00, payout receivable $250.00.** All four receipts are published.
 - **No month has been closed.** No bank statement has arrived. When the November statement comes, confirm the posting date of the $100.00 deposit against it (it was made at 4:03 p.m. on Friday, Nov 20) before closing.
-- **Gift log: 4 lines**, $585.00 of goods given Nov 20, 2026, with the redacted invoice. **Stock: 100 Winter Care Kits on hand,** packed on Nov 22, 2026 from everything that was in stock (100 hand sanitizers, 100 emergency blankets, 100 winter sets and 200 hand-warmer 2-packs: one of each in a package, and two of the hand warmers). No loose items are left. Nothing has been given out, so the distribution log is empty.
+- **Gift log: 4 lines**, $585.00 of goods given Nov 20, 2026, with the redacted invoice. **Stock: 100 Winter Care Kits on hand,** packed on Nov 22, 2026 from everything that was in stock (100 hand sanitizers, 100 emergency blankets, 100 winter sets and 200 hand-warmer 2-packs: one of each in a package, and two of the hand warmers). No loose items are left.
+- **First outreach: Nov 27, 2026,** Cedar Riverside / Lake Street (Minneapolis), 10 volunteers, about 100 people served. **All 100 Winter Care Kits were given out** (inventory log S2026-010), so nothing is on hand. Sandwiches, hot chocolate and pastries were also handed out; they were donated on the day, were never inventory, and are only in the distribution log's `items` text. The filled form came from Dylan and is not published.
 - Every gift so far, cash and goods, came from one director.
 
 ---
@@ -511,7 +512,7 @@ One online gift ($250.00, Nov 20) is entered and not yet paid out; Zeffy pays ou
 - **Minnesota sales tax exemption** and **insurance quotes:** not started.
 - **An acknowledgment letter** to the director who gave, covering the formation gifts, the cheque, the online gift and the goods, signed by the president.
 - **The Distribution Log form** has been filled and checked on a Mac only. Dylan was asked to try it in Adobe Reader and on a phone.
-- **The first filled Distribution Log form.** No outreach has been recorded yet. It should come back with one line for packages given out.
+- **Food donated on the day of an outreach** (Nov 27, 2026: sandwiches, hot chocolate, pastries) is not in the Donated Goods log, because it has no recorded value or donor. Dylan was asked on Nov 27, 2026 whether gifts like that should be recorded as gifts in kind.
 - **The date the packages were made** was entered as Nov 22, 2026, the day Dylan said they were done. He was asked to say if it was another day.
 
 ### Placeholders on the site, to fill when the thing exists
